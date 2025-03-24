@@ -414,9 +414,9 @@ void AudioProcessor::setNonRealtime (bool newNonRealtime) noexcept
 
 void AudioProcessor::setLatencySamples (int newLatency)
 {
-    if (latencySamples != newLatency)
+    if (latencySamples.load() != newLatency)
     {
-        latencySamples = newLatency;
+        latencySamples.store(newLatency);
         updateHostDisplay (AudioProcessorListener::ChangeDetails().withLatencyChanged (true));
     }
 }
