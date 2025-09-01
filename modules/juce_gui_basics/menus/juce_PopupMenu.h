@@ -1051,10 +1051,10 @@ public:
     };
 
     //==============================================================================
-   #ifndef DOXYGEN
+    /** @cond */
     [[deprecated ("Use the new method.")]]
     int drawPopupMenuItem (Graphics&, int, int, bool, bool, bool, bool, bool, const String&, const String&, Image*, const Colour*) { return 0; }
-   #endif
+    /** @endcond */
 
 private:
     //==============================================================================
