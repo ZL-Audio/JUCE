@@ -1,0 +1,68 @@
+name: Sync Fork with Upstream JUCE Develop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    env:
+      WORKING_BRANCH: "master"
+      UPSTREAM_REPO: "https://github.com/juce-framework/JUCE.git"
+      UPSTREAM_BRANCH: "develop"
+
+    steps:
+      - name: Checkout Fork
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.WORKING_BRANCH }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add Upstream Remote
+        run: git remote add upstream ${{ env.UPSTREAM_REPO }}
+
+      - name: Sync Fork
+        id: sync_step
+        run: |
+          set -e # Exit immediately if a command fails
+
+          echo ">>> Fetching latest updates from upstream..."
+          git fetch upstream
+
+          echo ">>> Finding common ancestor commit..."
+          COMMIT_BASE=$(git merge-base upstream/${{ env.UPSTREAM_BRANCH }} HEAD)
+
+          PATCH_DIR=$(mktemp -d)
+
+          echo ">>> Saving custom commits to a temporary location..."
+          git format-patch "$COMMIT_BASE"..HEAD --output-directory "$PATCH_DIR"
+
+          if [ -z "$(ls -A "$PATCH_DIR")" ]; then
+              echo ">>> No custom commits found. Resetting to latest upstream."
+              git reset --hard upstream/${{ env.UPSTREAM_BRANCH }}
+          else
+              echo ">>> Successfully saved $(ls -1q "$PATCH_DIR" | wc -l) custom commits."
+              
+              echo ">>> Resetting branch to be identical to upstream..."
+              git reset --hard upstream/${{ env.UPSTREAM_BRANCH }}
+              
+              echo ">>> Re-applying custom commits..."
+              if ! git am --3way "$PATCH_DIR"/*.patch; then
+                  echo "::error::Automatic patch application failed due to conflicts. Please resolve the conflicts manually in your local repository and push the changes."
+                  git am --abort
+                  exit 1
+              fi
+          fi
+          
+          echo ">>> Pushing changes to fork..."
+          git push --force-with-lease origin ${{ env.WORKING_BRANCH }}
+
+          echo "Fork sync complete!"
+        shell: bash
