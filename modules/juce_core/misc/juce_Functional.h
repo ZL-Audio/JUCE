@@ -66,6 +66,8 @@ struct NullCheckedInvocation
 
     template <typename... Args>
     static void invoke (std::nullptr_t, Args&&...) {}
+
+    NullCheckedInvocation() = delete;
 };
 
 /** Can be used to disable template constructors that would otherwise cause ambiguity with
