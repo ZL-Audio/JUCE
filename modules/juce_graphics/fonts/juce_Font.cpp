@@ -66,7 +66,8 @@ public:
 
     Typeface::Ptr findTypefaceFor (const Font& font)
     {
-        const Key key { font.getTypefaceName(), font.getTypefaceStyle() };
+        const Key key { font.getTypefaceName(),
+                        font.getTypefaceStyle() };
 
         jassert (key.name.isNotEmpty());
 
@@ -184,7 +185,28 @@ public:
         const ScopedLock lock (mutex);
 
         if (typeface == nullptr)
-            typeface = options.getTypeface() != nullptr ? options.getTypeface() : TypefaceCache::getInstance()->findTypefaceFor (f);
+        {
+            if (! f.getVariableSettings().empty())
+            {
+                jassert (options.getTypeface() == nullptr);
+
+                if (auto masterTypeface = TypefaceCache::getInstance()->findTypefaceFor (FontOptions{}.withName (f.getTypefaceName()));
+                    masterTypeface != nullptr)
+                {
+                    typeface = masterTypeface->cloneWithVariableSettings (f.getVariableSettings());
+
+                    if (typeface != nullptr)
+                        options = options.withVariableSettings (typeface->getConfiguredVariables());
+                }
+            }
+            else if (auto userTypeface = options.getTypeface(); userTypeface != nullptr)
+            {
+                typeface = userTypeface;
+            }
+
+            if (typeface == nullptr)
+                typeface = TypefaceCache::getInstance()->findTypefaceFor (f);
+        }
 
         return typeface;
     }
@@ -243,17 +265,34 @@ public:
     bool getFallbackEnabled() const              { return options.getFallbackEnabled(); }
     TypefaceMetricsKind getMetricsKind() const   { return options.getMetricsKind(); }
     auto getFeatureSettings() const              { return options.getFeatureSettings(); }
+    auto getVariableSettings() const             { return options.getVariableSettings(); }
 
     void setFeatureSetting (const FontFeatureSetting& feature)
     {
         jassert (getReferenceCount() == 1);
         options = options.withFeatureSetting (feature);
+        resetTypeface();
     }
 
     void removeFeatureSetting (FontFeatureTag feature)
     {
         jassert (getReferenceCount() == 1);
         options = options.withFeatureRemoved (feature);
+        resetTypeface();
+    }
+
+    void setVariableSettings (Span<const FontVariableSetting> variables)
+    {
+        jassert (getReferenceCount() == 1);
+        options = options.withVariableSettings (variables);
+        resetTypeface();
+    }
+
+    void removeVariableSetting (FontFeatureTag tag)
+    {
+        jassert (getReferenceCount() == 1);
+        options = options.withVariableRemoved (tag);
+        resetTypeface();
     }
 
     std::optional<float> getAscentOverride() const  { return options.getAscentOverride(); }
@@ -272,7 +311,10 @@ public:
         typeface = newTypeface;
 
         if (typeface != nullptr)
-            options = options.withTypeface (nullptr).withName ("").withStyle ("");
+            options = options.withTypeface (nullptr)
+                             .withName ("")
+                             .withStyle ("")
+                             .withVariableSettings ({});
 
         options = options.withTypeface (typeface);
     }
@@ -754,6 +796,30 @@ void Font::removeFeatureSetting (FontFeatureTag featureToRemove)
 {
     dupeInternalIfShared();
     font->removeFeatureSetting (featureToRemove);
+}
+
+void Font::setVariableSettings (Span<const FontVariableSetting> variables)
+{
+    dupeInternalIfShared();
+    font->setVariableSettings (variables);
+}
+
+void Font::removeVariableSetting (FontFeatureTag variableToRemove)
+{
+    dupeInternalIfShared();
+    font->removeVariableSetting (variableToRemove);
+}
+
+Font Font::withVariableSettings (Span<const FontVariableSetting> variables) const
+{
+    Font f { *this };
+    f.setVariableSettings (variables);
+    return f;
+}
+
+Span<const FontVariableSetting> Font::getVariableSettings() const&
+{
+    return font->getVariableSettings();
 }
 
 void Font::setBold (const bool shouldBeBold)

@@ -377,8 +377,7 @@ public:
     //==============================================================================
     /** Returns an Span view of the features configured for this font instance.
 
-        Use Typeface::getSupportedFeatures() to determine what features this font
-        supports.
+        Use Typeface::getSupportedFeatures() to determine what features this font supports.
 
         @see setFeatureEnabled, setFeatureDisabled, removeFeature,
              Typeface::getSupportedFeatures
@@ -404,6 +403,53 @@ public:
         @see setFeatureEnabled, setFeatureDisabled, Typeface::getSupportedFeatures
     */
     void removeFeatureSetting (FontFeatureTag featureToRemove);
+
+    /** Replaces the current variable settings for this font.
+
+        Variable font settings control the interpolation between different font designs along axes
+        like weight, width, or slant.
+
+        Use Typeface::getSupportedVariables() to query which axes are available and their valid
+        ranges before setting values.
+
+        Unsupported or out-of-range variables will be removed or clamped respectively. This happens
+        at Typeface resolution (on first use or a call to getTypefacePtr).
+
+        @param variables  A span of variable settings to apply to the font
+
+        @see Typeface::getSupportedVariables
+    */
+    void setVariableSettings (Span<const FontVariableSetting> variables);
+
+    /** Removes a specific variable setting from this font.
+
+        @param variableToRemove  The tag identifying the variable axis to remove
+
+        @see setVariableSettings, getVariableSettings, Typeface::getSupportedVariables
+    */
+    void removeVariableSetting (FontFeatureTag variableToRemove);
+
+    /** Returns a copy of this font with the specified variable settings.
+
+        @param variables  A span of variable settings to apply to the font
+
+        @see setVariableSettings, getVariableSettings, Typeface::getSupportedVariables,
+             Typeface::getConfiguredVariables
+    */
+    [[nodiscard]] Font withVariableSettings (Span<const FontVariableSetting> variables) const;
+
+    /** Returns a Span of the variable settings configured for this font instance.
+
+        The settings are guaranteed to be sorted by tag.
+
+        Use Typeface::getSupportedVariables() to determine which variable axes this font supports
+        and their valid ranges.
+
+        @see setVariableSettings, withVariableSettings, Typeface::getSupportedVariables,
+             Typeface::getConfiguredVariables
+    */
+    Span<const FontVariableSetting> getVariableSettings() const&;
+    Span<const FontVariableSetting> getVariableSettings() const&& = delete;
 
     //==============================================================================
     /** Returns the font's horizontal scale.
