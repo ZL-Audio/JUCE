@@ -790,7 +790,7 @@ struct MetricsRecord
 class TypefaceTests : public UnitTest
 {
 public:
-    TypefaceTests() : UnitTest ("Typeface", UnitTestCategories::graphics) {}
+    TypefaceTests() : UnitTest ("Typeface", UnitTestCategories::fonts) {}
 
     void runTest() override
     {
@@ -1128,7 +1128,7 @@ static TypefaceTests typefaceTests;
 class FontFeatureTests : public UnitTest
 {
 public:
-    FontFeatureTests() : UnitTest ("Font Features", UnitTestCategories::graphics) {}
+    FontFeatureTests() : UnitTest ("Font Features", UnitTestCategories::fonts) {}
 
     void runTest() override
     {

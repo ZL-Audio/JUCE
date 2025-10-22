@@ -151,7 +151,7 @@ bool FontOptions::operator>= (const FontOptions& other) const { return tie() >= 
 class FontFeatureContainerTests : public UnitTest
 {
 public:
-    FontFeatureContainerTests() : UnitTest ("FontFeatureContainerTests", UnitTestCategories::text)
+    FontFeatureContainerTests() : UnitTest ("FontFeatureContainerTests", UnitTestCategories::fonts)
     {
     }
 

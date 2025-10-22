@@ -982,7 +982,7 @@ Typeface::Ptr Font::getDefaultTypefaceForFont (const Font& font)
 class FontTests : public UnitTest
 {
 public:
-    FontTests() : UnitTest ("Font", UnitTestCategories::graphics) {}
+    FontTests() : UnitTest ("Font", UnitTestCategories::fonts) {}
 
     void runTest() override
     {
