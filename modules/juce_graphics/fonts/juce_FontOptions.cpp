@@ -261,6 +261,92 @@ private:
 
 static FontFeatureContainerTests fontFeatureContainerTests;
 
+class FontVariableSettingsTests : public UnitTest
+{
+public:
+    FontVariableSettingsTests() : UnitTest ("FontVariableSettingsTests", UnitTestCategories::fonts)
+    {
+    }
+
+    void runTest() override
+    {
+        beginTest ("Variable settings can be added");
+        {
+            const auto options = FontOptions{}.withStyle ("")
+                                              .withVariableSetting (FontVariableSetting ("wght", 700.0f));
+
+            expectEquals ((int) options.getVariableSettings().size(), 1);
+            expect (compareVariableLists (options.getVariableSettings(), { FontVariableSetting ("wght", 700.0f) }));
+        }
+
+        beginTest ("Variable settings can be updated");
+        {
+            const auto options = FontOptions{}.withStyle ("")
+                                              .withVariableSetting (FontVariableSetting ("wght", 700.0f))
+                                              .withVariableSetting (FontVariableSetting ("wght", 400.0f));
+
+            expectEquals ((int) options.getVariableSettings().size(), 1);
+            expect (compareVariableLists (options.getVariableSettings(), { FontVariableSetting ("wght", 400.0f) }));
+        }
+
+        beginTest ("Multiple variable settings can be added");
+        {
+            const auto options = FontOptions{}.withStyle ("")
+                                              .withVariableSetting (FontVariableSetting ("wght", 700.0f))
+                                              .withVariableSetting (FontVariableSetting ("wdth", 75.0f));
+
+            expectEquals ((int) options.getVariableSettings().size(), 2);
+        }
+
+        beginTest ("Variable settings are always sorted by tag");
+        {
+            const auto options = FontOptions{}.withStyle ("")
+                                              .withVariableSetting (FontVariableSetting ("wght", 700.0f))
+                                              .withVariableSetting (FontVariableSetting ("wdth", 75.0f))
+                                              .withVariableSetting (FontVariableSetting ("slnt", -10.0f));
+
+            expectEquals ((int) options.getVariableSettings().size(), 3);
+            expect (compareVariableLists (options.getVariableSettings(), { FontVariableSetting ("slnt", -10.0f),
+                                                                           FontVariableSetting ("wdth", 75.0f),
+                                                                           FontVariableSetting ("wght", 700.0f) }));
+        }
+
+        beginTest ("Variable settings can be removed");
+        {
+            const auto options = FontOptions{}.withStyle ("")
+                                              .withVariableSetting (FontVariableSetting ("wght", 700.0f))
+                                              .withVariableSetting (FontVariableSetting ("wdth", 75.0f))
+                                              .withVariableRemoved (FontFeatureTag ("wght"));
+
+            expectEquals ((int) options.getVariableSettings().size(), 1);
+            expect (compareVariableLists (options.getVariableSettings(), { FontVariableSetting ("wdth", 75.0f) }));
+        }
+
+        beginTest ("Multiple variable settings can be set at once with withVariableSettings");
+        {
+            std::vector<FontVariableSetting> settings = { FontVariableSetting ("wght", 700.0f),
+                                                          FontVariableSetting ("wdth", 75.0f),
+                                                          FontVariableSetting ("slnt", -10.0f) };
+
+            const auto options = FontOptions{}.withStyle ("").withVariableSettings (settings);
+
+            expectEquals ((int) options.getVariableSettings().size(), 3);
+            expect (compareVariableLists (options.getVariableSettings(), { FontVariableSetting ("slnt", -10.0f),
+                                                                           FontVariableSetting ("wdth", 75.0f),
+                                                                           FontVariableSetting ("wght", 700.0f) }));
+        }
+    }
+
+private:
+    static bool compareVariableLists (Span<const FontVariableSetting> input,
+                                      std::initializer_list<const FontVariableSetting> expected)
+    {
+        return std::equal (input.begin(), input.end(), expected.begin(), expected.end());
+    }
+};
+
+static FontVariableSettingsTests fontVariableSettingsTests;
+
 #endif
 
 
