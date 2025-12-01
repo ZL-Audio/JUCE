@@ -82,4 +82,37 @@ String FontFeatureTag::toString() const
     return String { characters };
 }
 
+constexpr auto FontVariableSetting::tie() const { return std::tuple (tag, value); }
+
+constexpr bool FontVariableSetting::operator< (const FontVariableSetting& other) const
+{
+    return tie() < other.tie();
+}
+
+constexpr bool FontVariableSetting::operator<= (const FontVariableSetting& other) const
+{
+    return tie() <= other.tie();
+}
+
+constexpr bool FontVariableSetting::operator> (const FontVariableSetting& other) const
+{
+    return tie() > other.tie();
+}
+
+constexpr bool FontVariableSetting::operator>= (const FontVariableSetting& other) const
+{
+    return tie() >= other.tie();
+}
+
+constexpr bool FontVariableSetting::operator!= (const FontVariableSetting& other) const
+{
+    return tie() != other.tie();
+}
+
+constexpr bool FontVariableSetting::operator== (const FontVariableSetting& other) const
+{
+    return tag == other.tag && approximatelyEqual (value, other.value);
+}
+
+
 } // namespace juce
