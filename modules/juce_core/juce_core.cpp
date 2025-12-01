@@ -283,6 +283,7 @@
  #include "containers/juce_ListenerList_test.cpp"
  #include "maths/juce_MathsFunctions_test.cpp"
  #include "misc/juce_EnumHelpers_test.cpp"
+ #include "misc/juce_OrderedContainerHelpers_test.cpp"
  #include "containers/juce_FixedSizeFunction_test.cpp"
  #include "json/juce_JSONSerialisation_test.cpp"
  #include "memory/juce_SharedResourcePointer_test.cpp"
