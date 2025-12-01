@@ -138,6 +138,9 @@ public:
         /** The menu item's name. */
         String text;
 
+        /** The menu item's tooltip. */
+        String tooltipText = "";
+
         /** The menu item's ID.
             This must not be 0 if you want the item to be triggerable, but if you're attaching
             an action callback to the item, you can set the itemID to -1 to indicate that it
