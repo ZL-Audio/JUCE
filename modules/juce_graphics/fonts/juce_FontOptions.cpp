@@ -103,29 +103,13 @@ auto FontOptions::tie() const
                        underlined);
 }
 
-struct FontFeatureSettingSortHelper
-{
-    bool operator() (FontFeatureSetting a, FontFeatureSetting b) const
-    {
-        return a.tag < b.tag;
-    }
-
-    bool operator() (FontFeatureTag a, FontFeatureSetting b) const
-    {
-        return a < b.tag;
-    }
-
-    bool operator() (FontFeatureSetting a, FontFeatureTag b) const
-    {
-        return a.tag < b;
-    }
-};
-
 FontOptions FontOptions::withFeatureSetting (FontFeatureSetting newSetting) const
 {
     auto copy = *this;
 
-    OrderedContainerHelpers::insertOrAssign (copy.features, newSetting, FontFeatureSettingSortHelper{});
+    OrderedContainerHelpers::insertOrAssign (copy.features,
+                                             newSetting,
+                                             FontComparators::FeatureSettingComparator{});
 
     return copy;
 }
@@ -134,7 +118,9 @@ FontOptions FontOptions::withFeatureRemoved (FontFeatureTag featureTag) const
 {
     auto copy = *this;
 
-    OrderedContainerHelpers::remove (copy.features, featureTag, FontFeatureSettingSortHelper{});
+    OrderedContainerHelpers::remove (copy.features,
+                                     featureTag,
+                                     FontComparators::FeatureSettingComparator{});
 
     return copy;
 }

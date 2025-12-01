@@ -4638,6 +4638,7 @@
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\harfbuzz\hb.hh"/>
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_AttributedString.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_Font.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_FontComparators.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_FontFeatures.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_FontOptions.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_FunctionPointerDestructor.h"/>

@@ -7281,6 +7281,9 @@
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_Font.h">
       <Filter>JUCE Modules\juce_graphics\fonts</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_FontComparators.h">
+      <Filter>JUCE Modules\juce_graphics\fonts</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_graphics\fonts\juce_FontFeatures.h">
       <Filter>JUCE Modules\juce_graphics\fonts</Filter>
     </ClInclude>
