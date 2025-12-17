@@ -300,7 +300,7 @@ public:
         typeface.
 
         @see FontFeatureTag, FontFeatureSetting, FontOptions, Font
-     */
+    */
     std::vector<FontFeatureTag> getSupportedFeatures() const;
 
     /** @internal */
