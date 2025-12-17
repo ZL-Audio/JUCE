@@ -171,6 +171,11 @@ public:
                                      font.getTypefaceStyle());
     }
 
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    {
+        return nullptr;
+    }
+
     static Typeface::Ptr from (Span<const std::byte> data)
     {
         // We can't use CFDataCreate here as this triggers a false positive in ASAN

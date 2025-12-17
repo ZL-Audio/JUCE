@@ -43,6 +43,11 @@ public:
             factories->getFonts().removeCollection (collection);
     }
 
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    {
+        return nullptr;
+    }
+
     static Typeface::Ptr from (const Font& f)
     {
         const auto name = f.getTypefaceName();

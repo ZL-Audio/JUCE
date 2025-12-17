@@ -368,6 +368,11 @@ class FreeTypeTypeface final : public Typeface
     };
 
 public:
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    {
+        return nullptr;
+    }
+
     static Typeface::Ptr from (const Font& font)
     {
         const auto name = font.getTypefaceName();

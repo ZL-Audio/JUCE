@@ -265,6 +265,11 @@ public:
         return {};
     }
 
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    {
+        return nullptr;
+    }
+
     ~AndroidTypeface() override
     {
         if (doCache == DoCache::yes)

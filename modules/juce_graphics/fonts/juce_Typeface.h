@@ -263,6 +263,25 @@ public:
     */
     virtual Typeface::Ptr createSystemFallback (const String& text, const String& language) const = 0;
 
+    //==============================================================================
+    /** Creates and returns a copy of this typeface configured with the specified variable font settings.
+
+        Variable fonts (also known as OpenType Font Variations) allow a single font file to contain
+        multiple design variations along one or more axes, such as weight, width, slant, optical size,
+        and custom axes defined by the font designer. This method creates a new typeface instance with
+        the specified axis values applied. Any variable settings applied to the original typeface will
+        be replaced in the returned instance.
+
+        This method does not check or cache typefaces, calling this twice with the same settings will
+        return a unique pointer.
+
+        @param settings     the variable settings to apply to configure the new typeface instance.
+        @returns            A unique Typeface::Ptr or nullptr if this typeface is not a variable typeface.
+
+        @see getSupportedVariables, getRangeForVariable, getDefaultValueForVariable
+    */
+    [[nodiscard]] virtual Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const = 0;
+
     /** Returns the system's default UI font.
 
         This will differ depending on the platform.
@@ -308,7 +327,7 @@ public:
 
         The returned tags are in sorted order.
 
-        @see FontFeatureTag, FontFeatureSetting
+        @see FontFeatureTag, FontFeatureSetting, cloneWithVariableSettings
     */
     [[nodiscard]] Span<const FontFeatureTag> getSupportedVariables() const&;
     [[nodiscard]] Span<const FontFeatureTag> getSupportedVariables() const&& = delete;
@@ -320,14 +339,14 @@ public:
         regular style of the typeface. For example, a variable font's 'wght' (weight) axis
         might have a default value of 400 (Regular weight).
 
-        @see getSupportedVariables, getRangeForVariable
+        @see getSupportedVariables, getRangeForVariable, cloneWithVariableSettings
     */
     [[nodiscard]] std::optional<float> getDefaultValueForVariable (FontFeatureTag variableTag) const;
 
     /** Returns the valid range for a specific variable font axis, or std::nullopt if the variable
         is not supported by this font.
 
-        @see getSupportedVariables, getDefaultValueForVariable
+        @see getSupportedVariables, getDefaultValueForVariable, cloneWithVariableSettings
     */
     [[nodiscard]] std::optional<Range<float>> getRangeForVariable (FontFeatureTag variableTag) const;
 
@@ -351,8 +370,7 @@ public:
                  named instance. The settings will be sorted by tag. Returns an empty span
                  if the instance name is not found or if this is not a variable font.
 
-
-        @see getInstanceNames, getSupportedVariables
+        @see getInstanceNames, getSupportedVariables, cloneWithVariableSettings
     */
     [[nodiscard]] Span<const FontVariableSetting> getNamedInstanceConfiguration (StringRef instanceName) const&;
     [[nodiscard]] Span<const FontVariableSetting> getNamedInstanceConfiguration (StringRef instanceName) const&& = delete;
