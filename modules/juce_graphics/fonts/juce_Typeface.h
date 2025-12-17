@@ -299,9 +299,70 @@ public:
         small caps, stylistic alternates, etc.) that are available in the current
         typeface.
 
-        @see FontFeatureTag, FontFeatureSetting, FontOptions, Font
+        @see FontFeatureTag, FontFeatureSetting
     */
     std::vector<FontFeatureTag> getSupportedFeatures() const;
+
+    //==============================================================================
+    /** Returns the OpenType variable settings supported by this typeface.
+
+        The returned tags are in sorted order.
+
+        @see FontFeatureTag, FontFeatureSetting
+    */
+    [[nodiscard]] Span<const FontFeatureTag> getSupportedVariables() const&;
+    [[nodiscard]] Span<const FontFeatureTag> getSupportedVariables() const&& = delete;
+
+    /** Returns the default value for a specific variable font axis, or std::nullopt if the variable
+        is not supported by this font.
+
+        Variable fonts define a default value for each axis, which represents the normal or
+        regular style of the typeface. For example, a variable font's 'wght' (weight) axis
+        might have a default value of 400 (Regular weight).
+
+        @see getSupportedVariables, getRangeForVariable
+    */
+    [[nodiscard]] std::optional<float> getDefaultValueForVariable (FontFeatureTag variableTag) const;
+
+    /** Returns the valid range for a specific variable font axis, or std::nullopt if the variable
+        is not supported by this font.
+
+        @see getSupportedVariables, getDefaultValueForVariable
+    */
+    [[nodiscard]] std::optional<Range<float>> getRangeForVariable (FontFeatureTag variableTag) const;
+
+    /** Returns the predefined named instances supported by this variable typeface. */
+    [[nodiscard]] Span<const String> getInstanceNames() const&;
+    [[nodiscard]] Span<const String> getInstanceNames() const&& = delete;
+
+    /** Returns the variable font axis settings for a specific named instance.
+
+        Many variable fonts include predefined named instances that represent common design
+        variations, such as "Bold", "Light", "Condensed", etc. Each named instance is a
+        collection of axis values that together define a specific style.
+
+        Named instances provide a convenient way to access commonly-used variations without
+        needing to know the specific axis values.
+
+        @param instanceName  The name of the instance to query. Use getInstanceNames() to get
+                             the available instance names for this typeface.
+
+        @returns A span of FontVariableSetting objects that define the axis values for this
+                 named instance. The settings will be sorted by tag. Returns an empty span
+                 if the instance name is not found or if this is not a variable font.
+
+
+        @see getInstanceNames, getSupportedVariables
+    */
+    [[nodiscard]] Span<const FontVariableSetting> getNamedInstanceConfiguration (StringRef instanceName) const&;
+    [[nodiscard]] Span<const FontVariableSetting> getNamedInstanceConfiguration (StringRef instanceName) const&& = delete;
+
+    /** Returns the OpenType variable settings this typeface was configured with.
+
+        The returned variables will be sorted by tag.
+    */
+    [[nodiscard]] Span<const FontVariableSetting> getConfiguredVariables() const&;
+    [[nodiscard]] Span<const FontVariableSetting> getConfiguredVariables() const&& = delete;
 
     /** @internal */
     class Native;

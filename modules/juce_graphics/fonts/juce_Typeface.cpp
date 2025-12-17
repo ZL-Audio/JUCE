@@ -158,10 +158,197 @@ struct TypefaceFallbackColourGlyphSupport
     virtual std::vector<GlyphLayer> getFallbackColourGlyphLayers (int, const AffineTransform&) const = 0;
 };
 
+//==============================================================================
+class VariableAxisRegistry
+{
+public:
+    explicit VariableAxisRegistry (hb_font_t* font)
+        : instanceNames (findInstanceNames (hb_font_get_face (font)))
+    {
+        auto* face = hb_font_get_face (font);
+        const auto hbVarInfos = std::invoke ([face]
+        {
+            auto count = hb_ot_var_get_axis_count (face);
+            std::vector<hb_ot_var_axis_info_t> infos (count);
+            hb_ot_var_get_axis_infos (face, 0, &count, infos.data());
+            return infos;
+        });
+
+        indexMap.resize (hbVarInfos.size());
+        std::iota (indexMap.begin(), indexMap.end(), 0);
+        std::sort (indexMap.begin(), indexMap.end(), [&] (auto leftIndex, auto rightIndex)
+        {
+            return hbVarInfos[leftIndex].tag < hbVarInfos[rightIndex].tag;
+        });
+
+        tags.reserve (hbVarInfos.size());
+        axes.reserve (hbVarInfos.size());
+
+        for (auto index : indexMap)
+        {
+            tags.emplace_back ((uint32) hbVarInfos[index].tag);
+            axes.push_back ({ hbVarInfos[index].default_value,
+                              Range { hbVarInfos[index].min_value,
+                                      hbVarInfos[index].max_value } });
+        }
+
+        const auto instanceCount = hb_ot_var_get_named_instance_count (face);
+
+        for (size_t i = 0; i < instanceCount; ++i)
+        {
+            auto instanceSettings = std::invoke ([i, face]
+            {
+                std::vector<FontVariableSetting> variables;
+                auto numAxis = hb_ot_var_get_axis_count (face);
+
+                if (numAxis <= 0)
+                    return variables;
+
+                std::vector<float> coords (numAxis);
+                std::vector<hb_ot_var_axis_info_t> info (numAxis);
+                hb_ot_var_get_axis_infos (face, 0, &numAxis, info.data());
+
+                const auto numCoords = hb_ot_var_named_instance_get_design_coords (face,
+                                                                                   (unsigned int) i,
+                                                                                   &numAxis,
+                                                                                   coords.data());
+
+                variables.reserve (numCoords);
+
+                for (unsigned int j = 0; j < numCoords; ++j)
+                    variables.emplace_back (FontFeatureTag { (uint32) info[j].tag }, coords[j]);
+
+                std::sort (variables.begin(),
+                           variables.end(),
+                           FontComparators::VariableSettingComparator{});
+
+                return variables;
+            });
+
+            instances[instanceNames[i]] = std::move (instanceSettings);
+        }
+    }
+
+    size_t getSize() const { return indexMap.size(); }
+
+    Span<const size_t> getIndexMap() const { return indexMap; }
+
+    Span<const FontFeatureTag> getSupportedVariables() const { return tags; }
+
+    std::vector<FontVariableSetting> sanitiseVariables (Span<const FontVariableSetting> userVariables) const
+    {
+        std::vector<FontVariableSetting> sanitised;
+        sanitised.reserve (userVariables.size());
+
+        for (auto var : userVariables)
+        {
+            if (auto range = getRangeForVariable (var.tag))
+            {
+                sanitised.push_back ({ var.tag, range->clipValue (var.value) });
+            }
+        }
+
+        std::sort (sanitised.begin(),
+                   sanitised.end(),
+                   FontComparators::VariableSettingComparator{});
+
+        return sanitised;
+    }
+
+    std::optional<float> getDefaultValueForVariable (FontFeatureTag tag) const
+    {
+        if (auto index = getIndex (tag))
+            return axes[*index].defaultValue;
+
+        return std::nullopt;
+    }
+
+    std::optional<Range<float>> getRangeForVariable (FontFeatureTag tag) const
+    {
+        if (auto index = getIndex (tag))
+            return axes[*index].range;
+
+        return std::nullopt;
+    }
+
+    Span<const String> getInstanceNames() const
+    {
+        return instanceNames;
+    }
+
+    Span<const FontVariableSetting> getNamedInstanceConfiguration (StringRef instanceName) const
+    {
+        auto iter = instances.find (instanceName);
+        return iter != instances.end() ? iter->second : Span<const FontVariableSetting>{};
+    }
+
+    std::optional<size_t> getOriginalIndexForTag (FontFeatureTag tag) const
+    {
+        if (auto index = getIndex (tag))
+            return std::make_optional (indexMap[*index]);
+
+        return std::nullopt;
+    }
+
+    static std::vector<String> findInstanceNames (hb_face_t* face)
+    {
+        std::vector<String> result;
+
+        for (unsigned int i = 0, instanceCount = hb_ot_var_get_named_instance_count (face); i < instanceCount; ++i)
+        {
+            result.push_back (std::invoke ([&]
+            {
+                const auto id = hb_ot_var_named_instance_get_subfamily_name_id (face, i);
+                const auto genuineName = getHbOtName (face, id);
+                return genuineName.isNotEmpty() ? genuineName : "Instance " + String ((int) i);
+            }));
+        }
+
+        return result;
+    }
+
+private:
+    static String getHbOtName (hb_face_t* face, hb_ot_name_id_t id)
+    {
+        auto length = hb_ot_name_get_utf8 (face, id, {}, {}, {}) + 1;
+        std::vector<char> buffer (length);
+        hb_ot_name_get_utf8 (face, id, {}, &length, buffer.data());
+        return String { CharPointer_UTF8 { buffer.data() } };
+    }
+
+    std::optional<size_t> getIndex (FontFeatureTag tag) const
+    {
+        auto iter = OrderedContainerHelpers::find (tags, tag);
+
+        if (iter != tags.end())
+            return std::make_optional ((size_t) std::distance (tags.begin(), iter));
+
+        return std::nullopt;
+    }
+
+    struct Axis
+    {
+        float defaultValue;
+        Range<float> range;
+    };
+
+    std::vector<FontFeatureTag> tags;
+    std::vector<Axis> axes;
+    std::vector<size_t> indexMap;
+
+    // We 'store' the names twice to allow for Span access to the names only.
+    std::vector<String> instanceNames;
+    std::map<String, std::vector<FontVariableSetting>> instances;
+
+    JUCE_DECLARE_NON_COPYABLE (VariableAxisRegistry)
+    JUCE_DECLARE_NON_MOVEABLE (VariableAxisRegistry)
+};
+
 struct TypefaceNativeOptions
 {
     HbFont font;
     TypefaceVerticalMetrics metrics;
+    std::vector<FontVariableSetting> variables{};
     TypefaceFallbackColourGlyphSupport* colourGlyphSupport{};
 };
 
@@ -274,12 +461,19 @@ public:
     explicit Native (TypefaceNativeOptions options)
         : font (std::move (options.font)),
           nonPortable (options.metrics),
-          colourGlyphSupport (options.colourGlyphSupport)
+          colourGlyphSupport (options.colourGlyphSupport),
+          variableRegistry (getFont()),
+          configuredVariables (std::move (options.variables))
     {
+        configureHarfbuzzFontVariables (getFont(), configuredVariables);
     }
 
     // Returns the backing HarfBuzz font with a size of 1 pt (i.e. 1 pt per em).
     hb_font_t* getFont() const { return font.get(); }
+
+    bool isConfigurableTypeface() const { return variableRegistry.getSize() != 0; }
+
+    [[nodiscard]] const VariableAxisRegistry& getVariableRegistry() const { return variableRegistry; }
 
     TypefaceVerticalMetrics getAscentDescent (TypefaceMetricsKind kind) const
     {
@@ -335,7 +529,30 @@ public:
         return colourGlyphSupport->getFallbackColourGlyphLayers (glyph, transform);
     }
 
+    [[nodiscard]] Span<const FontVariableSetting> getConfiguredVariables() const&& = delete;
+    [[nodiscard]] Span<const FontVariableSetting> getConfiguredVariables() const&
+    {
+        return configuredVariables;
+    }
+
 private:
+    static void configureHarfbuzzFontVariables (hb_font_t* font,
+                                                Span<const FontVariableSetting> settings)
+    {
+        std::vector<hb_variation_t> hbVars;
+        hbVars.reserve (settings.size());
+
+        std::transform (settings.begin(),
+                        settings.end(),
+                        std::back_inserter (hbVars),
+                        [] (FontVariableSetting setting)
+        {
+            return hb_variation_t { setting.tag.getTag(), setting.value };
+        });
+
+        hb_font_set_variations (font, hbVars.data(), (unsigned int) hbVars.size());
+    }
+
     HbFont font;
     TypefaceVerticalMetrics nonPortable;
     TypefaceVerticalMetrics portable = std::invoke ([&]
@@ -355,6 +572,9 @@ private:
     TypefaceFallbackColourGlyphSupport* colourGlyphSupport;
     mutable LruCache<std::tuple<float, float>, HbFont> subFontCache;
     mutable LruCache<hb_codepoint_t, std::optional<hb_glyph_extents_t>, 512> glyphExtentsCache;
+
+    VariableAxisRegistry variableRegistry;
+    std::vector<FontVariableSetting> configuredVariables;
 };
 
 struct TypefaceUtils
@@ -742,6 +962,36 @@ std::vector<FontFeatureTag> Typeface::getSupportedFeatures() const
     features.erase (std::unique (features.begin(), features.end()), features.end());
 
     return features;
+}
+
+Span<const FontFeatureTag> Typeface::getSupportedVariables() const&
+{
+    return getNativeDetails()->getVariableRegistry().getSupportedVariables();
+}
+
+std::optional<float> Typeface::getDefaultValueForVariable (FontFeatureTag variableTag) const
+{
+    return getNativeDetails()->getVariableRegistry().getDefaultValueForVariable (variableTag);
+}
+
+std::optional<Range<float>> Typeface::getRangeForVariable (FontFeatureTag variableTag) const
+{
+    return getNativeDetails()->getVariableRegistry().getRangeForVariable (variableTag);
+}
+
+Span<const String> Typeface::getInstanceNames() const&
+{
+    return getNativeDetails()->getVariableRegistry().getInstanceNames();
+}
+
+Span<const FontVariableSetting> Typeface::getNamedInstanceConfiguration (StringRef instanceName) const&
+{
+    return getNativeDetails()->getVariableRegistry().getNamedInstanceConfiguration (instanceName);
+}
+
+Span<const FontVariableSetting> Typeface::getConfiguredVariables() const&
+{
+    return getNativeDetails()->getConfiguredVariables();
 }
 
 //==============================================================================
