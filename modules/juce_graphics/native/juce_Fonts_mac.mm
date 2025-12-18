@@ -171,9 +171,66 @@ public:
                                      font.getTypefaceStyle());
     }
 
-    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    static CFUniquePtr<CFDictionaryRef> createVariableDictionary (Span<const FontVariableSetting> variables)
     {
-        return nullptr;
+        Array<CFStringRef> keys;
+        Array<CFNumberRef> values;
+
+        for (auto v : variables)
+        {
+            keys.add (v.tag.toString().toCFString());
+            const auto valueAsCGFloat = (CGFloat) v.value;
+            values.add (CFNumberCreate (kCFAllocatorDefault, kCFNumberCGFloatType, &valueAsCGFloat));
+        }
+
+        const ScopeGuard stringReleaser { [&] { for (auto key : keys) CFRelease (key); } };
+
+        return CFUniquePtr<CFDictionaryRef> { CFDictionaryCreate (kCFAllocatorDefault,
+                                                                  (const void**) keys.data(),
+                                                                  (const void**) values.data(),
+                                                                  (CFIndex) variables.size(),
+                                                                  &kCFTypeDictionaryKeyCallBacks,
+                                                                  nullptr) };
+    }
+
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> variables) const override
+    {
+        auto sanitisedVariables = getNativeDetails()->getVariableRegistry().sanitiseVariables (variables);
+        auto variableDict = createVariableDictionary (sanitisedVariables);
+
+        if (variableDict == nullptr)
+        {
+            jassertfalse;
+            return {};
+        }
+
+        CFUniquePtr<CGFontRef> baseCGFont { CTFontCopyGraphicsFont (ctFont.get(), nullptr) };
+
+        if (baseCGFont == nullptr)
+            return {};
+
+        CFUniquePtr<CGFontRef> newCGFont { CGFontCreateCopyWithVariations (baseCGFont.get(),
+                                                                           variableDict.get()) };
+
+        if (newCGFont == nullptr)
+            return {};
+
+        CFUniquePtr<CTFontRef> newFont { CTFontCreateWithGraphicsFont (newCGFont.get(), 1.0f, {}, {}) };
+
+        if (newFont == nullptr)
+            return {};
+
+        HbFont result { hb_coretext_font_create (newFont.get()), IncrementRef::no };
+
+        if (result == nullptr)
+            return {};
+
+        return new CoreTextTypeface (std::move (newFont),
+                                     std::move (result),
+                                     getName(),
+                                     "",
+                                     {},
+                                     std::move (sanitisedVariables));
     }
 
     static Typeface::Ptr from (Span<const std::byte> data)
@@ -322,11 +379,14 @@ private:
                       HbFont fontIn,
                       const String& name,
                       const String& style,
-                      MemoryBlock data = {})
+                      MemoryBlock data = {},
+                      std::vector<FontVariableSetting>&& variables = {})
         : Typeface (name, style),
           ctFont (std::move (nativeFont)),
           storage (std::move (data)),
-          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (fontIn), getNativeMetrics (ctFont.get()) }))
+          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (fontIn),
+                                                                    getNativeMetrics (ctFont.get()),
+                                                                    std::move (variables) }))
     {
         if (! storage.isEmpty())
             getRegistered().add (ctFont.get());
