@@ -135,7 +135,8 @@ public:
                         careful not to pass an out-of-range index here, as it
                         doesn't do any bounds-checking.
     */
-    PositionedGlyph& getGlyph (int index) noexcept;
+    [[nodiscard]] PositionedGlyph& getGlyph (int index) noexcept;
+    [[nodiscard]] const PositionedGlyph& getGlyph (int index) const noexcept;
 
     const PositionedGlyph* begin() const                        { return glyphs.begin(); }
     const PositionedGlyph* end() const                          { return glyphs.end(); }

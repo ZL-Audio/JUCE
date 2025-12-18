@@ -147,6 +147,11 @@ PositionedGlyph& GlyphArrangement::getGlyph (int index) noexcept
     return glyphs.getReference (index);
 }
 
+const PositionedGlyph& GlyphArrangement::getGlyph (int index) const noexcept
+{
+    return glyphs.getReference (index);
+}
+
 //==============================================================================
 void GlyphArrangement::addGlyphArrangement (const GlyphArrangement& other)
 {
