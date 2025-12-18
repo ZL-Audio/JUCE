@@ -43,9 +43,54 @@ public:
             factories->getFonts().removeCollection (collection);
     }
 
-    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
     {
-        return nullptr;
+        ComSmartPtr<IDWriteFontFace5> fontFace5;
+        ComSmartPtr<IDWriteFontResource> resource;
+
+        if (FAILED (dwFontFace->QueryInterface (fontFace5.resetAndGetPointerAddress()))
+            || FAILED (fontFace5->GetFontResource (resource.resetAndGetPointerAddress())))
+        {
+            // This version of Windows doesn't support DirectWrite3 (Windows 10 Build 16299).
+            jassertfalse;
+            return {};
+        }
+
+        const auto& registry = getNativeDetails()->getVariableRegistry();
+        auto sanitisedVariables = registry.sanitiseVariables (settings);
+
+        std::vector<DWRITE_FONT_AXIS_VALUE> axes (sanitisedVariables.size());
+        std::transform (sanitisedVariables.begin(),
+                        sanitisedVariables.end(),
+                        axes.begin(),
+                        [] (FontVariableSetting var)
+        {
+            return DWRITE_FONT_AXIS_VALUE { (DWRITE_FONT_AXIS_TAG) ByteOrder::swap (var.tag.getTag()),
+                                            var.value };
+        });
+
+        ComSmartPtr<IDWriteFontFace5> configuredFontFace;
+        auto hr = resource->CreateFontFace (DWRITE_FONT_SIMULATIONS_NONE,
+                                            axes.data(),
+                                            (UINT32) axes.size(),
+                                            configuredFontFace.resetAndGetPointerAddress());
+
+        if (FAILED (hr))
+            return {};
+
+        HbFace hbFace { hb_directwrite_face_create (configuredFontFace), IncrementRef::no };
+        HbFont font { hb_font_create (hbFace.get()), IncrementRef::no };
+
+        const auto dwMetrics = getDwriteMetrics (*fontFace5);
+
+        return new WindowsDirectWriteTypeface (getName(),
+                                               "",
+                                               dwFont,
+                                               configuredFontFace,
+                                               std::move (font),
+                                               dwMetrics,
+                                               nullptr,
+                                               std::move (sanitisedVariables));
     }
 
     static Typeface::Ptr from (const Font& f)
@@ -277,12 +322,15 @@ private:
                                 ComSmartPtr<IDWriteFontFace> face,
                                 HbFont hbFontIn,
                                 TypefaceVerticalMetrics metrics,
-                                ComSmartPtr<IDWriteFontCollection> collectionIn = nullptr)
+                                ComSmartPtr<IDWriteFontCollection> collectionIn = nullptr,
+                                std::vector<FontVariableSetting>&& settings = {})
         : Typeface (name, style),
           collection (std::move (collectionIn)),
           dwFont (font),
           dwFontFace (face),
-          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbFontIn), metrics }))
+          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbFontIn),
+                                                                    metrics,
+                                                                    std::move (settings) }))
     {
         if (collection != nullptr)
             factories->getFonts().addCollection (collection);
