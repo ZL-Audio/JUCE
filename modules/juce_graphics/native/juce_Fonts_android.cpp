@@ -29,9 +29,10 @@ namespace juce
 #undef JNI_CLASS_MEMBERS
 
 #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \
- METHOD (create,       "<init>",      "(Ljava/nio/ByteBuffer;)V") \
- METHOD (setTtcIndex,  "setTtcIndex", "(I)Landroid/graphics/fonts/Font$Builder;") \
- METHOD (build,        "build",       "()Landroid/graphics/fonts/Font;") \
+ METHOD (create,                   "<init>",                   "(Ljava/nio/ByteBuffer;)V") \
+ METHOD (setTtcIndex,              "setTtcIndex",              "(I)Landroid/graphics/fonts/Font$Builder;") \
+ METHOD (setFontVariationSettings, "setFontVariationSettings", "(Ljava/lang/String;)Landroid/graphics/fonts/Font$Builder;") \
+ METHOD (build,                    "build",                    "()Landroid/graphics/fonts/Font;")
 
  DECLARE_JNI_CLASS_WITH_MIN_SDK (AndroidFontBuilder, "android/graphics/fonts/Font$Builder", 29)
 #undef JNI_CLASS_MEMBERS
@@ -265,9 +266,40 @@ public:
         return {};
     }
 
-    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
     {
-        return nullptr;
+        auto nativeDetails = getNativeDetails();
+        auto blob = nativeDetails->getBlob();
+
+        unsigned int blobSize = 0;
+        auto* blobData = hb_blob_get_data (blob.get(), &blobSize);
+        auto metrics = findNonPortableMetricsForData ({ (const std::byte*) blobData, blobSize });
+        auto newFace = FontStyleHelpers::getFaceForBlob ({ blobData, blobSize }, 0);
+
+        if (newFace == nullptr)
+        {
+            jassertfalse;
+            return {};
+        }
+
+        HbFont hbFont { hb_font_create (newFace.get()), IncrementRef::no };
+
+        auto sanitisedVariables = nativeDetails->getVariableRegistry().sanitiseVariables (settings);
+
+        const auto androidFont = shouldStoreAndroidFont (newFace.get())
+                               ? makeAndroidFont ({ reinterpret_cast<const std::byte*> (blobData),
+                                                                                        blobSize },
+                                                  0,
+                                                  sanitisedVariables)
+                               : GlobalRef{};
+
+        return new AndroidTypeface (DoCache::no,
+                                    std::move (hbFont),
+                                    metrics,
+                                    getName(),
+                                    "",
+                                    androidFont,
+                                    std::move (sanitisedVariables));
     }
 
     ~AndroidTypeface() override
@@ -375,7 +407,9 @@ private:
             && ! (hb_ot_color_has_layers (face) || hb_ot_color_has_png (face));
     }
 
-    static GlobalRef makeAndroidFont (Span<const std::byte> blob, unsigned int index)
+    static GlobalRef makeAndroidFont (Span<const std::byte> blob,
+                                      unsigned int index,
+                                      Span<const FontVariableSetting> variables = {})
     {
         auto* env = getEnv();
 
@@ -397,6 +431,24 @@ private:
         env->CallObjectMethod (builder,
                                AndroidFontBuilder.setTtcIndex,
                                (jint) index);
+
+        if (! variables.empty())
+        {
+            const auto androidVariableSettings = std::invoke ([variables]
+            {
+                String s;
+
+                for (const auto& variable : variables)
+                    s << "\'" << variable.tag.toString() << "\' " << variable.value << ", ";
+
+                return s.dropLastCharacters (2);
+            });
+
+            env->CallObjectMethod (builder,
+                                   AndroidFontBuilder.setFontVariationSettings,
+                                   javaString (androidVariableSettings).get());
+        }
+
         LocalRef<jobject> androidFont { env->CallObjectMethod (builder,
                                                                AndroidFontBuilder.build) };
 
@@ -457,11 +509,15 @@ private:
                      TypefaceVerticalMetrics nonPortableMetricsIn,
                      const String& name,
                      const String& style,
-                     GlobalRef javaFontIn)
+                     GlobalRef javaFontIn,
+                     std::vector<FontVariableSetting>&& settings = {})
         : Typeface (name, style),
           doCache (cache),
           javaFont (std::move (javaFontIn)),
-          native (std::make_unique<Native> (TypefaceNativeOptions { fontIn, nonPortableMetricsIn, this }))
+          native (std::make_unique<Native> (TypefaceNativeOptions { fontIn,
+                                                                    nonPortableMetricsIn,
+                                                                    std::move (settings),
+                                                                    this }))
     {
         if (doCache == DoCache::yes)
             if (auto* c = MemoryFontCache::getInstance())
