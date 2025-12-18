@@ -52,10 +52,10 @@
 #pragma once
 
 #include "../Assets/DemoUtilities.h"
+#include "../Assets/FontListComponent.h"
 
 //==============================================================================
-class FontsDemo final : public Component,
-                        private ListBoxModel
+class FontsDemo final : public Component
 {
 public:
     FontsDemo()
@@ -63,7 +63,7 @@ public:
         setName ("Fonts demo");
         setOpaque (true);
 
-        addAndMakeVisible (listBox);
+        addAndMakeVisible (fontListComponent);
         addAndMakeVisible (demoTextBox);
         addAndMakeVisible (heightSlider);
         addAndMakeVisible (heightLabel);
@@ -102,13 +102,12 @@ public:
         underlineToggle.onClick  = [this] { refreshPreviewBoxFont(); };
         styleBox       .onChange = [this] { refreshPreviewBoxFont(); };
 
-        Font::findFonts (fonts);   // Generate the list of fonts
-
-        listBox.setTitle ("Fonts");
-        listBox.setRowHeight (20);
-        listBox.setModel (this);   // Tell the listbox where to get its data model
-        listBox.setColour (ListBox::textColourId, Colours::black);
-        listBox.setColour (ListBox::backgroundColourId, Colours::white);
+        fontListComponent.rescan();
+        fontListComponent.onFontSelected = [&]
+        {
+            resetMetricsSliders();
+            refreshPreviewBoxFont();
+        };
 
         heightSlider .setRange (3.0, 150.0, 0.01);
         scaleSlider  .setRange (0.2, 3.0, 0.01);
@@ -130,7 +129,7 @@ public:
         addAndMakeVisible (verticalDividerBar.get());
 
         // ..and pick a random font to select initially
-        listBox.selectRow (Random::getSystemRandom().nextInt (fonts.size()));
+        fontListComponent.selectRow (Random::getSystemRandom().nextInt (fontListComponent.getNumFonts()));
 
         demoTextBox.setMultiLine (true);
         demoTextBox.setReturnKeyStartsNewLine (true);
@@ -169,7 +168,7 @@ public:
         auto r = getLocalBounds().reduced (5);
 
         // lay out the list box and vertical divider..
-        Component* vcomps[] = { &listBox, verticalDividerBar.get(), nullptr };
+        Component* vcomps[] = { &fontListComponent, verticalDividerBar.get(), nullptr };
 
         verticalLayout.layOutComponents (vcomps, 3,
                                          r.getX(), r.getY(), r.getWidth(), r.getHeight(),
@@ -214,50 +213,16 @@ public:
         demoTextBox.setBounds (r);
     }
 
-    // The following methods implement the ListBoxModel virtual methods:
-    int getNumRows() override
-    {
-        return fonts.size();
-    }
-
-    void paintListBoxItem (int rowNumber, Graphics& g,
-                           int width, int height, bool rowIsSelected) override
-    {
-        if (rowIsSelected)
-            g.fillAll (Colours::lightblue);
-
-        auto font = getFont (rowNumber);
-
-        AttributedString s;
-        s.setWordWrap (AttributedString::none);
-        s.setJustification (Justification::centredLeft);
-        s.append (getNameForRow (rowNumber), font.withPointHeight ((float) height * 0.7f), Colours::black);
-        s.append ("   " + font.getTypefaceName(), FontOptions ((float) height * 0.5f, Font::italic), Colours::grey);
-
-        s.draw (g, Rectangle<int> (width, height).expanded (-4, 50).toFloat());
-    }
-
-    String getNameForRow (int rowNumber) override
-    {
-        return getFont (rowNumber).getTypefaceName();
-    }
-
-    void selectedRowsChanged (int /*lastRowselected*/) override
-    {
-        resetMetricsSliders();
-        refreshPreviewBoxFont();
-    }
-
 private:
     Font getFont (int rowNumber) const
     {
-        return isPositiveAndBelow (rowNumber, fonts.size()) ? fonts.getUnchecked (rowNumber) : FontOptions{};
+        return isPositiveAndBelow (rowNumber, fontListComponent.getNumFonts()) ? fontListComponent.getFontForRow (rowNumber)
+                                                                               : FontOptions{};
     }
 
-    Array<Font> fonts;
+    FontListComponent fontListComponent;
     StringArray currentStyleList;
 
-    ListBox listBox;
     TextEditor demoTextBox;
 
     Label heightLabel  { {}, "Height:" },
@@ -307,7 +272,7 @@ private:
 
     void resetMetricsSliders()
     {
-        auto font = getFont (listBox.getSelectedRow());
+        auto font = getFont (fontListComponent.getSelectedRow());
         font.setPointHeight (1.0f);
 
         ascentSlider .setValue (font.getAscentInPoints());
@@ -340,7 +305,7 @@ private:
         auto italic = italicToggle.getToggleState();
         auto useStyle = ! (bold || italic);
 
-        auto font = getFont (listBox.getSelectedRow());
+        auto font = getFont (fontListComponent.getSelectedRow());
 
         font = font.withPointHeight        ((float) heightSlider .getValue())
                    .withExtraKerningFactor ((float) kerningSlider.getValue())
