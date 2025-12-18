@@ -368,9 +368,61 @@ class FreeTypeTypeface final : public Typeface
     };
 
 public:
-    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting>) const override
+    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
     {
-        return nullptr;
+        // FreeType uses a 16.16 fixed-point format (FT_Fixed) to represent fractional values.
+        // Multiplying or dividing by 65536 allows us to convert to and from float.
+        static constexpr float ftFixedMultiplier = 65536.0f;
+        static auto floatToFTFixed = [] (float v)
+        {
+            return (FT_Fixed) (v * ftFixedMultiplier);
+        };
+
+        auto newFreeTypeFace = std::invoke ([this]
+        {
+            auto blob = getNativeDetails()->getBlob();
+
+            unsigned int blobSize = 0;
+            const auto* data = hb_blob_get_data (blob.get(), &blobSize);
+
+            return FTFaceWrapper::from (FTTypefaceList::getInstance()->getLibrary(),
+                                        data,
+                                        blobSize,
+                                        0);
+        });
+
+        const auto& registry = getNativeDetails()->getVariableRegistry();
+        auto sanitisedVariables = registry.sanitiseVariables (settings);
+
+        if (newFreeTypeFace != nullptr)
+        {
+            std::vector<FT_Fixed> coords (registry.getSize());
+            FT_Get_Var_Design_Coordinates (newFreeTypeFace->face,
+                                           (FT_UInt) coords.size(),
+                                           coords.data());
+
+            // We have to apply the variables in their original order.
+            // Thankfully we have that information in the registry.
+            for (const auto& var : settings)
+            {
+                if (auto index = registry.getOriginalIndexForTag (var.tag))
+                    coords[*index] = floatToFTFixed (var.value);
+            }
+
+            FT_Set_Var_Design_Coordinates (newFreeTypeFace->face,
+                                           (FT_UInt) coords.size(),
+                                           coords.data());
+        }
+
+        HbFace hbFace { hb_ft_face_create_referenced (newFreeTypeFace->face), IncrementRef::no };
+        HbFont hb { hb_font_create (hbFace.get()), IncrementRef::no };
+
+        return new FreeTypeTypeface (DoCache::no,
+                                     std::move (newFreeTypeFace),
+                                     std::move (hb),
+                                     getName(),
+                                     "",
+                                     std::move (sanitisedVariables));
     }
 
     static Typeface::Ptr from (const Font& font)
@@ -557,11 +609,14 @@ private:
                       FTFaceWrapper::Ptr ftFaceIn,
                       HbFont hbIn,
                       const String& nameIn,
-                      const String& styleIn)
+                      const String& styleIn,
+                      std::vector<FontVariableSetting>&& settings = {})
         : Typeface (nameIn, styleIn),
           ftFace (ftFaceIn),
           doCache (cache),
-          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbIn), getNativeMetrics (ftFaceIn) }))
+          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbIn),
+                                                                    getNativeMetrics (ftFaceIn),
+                                                                    std::move (settings) }))
     {
         if (doCache == DoCache::yes)
             if (auto* list = FTTypefaceList::getInstance())

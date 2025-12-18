@@ -535,6 +535,12 @@ public:
         return configuredVariables;
     }
 
+    HbBlob getBlob() const
+    {
+        auto face = hb_font_get_face (getFont());
+        return HbBlob { hb_face_reference_blob (face), IncrementRef::no };
+    }
+
 private:
     static void configureHarfbuzzFontVariables (hb_font_t* font,
                                                 Span<const FontVariableSetting> settings)
