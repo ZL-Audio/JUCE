@@ -92,6 +92,7 @@ auto FontOptions::tie() const
                        typeface.get(),
                        fallbacks,
                        features,
+                       variables,
                        metricsKind,
                        ascentOverride,
                        descentOverride,
@@ -123,6 +124,58 @@ FontOptions FontOptions::withFeatureRemoved (FontFeatureTag featureTag) const
                                      FontComparators::FeatureSettingComparator{});
 
     return copy;
+}
+
+FontOptions FontOptions::withVariableSetting (FontVariableSetting variableSetting) const
+{
+    jassert (std::isfinite (variableSetting.value));
+
+    if (typeface == nullptr && style.isEmpty())
+    {
+        auto copy = *this;
+        OrderedContainerHelpers::insertOrAssign (copy.variables,
+                                                 variableSetting,
+                                                 FontComparators::VariableSettingComparator{});
+        return copy;
+    }
+
+    // Use Typeface::cloneWithVariableSettings to configure an existing typeface.
+    jassertfalse;
+    return *this;
+}
+
+FontOptions FontOptions::withVariableSettings (Span<const FontVariableSetting> variableSettings) const
+{
+    if (variableSettings.empty() || (typeface == nullptr && style.isEmpty()))
+    {
+        auto copy = *this;
+        copy.variables = { variableSettings.begin(), variableSettings.end() };
+        std::sort (copy.variables.begin(),
+                   copy.variables.end(),
+                   FontComparators::VariableSettingComparator{});
+
+        return copy;
+    }
+
+    // Use Typeface::cloneWithVariableSettings to configure an existing typeface.
+    jassertfalse;
+    return *this;
+}
+
+FontOptions FontOptions::withVariableRemoved (FontFeatureTag featureTag) const
+{
+    if (typeface == nullptr && style.isEmpty())
+    {
+        auto copy = *this;
+        OrderedContainerHelpers::remove (copy.variables,
+                                         featureTag,
+                                         FontComparators::VariableSettingComparator{});
+        return copy;
+    }
+
+    // Use Typeface::cloneWithVariableSettings to configure an existing typeface.
+    jassertfalse;
+    return *this;
 }
 
 bool FontOptions::operator== (const FontOptions& other) const { return tie() == other.tie(); }
