@@ -842,7 +842,7 @@ public:
         The host will call this to find the latency - the processor itself should set this value
         by calling setLatencySamples() as soon as it can during its initialisation.
     */
-    int getLatencySamples() const noexcept                      { return latencySamples; }
+    int getLatencySamples() const noexcept                      { return latencySamples.load(); }
 
     /** Your processor subclass should call this to set the number of samples delay that it introduces.
 
@@ -1605,7 +1605,8 @@ private:
     Array<AudioProcessorListener*> listeners;
     AudioProcessorEditor* activeEditor = nullptr;
     double currentSampleRate = 0;
-    int blockSize = 0, latencySamples = 0;
+    int blockSize = 0;
+    std::atomic<int> latencySamples{0};
     bool suspended = false;
     std::atomic<bool> nonRealtime { false };
     ProcessingPrecision processingPrecision = singlePrecision;
