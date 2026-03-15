@@ -228,8 +228,7 @@ void Path::lineTo (const float x, const float y)
 {
     JUCE_CHECK_COORDS_ARE_VALID (x, y)
 
-    if (data.isEmpty())
-        startNewSubPath (0, 0);
+    jassert (!data.isEmpty());
 
     data.add (lineMarker, x, y);
     bounds.extend (x, y);
@@ -246,8 +245,7 @@ void Path::quadraticTo (const float x1, const float y1,
     JUCE_CHECK_COORDS_ARE_VALID (x1, y1)
     JUCE_CHECK_COORDS_ARE_VALID (x2, y2)
 
-    if (data.isEmpty())
-        startNewSubPath (0, 0);
+    jassert (!data.isEmpty());
 
     data.add (quadMarker, x1, y1, x2, y2);
     bounds.extend (x1, y1, x2, y2);
@@ -267,8 +265,7 @@ void Path::cubicTo (const float x1, const float y1,
     JUCE_CHECK_COORDS_ARE_VALID (x2, y2)
     JUCE_CHECK_COORDS_ARE_VALID (x3, y3)
 
-    if (data.isEmpty())
-        startNewSubPath (0, 0);
+    jassert (!data.isEmpty());
 
     data.add (cubicMarker, x1, y1, x2, y2, x3, y3);
     bounds.extend (x1, y1, x2, y2, x3, y3);
