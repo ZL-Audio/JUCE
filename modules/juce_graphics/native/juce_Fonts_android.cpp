@@ -339,7 +339,7 @@ public:
                                                      std::size (testString),
                                                      nullptr) };
 
-        return fromMatchedFont (matched.get());
+        return fromMatchedFont (matched.get(), weight, italic);
     }
 
 private:
@@ -349,7 +349,7 @@ private:
         yes
     };
 
-    static JUCE_INTRODUCED_IN_29 Typeface::Ptr fromMatchedFont (AFont* matched)
+    static JUCE_INTRODUCED_IN_29 Typeface::Ptr fromMatchedFont (AFont* matched, uint16_t weight, bool italic)
     {
         if (matched == nullptr)
         {
@@ -367,7 +367,23 @@ private:
         if (cache == nullptr)
             return {}; // Perhaps we're shutting down
 
-        return cache->get ({ matchedFile, (int) matchedIndex }, &loadCompatibleFont);
+        auto face = cache->get ({ matchedFile, (int) matchedIndex }, &loadCompatibleFont);
+
+        static const auto weightTag = FontFeatureTag::fromString ("wght");
+        static const auto italicTag = FontFeatureTag::fromString ("ital");
+
+        std::vector<FontVariableSetting> settings;
+
+        for (auto var : face->getSupportedVariables())
+        {
+            if (var == weightTag)
+                settings.emplace_back (weightTag, weight);
+
+            if (var == italicTag)
+                settings.emplace_back (italicTag, italic ? 1.0f : 0.0f);
+        }
+
+        return face->cloneWithVariableSettings (settings);
     }
 
     static JUCE_INTRODUCED_IN_29 Typeface::Ptr findSystemTypefaceWithMatcher()
@@ -398,7 +414,7 @@ private:
                                                      (uint32_t) (utf16.findTerminatingNull().getAddress() - utf16.getAddress()),
                                                      nullptr) };
 
-        return fromMatchedFont (matched.get());
+        return fromMatchedFont (matched.get(), weight, italic);
     }
 
     static bool shouldStoreAndroidFont (hb_face_t* face)
