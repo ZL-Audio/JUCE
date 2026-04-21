@@ -1114,9 +1114,9 @@ private:
             sizeSlider.setValue (sizeSlider.getValue() + d.deltaY);
         }
 
-        void mouseMagnify (const MouseEvent&, float magnifyAmmount) override
+        void mouseMagnify (const MouseEvent&, float magnifyAmount) override
         {
-            sizeSlider.setValue (sizeSlider.getValue() + magnifyAmmount - 1.0f);
+            sizeSlider.setValue (sizeSlider.getValue() + magnifyAmount - 1.0f);
         }
 
         void selectPreset (int preset)
