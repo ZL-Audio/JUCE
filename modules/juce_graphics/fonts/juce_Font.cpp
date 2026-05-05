@@ -27,7 +27,7 @@ public:
     static Typeface::Ptr getDefaultPlatformTypefaceForFont (const Font&);
 };
 
-using GetTypefaceForFont = Typeface::Ptr (*)(const Font&);
+using GetTypefaceForFont = Typeface::Ptr (*) (const Font&);
 GetTypefaceForFont juce_getTypefaceForFont = nullptr;
 
 float Font::getDefaultMinimumHorizontalScaleFactor() noexcept                { return FontValues::minimumHorizontalScale; }

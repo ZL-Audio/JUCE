@@ -167,13 +167,13 @@ private:
 
 StringArray Font::findAllTypefaceNames()
 {
-    auto results = [&]
+    auto results = std::invoke ([&]
     {
         if (auto* cache = MemoryFontCache::getInstance())
             return cache->getAllNames();
 
         return std::set<String>{};
-    }();
+    });
 
     for (auto& f : File ("/system/fonts").findChildFiles (File::findFiles, false, "*.ttf"))
         results.insert (f.getFileNameWithoutExtension().upToLastOccurrenceOf ("-", false, false));
@@ -188,13 +188,13 @@ StringArray Font::findAllTypefaceNames()
 
 StringArray Font::findAllTypefaceStyles (const String& family)
 {
-    auto results = [&]
+    auto results = std::invoke ([&]
     {
         if (auto* cache = MemoryFontCache::getInstance())
             return cache->getStylesForFamily (family);
 
         return std::set<String>{};
-    }();
+    });
 
     for (auto& f : File ("/system/fonts").findChildFiles (File::findFiles, false, family + "-*.ttf"))
         results.insert (f.getFileNameWithoutExtension().fromLastOccurrenceOf ("-", false, false));
@@ -623,7 +623,7 @@ private:
 
         JNIEnv* const env = getEnv();
 
-        const auto key = [&]
+        const auto key = std::invoke ([&]
         {
             LocalRef digest (env->CallStaticObjectMethod (JavaMessageDigest, JavaMessageDigest.getInstance, javaString ("MD5").get()));
             LocalRef bytes (env->NewByteArray ((int) data.size()));
@@ -639,14 +639,14 @@ private:
             const ScopeGuard scope { [&] { env->ReleaseByteArrayElements (result.get(), md5Bytes, 0); } };
 
             return String::toHexString (md5Bytes, env->GetArrayLength (result.get()), 0);
-        }();
+        });
 
         const ScopedLock lock (cs);
         auto& mapEntry = cache[key];
 
         if (mapEntry == File())
         {
-            static const File cacheDirectory = []
+            static const File cacheDirectory = std::invoke ([]
             {
                 auto appContext = getAppContext();
 
@@ -659,7 +659,7 @@ private:
                 LocalRef jPath ((jstring) localEnv->CallObjectMethod (cacheFile.get(), JavaFile.getAbsolutePath));
 
                 return File (juceString (localEnv, jPath.get()));
-            }();
+            });
 
             mapEntry = cacheDirectory.getChildFile ("bindata_" + key);
             mapEntry.replaceWithData (data.data(), data.size());

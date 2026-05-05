@@ -312,32 +312,23 @@ private:
 
     void scanFont (const File& file)
     {
-        int faceIndex = 0;
-        int numFaces = 0;
-
-        do
+        for (auto faceIndex = 0;; ++faceIndex)
         {
-            if (auto face = FTFaceWrapper::from (library, file, faceIndex))
+            if (auto face = FTFaceWrapper::from (library, file, faceIndex); face != nullptr && face->face != nullptr)
             {
-                if (face->face != nullptr)
-                {
-                    if (faceIndex == 0)
-                        numFaces = (int) face->face->num_faces;
-
-                    faces.push_back (std::make_unique<FileTypeface> (*face, file));
-                }
+                faces.push_back (std::make_unique<FileTypeface> (*face, file));
             }
-
-            ++faceIndex;
+            else
+            {
+                break;
+            }
         }
-        while (faceIndex < numFaces);
     }
 
     const KnownTypeface* matchTypeface (const String& familyName, const String& style) const noexcept
     {
         for (const auto& face : faces)
-            if (face->family == familyName
-                  && (face->style.equalsIgnoreCase (style) || style.isEmpty()))
+            if (face->family == familyName && (face->style.equalsIgnoreCase (style) || style.isEmpty()))
                 return face.get();
 
         return nullptr;
