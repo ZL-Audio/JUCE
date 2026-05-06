@@ -549,7 +549,10 @@ Font Font::withTypefaceStyle (const String& newStyle) const
 
 StringArray Font::getAvailableStyles() const
 {
-    return findAllTypefaceStyles (getTypefacePtr()->getName());
+    if (auto ptr = getTypefacePtr())
+        return findAllTypefaceStyles (ptr->getName());
+
+    return {};
 }
 
 void Font::setPreferredFallbackFamilies (const StringArray& fallbacks)
