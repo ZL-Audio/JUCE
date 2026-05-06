@@ -41,13 +41,27 @@ public:
     template <typename Fn>
     Typeface::Ptr get (const TypefaceFileAndIndex& key, Fn&& getTypeface)
     {
-        return cachedTypefaces.get (key, std::forward<Fn> (getTypeface));
+        {
+            std::scoped_lock lock{mutex};
+
+            if (auto result = cache[key])
+                return result;
+        }
+
+        if (const auto loaded = getTypeface (key))
+        {
+            std::scoped_lock lock{mutex};
+            return cache[key] = loaded;
+        }
+
+        return nullptr;
     }
 
     JUCE_DECLARE_SINGLETON_SINGLETHREADED_MINIMAL_INLINE (TypefaceFileCache)
 
 private:
-    LruCache<TypefaceFileAndIndex, Typeface::Ptr> cachedTypefaces;
+    std::mutex mutex;
+    std::map<TypefaceFileAndIndex, Typeface::Ptr> cache;
 };
 
 } // namespace juce
