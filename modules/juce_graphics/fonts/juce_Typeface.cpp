@@ -344,12 +344,16 @@ private:
     JUCE_DECLARE_NON_MOVEABLE (VariableAxisRegistry)
 };
 
+// This is used by the D2D renderer to extract a font face from the JUCE typeface object.
+class WindowsDirectWriteTypeface;
+
 struct TypefaceNativeOptions
 {
     HbFont font;
     TypefaceVerticalMetrics metrics;
     std::vector<FontVariableSetting> variables{};
     TypefaceFallbackColourGlyphSupport* colourGlyphSupport{};
+    WindowsDirectWriteTypeface* windowsDirectWriteTypeface{};
 };
 
 #if JUCE_MAC || JUCE_IOS
@@ -463,7 +467,8 @@ public:
           nonPortable (options.metrics),
           colourGlyphSupport (options.colourGlyphSupport),
           variableRegistry (getFont()),
-          configuredVariables (std::move (options.variables))
+          configuredVariables (std::move (options.variables)),
+          dwriteFace (options.windowsDirectWriteTypeface)
     {
         configureHarfbuzzFontVariables (getFont(), configuredVariables);
     }
@@ -541,6 +546,11 @@ public:
         return HbBlob { hb_face_reference_blob (face), IncrementRef::no };
     }
 
+    WindowsDirectWriteTypeface* getWindowsDirectWriteTypeface() const
+    {
+        return dwriteFace;
+    }
+
 private:
     static void configureHarfbuzzFontVariables (hb_font_t* font,
                                                 Span<const FontVariableSetting> settings)
@@ -581,6 +591,7 @@ private:
 
     VariableAxisRegistry variableRegistry;
     std::vector<FontVariableSetting> configuredVariables;
+    WindowsDirectWriteTypeface* dwriteFace;
 };
 
 struct TypefaceUtils

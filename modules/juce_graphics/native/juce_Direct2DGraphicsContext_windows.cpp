@@ -1151,7 +1151,7 @@ void Direct2DGraphicsContext::drawGlyphs (Span<const uint16_t> glyphNumbers,
     const auto typeface = font.getTypefacePtr();
     const auto fontFace = [&]() -> ComSmartPtr<IDWriteFontFace>
     {
-        if (auto* x = dynamic_cast<WindowsDirectWriteTypeface*> (typeface.get()))
+        if (auto* x = typeface->getNativeDetails()->getWindowsDirectWriteTypeface())
             return x->getIDWriteFontFace();
 
         return {};

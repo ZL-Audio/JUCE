@@ -330,7 +330,9 @@ private:
           dwFontFace (face),
           native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbFontIn),
                                                                     metrics,
-                                                                    std::move (settings) }))
+                                                                    std::move (settings),
+                                                                    {},
+                                                                    this }))
     {
         if (collection != nullptr)
             factories->getFonts().addCollection (collection);
