@@ -205,6 +205,9 @@ public:
             }
 
             if (typeface == nullptr)
+                typeface = TypefaceUtils::StoredMemoryFonts::get().find (f.getTypefaceName(), f.getTypefaceStyle());
+
+            if (typeface == nullptr)
                 typeface = TypefaceCache::getInstance()->findTypefaceFor (f);
         }
 
