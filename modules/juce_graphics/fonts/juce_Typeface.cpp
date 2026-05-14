@@ -163,7 +163,6 @@ class VariableAxisRegistry
 {
 public:
     explicit VariableAxisRegistry (hb_font_t* font)
-        : instanceNames (findInstanceNames (hb_font_get_face (font)))
     {
         auto* face = hb_font_get_face (font);
         const auto hbVarInfos = std::invoke ([face]
@@ -225,13 +224,17 @@ public:
                 return variables;
             });
 
-            instances[instanceNames[i]] = std::move (instanceSettings);
+            const auto instanceName = std::invoke ([&]
+            {
+                const auto id = hb_ot_var_named_instance_get_subfamily_name_id (face, (unsigned int) i);
+                const auto genuineName = getHbOtName (face, id);
+                return genuineName.isNotEmpty() ? genuineName : "Instance " + String ((int) i);
+            });
+
+            if (instances.emplace (instanceName, std::move (instanceSettings)).second)
+                instanceNames.push_back (instanceName);
         }
     }
-
-    size_t getSize() const { return indexMap.size(); }
-
-    Span<const size_t> getIndexMap() const { return indexMap; }
 
     Span<const FontFeatureTag> getSupportedVariables() const { return tags; }
 
@@ -290,24 +293,6 @@ public:
         return std::nullopt;
     }
 
-    static std::vector<String> findInstanceNames (hb_face_t* face)
-    {
-        std::vector<String> result;
-
-        for (unsigned int i = 0, instanceCount = hb_ot_var_get_named_instance_count (face); i < instanceCount; ++i)
-        {
-            result.push_back (std::invoke ([&]
-            {
-                const auto id = hb_ot_var_named_instance_get_subfamily_name_id (face, i);
-                const auto genuineName = getHbOtName (face, id);
-                return genuineName.isNotEmpty() ? genuineName : "Instance " + String ((int) i);
-            }));
-        }
-
-        return result;
-    }
-
-private:
     static String getHbOtName (hb_face_t* face, hb_ot_name_id_t id)
     {
         auto length = hb_ot_name_get_utf8 (face, id, {}, {}, {}) + 1;
@@ -316,6 +301,7 @@ private:
         return String { CharPointer_UTF8 { buffer.data() } };
     }
 
+private:
     std::optional<size_t> getIndex (FontFeatureTag tag) const
     {
         auto iter = OrderedContainerHelpers::find (tags, tag);
@@ -354,6 +340,7 @@ struct TypefaceNativeOptions
     std::vector<FontVariableSetting> variables{};
     TypefaceFallbackColourGlyphSupport* colourGlyphSupport{};
     WindowsDirectWriteTypeface* windowsDirectWriteTypeface{};
+    std::shared_ptr<VariableAxisRegistry> existingRegistry{};
 };
 
 #if JUCE_MAC || JUCE_IOS
@@ -462,11 +449,28 @@ struct TypefaceCTFontUtils
 class Typeface::Native
 {
 public:
+    static String getTypefaceName (hb_face_t* face)
+    {
+        if (auto x = VariableAxisRegistry::getHbOtName (face, HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY); x.isNotEmpty())
+            return x;
+
+        return VariableAxisRegistry::getHbOtName (face, HB_OT_NAME_ID_FONT_FAMILY);
+    }
+
+    static String getTypefaceStyle (hb_face_t* face)
+    {
+        if (auto x = VariableAxisRegistry::getHbOtName (face, HB_OT_NAME_ID_TYPOGRAPHIC_SUBFAMILY); x.isNotEmpty())
+            return x;
+
+        return VariableAxisRegistry::getHbOtName (face, HB_OT_NAME_ID_FONT_SUBFAMILY);
+    }
+
     explicit Native (TypefaceNativeOptions options)
         : font (std::move (options.font)),
           nonPortable (options.metrics),
           colourGlyphSupport (options.colourGlyphSupport),
-          variableRegistry (getFont()),
+          variableRegistry (options.existingRegistry != nullptr ? options.existingRegistry
+                                                                : std::make_shared<VariableAxisRegistry> (getFont())),
           configuredVariables (std::move (options.variables)),
           dwriteFace (options.windowsDirectWriteTypeface)
     {
@@ -476,9 +480,7 @@ public:
     // Returns the backing HarfBuzz font with a size of 1 pt (i.e. 1 pt per em).
     hb_font_t* getFont() const { return font.get(); }
 
-    bool isConfigurableTypeface() const { return variableRegistry.getSize() != 0; }
-
-    [[nodiscard]] const VariableAxisRegistry& getVariableRegistry() const { return variableRegistry; }
+    [[nodiscard]] std::shared_ptr<VariableAxisRegistry> getVariableRegistry() const { return variableRegistry; }
 
     TypefaceVerticalMetrics getAscentDescent (TypefaceMetricsKind kind) const
     {
@@ -551,6 +553,16 @@ public:
         return dwriteFace;
     }
 
+    String getTypefaceName() const
+    {
+        return getTypefaceName (hb_font_get_face (font.get()));
+    }
+
+    String getTypefaceStyle() const
+    {
+        return getTypefaceStyle (hb_font_get_face (font.get()));
+    }
+
 private:
     static void configureHarfbuzzFontVariables (hb_font_t* font,
                                                 Span<const FontVariableSetting> settings)
@@ -589,7 +601,7 @@ private:
     mutable LruCache<std::tuple<float, float>, HbFont> subFontCache;
     mutable LruCache<hb_codepoint_t, std::optional<hb_glyph_extents_t>, 512> glyphExtentsCache;
 
-    VariableAxisRegistry variableRegistry;
+    std::shared_ptr<VariableAxisRegistry> variableRegistry;
     std::vector<FontVariableSetting> configuredVariables;
     WindowsDirectWriteTypeface* dwriteFace;
 };
@@ -730,6 +742,111 @@ struct TypefaceUtils
 
         return funcs;
     }
+
+    class StoredMemoryFonts
+    {
+        struct Item
+        {
+            String name;
+            String style;
+            std::function<Typeface::Ptr()> constructor;
+
+            bool operator< (const Item& other) const
+            {
+                return name < other.name;
+            }
+        };
+
+        using Store = std::list<Item>;
+
+    public:
+        using Token = Store::const_iterator;
+
+        static StoredMemoryFonts& get()
+        {
+            static StoredMemoryFonts result;
+            return result;
+        }
+
+        Token add (const String& name, const String& style, std::function<Typeface::Ptr()> getter)
+        {
+            const std::scoped_lock lock { mutex };
+            const auto pair = findEqualRange (name);
+            return faces.insert (pair.second, { name, style, getter });
+        }
+
+        void remove (Token t)
+        {
+            const std::scoped_lock lock { mutex };
+            faces.erase (t);
+        }
+
+        Typeface::Ptr find (const String& family, const String& style) const
+        {
+            const std::scoped_lock lock { mutex };
+
+            const auto pair = findEqualRange (family);
+            const auto iter = std::find_if (pair.first, pair.second, [&] (const auto& item)
+            {
+                return item.style == style;
+            });
+
+            if (iter == pair.second)
+                return {};
+
+            if (iter->constructor == nullptr)
+                return {};
+
+            return iter->constructor();
+        }
+
+        StringArray findAllTypefaceNames() const
+        {
+            const std::scoped_lock lock { mutex };
+
+            std::set<String> unique;
+            StringArray result;
+
+            for (const auto& item : faces)
+                if (unique.insert (item.name).second)
+                    result.add (item.name);
+
+            return result;
+        }
+
+        StringArray findAllTypefaceStyles (const String& family) const
+        {
+            const std::scoped_lock lock { mutex };
+
+            const auto pair = findEqualRange (family);
+
+            std::set<String> unique;
+            StringArray result;
+
+            for (const auto& item : makeRange (pair.first, pair.second))
+                if (unique.insert (item.style).second)
+                    result.add (item.style);
+
+            return result;
+        }
+
+    private:
+        StoredMemoryFonts() = default;
+
+        std::pair<Token, Token> findEqualRange (const String& family) const
+        {
+            struct Comparator
+            {
+                bool operator() (const Store::value_type& a, const String& b) const { return a.name < b; }
+                bool operator() (const String& a, const Store::value_type& b) const { return a < b.name; }
+            };
+
+            return std::equal_range (faces.begin(), faces.end(), family, Comparator{});
+        }
+
+        mutable std::mutex mutex;
+        Store faces;
+    };
 };
 
 struct FontStyleHelpers
@@ -916,9 +1033,132 @@ TypefaceMetrics Typeface::getMetrics (TypefaceMetricsKind kind) const
     return getNativeDetails()->getAscentDescent (kind).getTypefaceMetrics();
 }
 
-Typeface::Ptr Typeface::createSystemTypefaceFor (const void* fontFileData, size_t fontFileDataSize)
+auto Typeface::createSystemTypefaceFor (const Font& font) -> Ptr
+{
+    if (auto matched = TypefaceUtils::StoredMemoryFonts::get().find (font.getTypefaceName(), font.getTypefaceStyle()))
+        return matched;
+
+    return createFromFontImpl (font);
+}
+
+auto Typeface::createSystemTypefaceFor (const void* fontFileData, size_t fontFileDataSize) -> Ptr
 {
     return createSystemTypefaceFor (Span (static_cast<const std::byte*> (fontFileData), fontFileDataSize));
+}
+
+auto Typeface::createSystemTypefaceFor (Span<const std::byte> data) -> Ptr
+{
+    class Decorator : public Typeface
+    {
+    public:
+        Decorator (Ptr x, const String& nameIn, const String& styleIn)
+            : Typeface (nameIn.isNotEmpty() ? nameIn : x->getName(),
+                        styleIn.isNotEmpty() ? styleIn : x->getStyle()),
+              wrapped (std::move (x))
+        {
+        }
+
+        Ptr createSystemFallback (const String& text, const String& language) const override
+        {
+            return wrapped->createSystemFallback (text, language);
+        }
+
+        Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
+        {
+            return wrapped->cloneWithVariableSettings (settings);
+        }
+
+        const Native* getNativeDetails() const override
+        {
+            return wrapped->getNativeDetails();
+        }
+
+        Ptr getWrapped() const
+        {
+            return wrapped;
+        }
+
+    private:
+        Ptr wrapped;
+    };
+
+    class CachedTypefaces
+    {
+    public:
+        void insert (const String& ptrName, const String& ptrStyle, std::function<Typeface::Ptr()> constructor)
+        {
+            tokens.push_back (TypefaceUtils::StoredMemoryFonts::get().add (ptrName, ptrStyle, std::move (constructor)));
+        }
+
+        ~CachedTypefaces()
+        {
+            for (const auto& token : tokens)
+                TypefaceUtils::StoredMemoryFonts::get().remove (token);
+        }
+
+    private:
+        std::vector<TypefaceUtils::StoredMemoryFonts::Token> tokens;
+    };
+
+    class CachingWrapper : public Decorator
+    {
+    public:
+        explicit CachingWrapper (Ptr x)
+            : CachingWrapper (x, std::make_shared<CachedTypefaces>())
+        {
+            addToCache (getStyle());
+
+            for (const auto& instanceName : x->getInstanceNames())
+                addToCache (instanceName);
+        }
+
+        Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
+        {
+            return new CachingWrapper { getWrapped()->cloneWithVariableSettings (settings), cache };
+        }
+
+    private:
+        CachingWrapper (Ptr x, std::shared_ptr<CachedTypefaces> cacheIn)
+            : Decorator (std::move (x), {}, {}), cache (std::move (cacheIn))
+        {
+        }
+
+        void addToCache (const String& instanceName)
+        {
+            // It's possible for faces to be created directly from the StoredMemoryFonts singleton
+            // after resolving a suitable typeface by name and style. In this case, we want that
+            // newly-created face to keep the loaded font resources alive, even if the original
+            // Typeface loaded from memory has been destroyed at an earlier point.
+            // Using a weak_ptr in the factory function below ensures that the entries in the
+            // StoredMemoryFonts _do not_ own the CachedTypefaces instance. However, new typefaces
+            // created from the StoredMemoryFonts _do_ contribute to the usage count of the
+            // CachedTypefaces. Therefore, the CachedTypefaces will only be destroyed (removing all
+            // face instance records from the StoredMemoryFonts) after no face of the family is in
+            // use.
+
+            cache->insert (getName(),
+                           instanceName,
+                           [x = getWrapped(),
+                            instanceName,
+                            weak = std::weak_ptr<CachedTypefaces> (cache)]() -> Typeface::Ptr
+            {
+                const auto cloned = x->cloneWithVariableSettings (x->getNamedInstanceConfiguration (instanceName));
+
+                if (auto strong = weak.lock())
+                    return new CachingWrapper (cloned, strong);
+
+                // This should never happen! This implies that the face records in the
+                // StoredMemoryFonts singleton somehow outlived all concrete typeface instances
+                // derived from the font.
+                jassertfalse;
+                return nullptr;
+            });
+        }
+
+        std::shared_ptr<CachedTypefaces> cache;
+    };
+
+    return new CachingWrapper { createFromDataImpl (data) };
 }
 
 //==============================================================================
@@ -983,32 +1223,74 @@ std::vector<FontFeatureTag> Typeface::getSupportedFeatures() const
 
 Span<const FontFeatureTag> Typeface::getSupportedVariables() const&
 {
-    return getNativeDetails()->getVariableRegistry().getSupportedVariables();
+    return getNativeDetails()->getVariableRegistry()->getSupportedVariables();
 }
 
 std::optional<float> Typeface::getDefaultValueForVariable (FontFeatureTag variableTag) const
 {
-    return getNativeDetails()->getVariableRegistry().getDefaultValueForVariable (variableTag);
+    return getNativeDetails()->getVariableRegistry()->getDefaultValueForVariable (variableTag);
 }
 
 std::optional<Range<float>> Typeface::getRangeForVariable (FontFeatureTag variableTag) const
 {
-    return getNativeDetails()->getVariableRegistry().getRangeForVariable (variableTag);
+    return getNativeDetails()->getVariableRegistry()->getRangeForVariable (variableTag);
 }
 
 Span<const String> Typeface::getInstanceNames() const&
 {
-    return getNativeDetails()->getVariableRegistry().getInstanceNames();
+    return getNativeDetails()->getVariableRegistry()->getInstanceNames();
 }
 
 Span<const FontVariableSetting> Typeface::getNamedInstanceConfiguration (StringRef instanceName) const&
 {
-    return getNativeDetails()->getVariableRegistry().getNamedInstanceConfiguration (instanceName);
+    return getNativeDetails()->getVariableRegistry()->getNamedInstanceConfiguration (instanceName);
 }
 
 Span<const FontVariableSetting> Typeface::getConfiguredVariables() const&
 {
     return getNativeDetails()->getConfiguredVariables();
+}
+
+//==============================================================================
+StringArray Font::findAllTypefaceNames()
+{
+    std::set<String> unique;
+
+    for (const auto& list : { TypefaceUtils::StoredMemoryFonts::get().findAllTypefaceNames(),
+                              findAllTypefaceNamesImpl() })
+    {
+        for (const auto& item : list)
+        {
+            unique.insert (item);
+        }
+    }
+
+    StringArray result;
+
+    for (const auto& item : unique)
+    {
+        result.add (item);
+    }
+
+    return result;
+}
+
+StringArray Font::findAllTypefaceStyles (const String& family)
+{
+    std::set<String> unique;
+    StringArray result;
+
+    for (const auto& list : { TypefaceUtils::StoredMemoryFonts::get().findAllTypefaceStyles (family),
+                              findAllTypefaceStylesImpl (family) })
+    {
+        for (const auto& item : list)
+        {
+            if (unique.insert (item).second)
+                result.add (item);
+        }
+    }
+
+    return result;
 }
 
 //==============================================================================

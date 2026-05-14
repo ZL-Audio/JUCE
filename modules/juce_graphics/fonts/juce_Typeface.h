@@ -393,6 +393,9 @@ protected:
     Typeface (const String&, const String&);
 
 private:
+    static Ptr createFromDataImpl (Span<const std::byte>);
+    static Ptr createFromFontImpl (const Font&);
+
     //==============================================================================
     String name;
     String style;

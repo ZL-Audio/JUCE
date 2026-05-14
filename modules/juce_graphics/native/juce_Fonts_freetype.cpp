@@ -92,6 +92,40 @@ struct FTFaceWrapper final : public ReferenceCountedObject
         return selectUnicodeCharmap (new FTFaceWrapper (ftLib, result, std::move (storage)));
     }
 
+    template <typename Callback>
+    bool forEachStyleDefaultFirst (Callback&& callback) const
+    {
+        const auto numInstances = std::invoke ([&]() -> FT_UInt
+        {
+            if (FT_MM_Var* ftMmVar{}; FT_Get_MM_Var (face, &ftMmVar) == 0)
+            {
+                const ScopeGuard scope { [&] { FT_Done_MM_Var (library->library, ftMmVar); } };
+                return ftMmVar->num_namedstyles;
+            }
+
+            return 0;
+        });
+
+        if (numInstances == 0)
+            return false;
+
+        const auto defaultInstance = std::invoke ([&]() -> FT_UInt
+        {
+            if (FT_UInt result{}; FT_Get_Default_Named_Instance (face, &result) == 0)
+                return result;
+
+            return 0;
+        });
+
+        callback (defaultInstance);
+
+        for (FT_UInt i = 0; i < numInstances; ++i)
+            if (i + 1 != defaultInstance)
+                callback (i + 1);
+
+        return true;
+    }
+
     FTFaceWrapper (const FTLibWrapper::Ptr& ftLib, FT_Face faceIn, MemoryBlock mb = {})
         : library (ftLib), savedFaceData (std::move (mb)), face (faceIn) {}
 
@@ -186,6 +220,8 @@ public:
         FTFaceWrapper::Ptr face;
     };
 
+    using Cache = std::vector<std::unique_ptr<KnownTypeface>>;
+
     //==============================================================================
     FTFaceWrapper::Ptr createFace (const void* data, size_t dataSize, int index)
     {
@@ -248,19 +284,6 @@ public:
                     scanFont (iter.getFile());
             }
         }
-
-        std::sort (faces.begin(), faces.end(), [] (const auto& a, const auto& b)
-        {
-            const auto tie = [] (const KnownTypeface& t)
-            {
-                return std::make_tuple (t.family,
-                                        t.flags,
-                                        t.style,
-                                        t.faceIndex);
-            };
-
-            return tie (*a) < tie (*b);
-        });
     }
 
     void getMonospacedNames (StringArray& monoSpaced) const
@@ -284,20 +307,27 @@ public:
                 sansSerif.addIfNotAlreadyThere (face->family);
     }
 
-    void addMemoryFace (FTFaceWrapper::Ptr ptr)
+    void addMemoryFaces (Span<const FTFaceWrapper::Ptr> ptr)
     {
-        faces.insert (faces.begin(), std::make_unique<CachedTypeface> (ptr));
+        if (ptr.empty())
+            return;
+
+        auto cached = std::make_unique<CachedTypeface> (ptr.front());
+        auto insertionPoint = findInsertionPoint (*cached);
+
+        for (const auto& p : ptr)
+            insertionPoint = std::next (faces.insert (insertionPoint, std::make_unique<CachedTypeface> (p)));
     }
 
-    void removeMemoryFace (FTFaceWrapper::Ptr ptr)
+    void removeMemoryFaces (Span<const FTFaceWrapper::Ptr> ptr)
     {
-        const auto iter = std::find_if (faces.begin(), faces.end(), [&] (const auto& face)
+        for (const auto& p : ptr)
         {
-            return face->holdsFace (ptr);
-        });
-
-        if (iter != faces.end())
-            faces.erase (iter);
+            faces.erase (std::remove_if (faces.begin(), faces.end(), [&] (const std::unique_ptr<KnownTypeface>& tf)
+            {
+                return tf->holdsFace (p);
+            }), faces.end());
+        }
     }
 
     JUCE_DECLARE_SINGLETON_SINGLETHREADED_MINIMAL_INLINE (FTTypefaceList)
@@ -305,8 +335,24 @@ public:
     FTLibWrapper::Ptr getLibrary() const { return library; }
 
 private:
+    void resort()
+    {
+        std::sort (faces.begin(), faces.end(), [] (const auto& a, const auto& b)
+        {
+            const auto tie = [] (const KnownTypeface& t)
+            {
+                return std::make_tuple (t.family,
+                                        t.flags,
+                                        t.style,
+                                        t.faceIndex);
+            };
+
+            return tie (*a) < tie (*b);
+        });
+    }
+
     FTLibWrapper::Ptr library = new FTLibWrapper;
-    std::vector<std::unique_ptr<KnownTypeface>> faces;
+    Cache faces;
 
     static StringArray getDefaultFontDirectories();
 
@@ -316,13 +362,58 @@ private:
         {
             if (auto face = FTFaceWrapper::from (library, file, faceIndex); face != nullptr && face->face != nullptr)
             {
-                faces.push_back (std::make_unique<FileTypeface> (*face, file));
+                auto insertionPoint = findInsertionPoint (FileTypeface (*face, file));
+
+                const auto handledNamedStyles = face->forEachStyleDefaultFirst ([&] (auto index)
+                {
+                    const auto err = FT_Set_Named_Instance (face->face, index);
+                    jassertquiet (err == 0);
+                    insertionPoint = std::next (faces.insert (insertionPoint, std::make_unique<FileTypeface> (*face, file)));
+                });
+
+                if (! handledNamedStyles)
+                {
+                    insertionPoint = std::next (faces.insert (insertionPoint, std::make_unique<FileTypeface> (*face, file)));
+                }
             }
             else
             {
                 break;
             }
         }
+    }
+
+    std::vector<std::unique_ptr<KnownTypeface>>::const_iterator findInsertionPoint (const KnownTypeface& tf)
+    {
+        struct Comparator
+        {
+            static auto tie (const KnownTypeface& t)
+            {
+                return std::make_tuple (t.family, t.flags, t.style, t.faceIndex);
+            }
+
+            bool operator() (const KnownTypeface& a, const std::unique_ptr<KnownTypeface>& b)
+            {
+                return tie (a) < tie (*b);
+            }
+
+            bool operator() (const std::unique_ptr<KnownTypeface>& a, const KnownTypeface& b)
+            {
+                return tie (*a) < tie (b);
+            }
+
+            bool operator() (const std::unique_ptr<KnownTypeface>& a, const std::unique_ptr<KnownTypeface>& b)
+            {
+                return tie (*a) < tie (*b);
+            }
+
+            bool operator() (const KnownTypeface& a, const KnownTypeface& b)
+            {
+                return tie (a) < tie (b);
+            }
+        };
+
+        return std::upper_bound (faces.begin(), faces.end(), tf, Comparator{});
     }
 
     const KnownTypeface* matchTypeface (const String& familyName, const String& style) const noexcept
@@ -352,15 +443,15 @@ private:
 class FreeTypeTypeface final : public Typeface
 {
     using Ptr = ReferenceCountedObjectPtr<FreeTypeTypeface>;
-    enum class DoCache
-    {
-        no,
-        yes,
-    };
 
 public:
     Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
     {
+        auto newFreeTypeFace = cloneFace();
+
+        if (newFreeTypeFace == nullptr)
+            return {};
+
         // FreeType uses a 16.16 fixed-point format (FT_Fixed) to represent fractional values.
         // Multiplying or dividing by 65536 allows us to convert to and from float.
         static constexpr float ftFixedMultiplier = 65536.0f;
@@ -369,54 +460,48 @@ public:
             return (FT_Fixed) (v * ftFixedMultiplier);
         };
 
-        auto newFreeTypeFace = std::invoke ([this]
-        {
-            auto blob = getNativeDetails()->getBlob();
-
-            unsigned int blobSize = 0;
-            const auto* data = hb_blob_get_data (blob.get(), &blobSize);
-
-            return FTFaceWrapper::from (FTTypefaceList::getInstance()->getLibrary(),
-                                        data,
-                                        blobSize,
-                                        0);
-        });
-
         const auto& registry = getNativeDetails()->getVariableRegistry();
-        auto sanitisedVariables = registry.sanitiseVariables (settings);
+        auto sanitisedVariables = registry->sanitiseVariables (settings);
 
-        if (newFreeTypeFace != nullptr)
+        const auto numAxes = std::invoke ([&]() -> FT_UInt
         {
-            std::vector<FT_Fixed> coords (registry.getSize());
-            FT_Get_Var_Design_Coordinates (newFreeTypeFace->face,
-                                           (FT_UInt) coords.size(),
-                                           coords.data());
-
-            // We have to apply the variables in their original order.
-            // Thankfully we have that information in the registry.
-            for (const auto& var : settings)
+            if (FT_MM_Var* ftMmVar{}; FT_Get_MM_Var (newFreeTypeFace->face, &ftMmVar) == 0)
             {
-                if (auto index = registry.getOriginalIndexForTag (var.tag))
-                    coords[*index] = floatToFTFixed (var.value);
+                const ScopeGuard scope { [&] { FT_Done_MM_Var (newFreeTypeFace->library->library, ftMmVar); } };
+                return ftMmVar->num_axis;
             }
 
-            FT_Set_Var_Design_Coordinates (newFreeTypeFace->face,
-                                           (FT_UInt) coords.size(),
-                                           coords.data());
+            jassertfalse;
+            return 0;
+        });
+
+        std::vector<FT_Fixed> coords (numAxes);
+        FT_Get_Var_Design_Coordinates (newFreeTypeFace->face,
+                                       (FT_UInt) coords.size(),
+                                       coords.data());
+
+        // We have to apply the variables in their original order.
+        // Thankfully we have that information in the registry.
+        for (const auto& var : settings)
+        {
+            if (auto index = registry->getOriginalIndexForTag (var.tag))
+                coords[*index] = floatToFTFixed (var.value);
         }
+
+        FT_Set_Var_Design_Coordinates (newFreeTypeFace->face,
+                                       (FT_UInt) coords.size(),
+                                       coords.data());
 
         HbFace hbFace { hb_ft_face_create_referenced (newFreeTypeFace->face), IncrementRef::no };
         HbFont hb { hb_font_create (hbFace.get()), IncrementRef::no };
 
-        return new FreeTypeTypeface (DoCache::no,
-                                     std::move (newFreeTypeFace),
+        return new FreeTypeTypeface (std::move (newFreeTypeFace),
                                      std::move (hb),
-                                     getName(),
-                                     "",
+                                     registry,
                                      std::move (sanitisedVariables));
     }
 
-    static Typeface::Ptr from (const Font& font)
+    static Ptr from (const Font& font)
     {
         const auto name = font.getTypefaceName();
         const auto style = font.getTypefaceStyle();
@@ -433,10 +518,10 @@ public:
             return {};
 
         FontStyleHelpers::initSynthetics (hb.get(), font);
-        return new FreeTypeTypeface (DoCache::no, face, std::move (hb), name, style);
+        return new FreeTypeTypeface (face, std::move (hb));
     }
 
-    static Typeface::Ptr from (Span<const std::byte> data, int index = 0)
+    static Ptr from (Span<const std::byte> data, int index = 0)
     {
         auto face = FTTypefaceList::getInstance()->createFace (data.data(), data.size(), index);
 
@@ -449,7 +534,7 @@ public:
         if (hb == nullptr)
             return {};
 
-        return new FreeTypeTypeface (DoCache::yes, face, std::move (hb), face->face->family_name, face->face->style_name);
+        return new FreeTypeTypeface (face, std::move (hb));
     }
 
     Typeface::Ptr createSystemFallback ([[maybe_unused]] const String& text,
@@ -514,15 +599,6 @@ public:
        #endif
     }
 
-    ~FreeTypeTypeface() override
-    {
-        native.reset();
-
-        if (doCache == DoCache::yes)
-            if (auto* list = FTTypefaceList::getInstanceWithoutCreating())
-                list->removeMemoryFace (ftFace);
-    }
-
     const Native* getNativeDetails() const override
     {
         return native.get();
@@ -539,6 +615,19 @@ public:
     }
 
 private:
+    FTFaceWrapper::Ptr cloneFace() const
+    {
+        auto blob = getNativeDetails()->getBlob();
+
+        unsigned int blobSize = 0;
+        const auto* data = hb_blob_get_data (blob.get(), &blobSize);
+
+        return FTFaceWrapper::from (FTTypefaceList::getInstance()->getLibrary(),
+                                    data,
+                                    blobSize,
+                                    0);
+    }
+
    #if JUCE_USE_FONTCONFIG
     static Typeface::Ptr fromPattern (FcPattern* pattern)
     {
@@ -568,7 +657,7 @@ private:
 
         const File file { String { CharPointer_UTF8 { unalignedPointerCast<const char*> (fileString) } } };
 
-        return cache->get ({ file, index }, [] (const TypefaceFileAndIndex& f) -> Typeface::Ptr
+        return cache->get ({ file, index }, [] (const TypefaceFileAndIndex& f) -> Ptr
         {
             auto face = FTTypefaceList::getInstance()->createFace (f.file, f.index);
 
@@ -581,7 +670,7 @@ private:
             if (cachedFont == nullptr)
                 return {};
 
-            return new FreeTypeTypeface (DoCache::no, face, std::move (cachedFont), face->face->family_name, face->face->style_name);
+            return new FreeTypeTypeface (face, std::move (cachedFont));
         });
     }
    #endif
@@ -596,42 +685,44 @@ private:
         return { ascent, descent, lineGap };
     }
 
-    FreeTypeTypeface (DoCache cache,
-                      FTFaceWrapper::Ptr ftFaceIn,
+    FreeTypeTypeface (FTFaceWrapper::Ptr ftFaceIn,
                       HbFont hbIn,
-                      const String& nameIn,
-                      const String& styleIn,
-                      std::vector<FontVariableSetting>&& settings = {})
-        : Typeface (nameIn, styleIn),
-          ftFace (ftFaceIn),
-          doCache (cache),
-          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbIn),
-                                                                    getNativeMetrics (ftFaceIn),
-                                                                    std::move (settings) }))
+                      std::shared_ptr<VariableAxisRegistry> variableAxisRegistry = {},
+                      std::vector<FontVariableSetting> settings = {})
+        : FreeTypeTypeface (ftFaceIn,
+                            std::make_unique<Native> (TypefaceNativeOptions { std::move (hbIn),
+                                                                              getNativeMetrics (ftFaceIn),
+                                                                              std::move (settings),
+                                                                              {},
+                                                                              {},
+                                                                              variableAxisRegistry }))
     {
-        if (doCache == DoCache::yes)
-            if (auto* list = FTTypefaceList::getInstance())
-                list->addMemoryFace (ftFace);
+    }
+
+    FreeTypeTypeface (FTFaceWrapper::Ptr ftFaceIn, std::unique_ptr<Native> nativeIn)
+        : Typeface (nativeIn->getTypefaceName(), nativeIn->getTypefaceStyle()),
+          ftFace (ftFaceIn),
+          native (std::move (nativeIn))
+    {
     }
 
     FTFaceWrapper::Ptr ftFace;
-    DoCache doCache;
     std::unique_ptr<Native> native;
 
     JUCE_DECLARE_NON_COPYABLE (FreeTypeTypeface)
 };
 
-Typeface::Ptr Typeface::createSystemTypefaceFor (const Font& font)
+auto Typeface::createFromFontImpl (const Font& font) -> Ptr
 {
     return FreeTypeTypeface::from (font);
 }
 
-Typeface::Ptr Typeface::createSystemTypefaceFor (Span<const std::byte> data)
+auto Typeface::createFromDataImpl (Span<const std::byte> data) -> Ptr
 {
     return FreeTypeTypeface::from (data);
 }
 
-Typeface::Ptr Typeface::findSystemTypeface()
+auto Typeface::findSystemTypeface() -> Ptr
 {
     return FreeTypeTypeface::findSystemTypeface();
 }

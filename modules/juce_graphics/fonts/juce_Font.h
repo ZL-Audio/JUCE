@@ -668,6 +668,8 @@ public:
 private:
     //==============================================================================
     static bool compare (const Font&, const Font&) noexcept;
+    static StringArray findAllTypefaceNamesImpl();
+    static StringArray findAllTypefaceStylesImpl (const String&);
 
     void dupeInternalIfShared();
 

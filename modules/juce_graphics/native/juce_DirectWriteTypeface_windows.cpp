@@ -19,13 +19,13 @@
 namespace juce
 {
 
-StringArray Font::findAllTypefaceNames()
+StringArray Font::findAllTypefaceNamesImpl()
 {
     SharedResourcePointer<Direct2DFactories> factories;
     return factories->getFonts().findAllTypefaceNames();
 }
 
-StringArray Font::findAllTypefaceStyles (const String& family)
+StringArray Font::findAllTypefaceStylesImpl (const String& family)
 {
     if (FontStyleHelpers::isPlaceholderFamilyName (family))
         return findAllTypefaceStyles (FontStyleHelpers::getConcreteFamilyNameFromPlaceholder (family));
@@ -37,13 +37,7 @@ StringArray Font::findAllTypefaceStyles (const String& family)
 class WindowsDirectWriteTypeface final : public Typeface
 {
 public:
-    ~WindowsDirectWriteTypeface() override
-    {
-        if (collection != nullptr)
-            factories->getFonts().removeCollection (collection);
-    }
-
-    Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
+    Ptr cloneWithVariableSettings (Span<const FontVariableSetting> settings) const override
     {
         ComSmartPtr<IDWriteFontFace5> fontFace5;
         ComSmartPtr<IDWriteFontResource> resource;
@@ -56,8 +50,8 @@ public:
             return {};
         }
 
-        const auto& registry = getNativeDetails()->getVariableRegistry();
-        auto sanitisedVariables = registry.sanitiseVariables (settings);
+        const auto registry = getNativeDetails()->getVariableRegistry();
+        auto sanitisedVariables = registry->sanitiseVariables (settings);
 
         std::vector<DWRITE_FONT_AXIS_VALUE> axes (sanitisedVariables.size());
         std::transform (sanitisedVariables.begin(),
@@ -83,17 +77,16 @@ public:
 
         const auto dwMetrics = getDwriteMetrics (*fontFace5);
 
-        return new WindowsDirectWriteTypeface (getName(),
-                                               "",
-                                               dwFont,
+        return new WindowsDirectWriteTypeface (dwFont,
                                                configuredFontFace,
                                                std::move (font),
                                                dwMetrics,
-                                               nullptr,
+                                               registry,
+                                               scopedCollectionRegistration,
                                                std::move (sanitisedVariables));
     }
 
-    static Typeface::Ptr from (const Font& f)
+    static Ptr from (const Font& f)
     {
         const auto name = f.getTypefaceName();
         const auto style = f.getTypefaceStyle();
@@ -126,7 +119,7 @@ public:
         return fromFont (dwFont, nullptr, &f, MetricsMechanism::dwriteOnly);
     }
 
-    static Typeface::Ptr from (Span<const std::byte> blob)
+    static Ptr from (Span<const std::byte> blob)
     {
         SharedResourcePointer<Direct2DFactories> factories;
 
@@ -159,10 +152,13 @@ public:
         if (FAILED (fontFamily->GetFont (0, dwFont.resetAndGetPointerAddress())) || dwFont == nullptr)
             return {};
 
-        return fromFont (dwFont, customFontCollection, nullptr, MetricsMechanism::gdiWithDwriteFallback);
+        return fromFont (dwFont,
+                         std::make_unique<ScopedCollectionRegistration> (customFontCollection),
+                         nullptr,
+                         MetricsMechanism::gdiWithDwriteFallback);
     }
 
-    Typeface::Ptr createSystemFallback (const String& c, const String& language) const override
+    Ptr createSystemFallback (const String& c, const String& language) const override
     {
         auto factory = factories->getDWriteFactory().getInterface<IDWriteFactory2>();
 
@@ -203,7 +199,7 @@ public:
         return native.get();
     }
 
-    static Typeface::Ptr findSystemTypeface()
+    static Ptr findSystemTypeface()
     {
         NONCLIENTMETRICS nonClientMetrics{};
         nonClientMetrics.cbSize = sizeof (NONCLIENTMETRICS);
@@ -316,26 +312,54 @@ private:
         return getLocalisedName (faceNames);
     }
 
-    WindowsDirectWriteTypeface (const String& name,
-                                const String& style,
-                                ComSmartPtr<IDWriteFont> font,
+    class ScopedCollectionRegistration
+    {
+    public:
+        explicit ScopedCollectionRegistration (ComSmartPtr<IDWriteFontCollection> x)
+            : collection (std::move (x))
+        {
+            factories->getFonts().addCollection (collection);
+        }
+
+        ~ScopedCollectionRegistration()
+        {
+            factories->getFonts().removeCollection (collection);
+        }
+
+    private:
+        SharedResourcePointer<Direct2DFactories> factories;
+        ComSmartPtr<IDWriteFontCollection> collection;
+    };
+
+    WindowsDirectWriteTypeface (ComSmartPtr<IDWriteFont> font,
                                 ComSmartPtr<IDWriteFontFace> face,
                                 HbFont hbFontIn,
                                 TypefaceVerticalMetrics metrics,
-                                ComSmartPtr<IDWriteFontCollection> collectionIn = nullptr,
-                                std::vector<FontVariableSetting>&& settings = {})
-        : Typeface (name, style),
-          collection (std::move (collectionIn)),
+                                std::shared_ptr<VariableAxisRegistry> variableAxisRegistry = {},
+                                std::shared_ptr<ScopedCollectionRegistration> registrationIn = {},
+                                std::vector<FontVariableSetting> settings = {})
+        : WindowsDirectWriteTypeface { font,
+                                       face,
+                                       std::make_unique<Native> (TypefaceNativeOptions { std::move (hbFontIn),
+                                                                                         metrics,
+                                                                                         std::move (settings),
+                                                                                         {},
+                                                                                         this,
+                                                                                         variableAxisRegistry }),
+                                       registrationIn }
+    {
+    }
+
+    WindowsDirectWriteTypeface (ComSmartPtr<IDWriteFont> font,
+                                ComSmartPtr<IDWriteFontFace> face,
+                                std::unique_ptr<Native> nativeIn,
+                                std::shared_ptr<ScopedCollectionRegistration> registrationIn)
+        : Typeface (nativeIn->getTypefaceName(), nativeIn->getTypefaceStyle()),
           dwFont (font),
           dwFontFace (face),
-          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (hbFontIn),
-                                                                    metrics,
-                                                                    std::move (settings),
-                                                                    {},
-                                                                    this }))
+          native (std::move (nativeIn)),
+          scopedCollectionRegistration (std::move (registrationIn))
     {
-        if (collection != nullptr)
-            factories->getFonts().addCollection (collection);
     }
 
     static TypefaceVerticalMetrics getDwriteMetrics (IDWriteFontFace& face)
@@ -370,18 +394,15 @@ private:
         gdiWithDwriteFallback,
     };
 
-    static Typeface::Ptr fromFont (ComSmartPtr<IDWriteFont> dwFont,
-                                   ComSmartPtr<IDWriteFontCollection> collection,
-                                   const Font* fontForSynthetics,
-                                   MetricsMechanism mm)
+    static Ptr fromFont (ComSmartPtr<IDWriteFont> dwFont,
+                         std::shared_ptr<ScopedCollectionRegistration> registration,
+                         const Font* fontForSynthetics,
+                         MetricsMechanism mm)
     {
         ComSmartPtr<IDWriteFontFace> dwFace;
 
         if (FAILED (dwFont->CreateFontFace (dwFace.resetAndGetPointerAddress())) || dwFace == nullptr)
             return {};
-
-        const auto name = getLocalisedFamilyName (*dwFont);
-        const auto style = getLocalisedStyle (*dwFont);
 
         HbFace hbFace { hb_directwrite_face_create (dwFace), IncrementRef::no };
         HbFont font { hb_font_create (hbFace.get()), IncrementRef::no };
@@ -395,17 +416,16 @@ private:
         if (fontForSynthetics != nullptr)
             FontStyleHelpers::initSynthetics (font.get(), *fontForSynthetics);
 
-        return new WindowsDirectWriteTypeface (name,
-                                               style,
-                                               dwFont,
+        return new WindowsDirectWriteTypeface (dwFont,
                                                dwFace,
                                                std::move (font),
                                                metrics,
-                                               collection);
+                                               {},
+                                               registration);
     }
 
     // This attempts to replicate the behaviour of the non-directwrite typeface lookup in JUCE 7 and older
-    static Typeface::Ptr getLastResortTypeface (const Font& font)
+    static Ptr getLastResortTypeface (const Font& font)
     {
         auto* dc = CreateCompatibleDC (nullptr);
         const ScopeGuard deleteDC { [&] { DeleteDC (dc); } };
@@ -455,6 +475,7 @@ private:
     ComSmartPtr<IDWriteFont> dwFont;
     ComSmartPtr<IDWriteFontFace> dwFontFace;
     std::unique_ptr<Native> native;
+    std::shared_ptr<ScopedCollectionRegistration> scopedCollectionRegistration;
 };
 
 struct DefaultFontNames
@@ -482,17 +503,17 @@ Typeface::Ptr Font::Native::getDefaultPlatformTypefaceForFont (const Font& font)
     return Typeface::createSystemTypefaceFor (newFont);
 }
 
-Typeface::Ptr Typeface::createSystemTypefaceFor (const Font& font)
+auto Typeface::createFromFontImpl (const Font& font) -> Ptr
 {
     return WindowsDirectWriteTypeface::from (font);
 }
 
-Typeface::Ptr Typeface::createSystemTypefaceFor (Span<const std::byte> data)
+auto Typeface::createFromDataImpl (Span<const std::byte> data) -> Ptr
 {
     return WindowsDirectWriteTypeface::from (data);
 }
 
-Typeface::Ptr Typeface::findSystemTypeface()
+auto Typeface::findSystemTypeface() -> Ptr
 {
     return WindowsDirectWriteTypeface::findSystemTypeface();
 }

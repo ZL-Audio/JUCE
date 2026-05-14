@@ -27,103 +27,17 @@ extern "C" CTFontRef CTFontCreateForStringWithLanguage (CTFontRef currentFont,
 
 class CoreTextTypeface final : public Typeface
 {
-    static auto& getRegistered()
+    static CFUniquePtr<CTFontRef> addOwner (CTFontRef reference)
     {
-        class Registered
-        {
-        public:
-            void add (CTFontRef ref)
-            {
-                const std::scoped_lock lock { mutex };
-                set.emplace (addOwner (ref));
-            }
-
-            void remove (CTFontRef ref)
-            {
-                const std::scoped_lock lock { mutex };
-                set.erase (addOwner (ref));
-            }
-
-            CFUniquePtr<CTFontRef> findMatch (const String& fontName, const String& fontStyle) const
-            {
-                const std::scoped_lock lock { mutex };
-
-                for (auto& item : set)
-                {
-                    const auto keyAsString = [&] (auto key)
-                    {
-                        return String::fromCFString (CFUniquePtr<CFStringRef> { CTFontCopyName (item.get(), key) }.get());
-                    };
-
-                    const auto family = keyAsString (kCTFontFamilyNameKey);
-                    const auto style = keyAsString (kCTFontStyleNameKey);
-
-                    if (fontName == family && (style.isEmpty() || fontStyle.equalsIgnoreCase (style)))
-                        return addOwner (item.get());
-                }
-
-                return nullptr;
-            }
-
-            std::vector<CFUniquePtr<CTFontRef>> findAllStylesForFamily (const String& fontName) const
-            {
-                const std::scoped_lock lock { mutex };
-
-                std::vector<CFUniquePtr<CTFontRef>> result;
-
-                for (auto& item : set)
-                {
-                    const auto keyAsString = [&] (auto key)
-                    {
-                        return String::fromCFString (CFUniquePtr<CFStringRef> { CTFontCopyName (item.get(), key) }.get());
-                    };
-
-                    const auto family = keyAsString (kCTFontFamilyNameKey);
-
-                    if (fontName == family)
-                        result.emplace_back (addOwner (item.get()));
-                }
-
-                return result;
-            }
-
-            std::set<String> getRegisteredFamilies() const
-            {
-                const std::scoped_lock lock { mutex };
-                std::set<String> result;
-
-                for (const auto& item : set)
-                {
-                    const CFUniquePtr<CFStringRef> family { CTFontCopyName (item.get(), kCTFontFamilyNameKey) };
-                    result.insert (String::fromCFString (family.get()));
-                }
-
-                return result;
-            }
-
-        private:
-            static CFUniquePtr<CTFontRef> addOwner (CTFontRef reference)
-            {
-                CFRetain (reference);
-                return CFUniquePtr<CTFontRef> { reference };
-            }
-
-            std::set<CFUniquePtr<CTFontRef>> set;
-            mutable std::mutex mutex;
-        };
-
-        static Registered registered;
-        return registered;
+        CFRetain (reference);
+        return CFUniquePtr<CTFontRef> { reference };
     }
 
 public:
     static Typeface::Ptr from (const Font& font)
     {
-        auto ctFont = [&]() -> CFUniquePtr<CTFontRef>
+        auto ctFont = std::invoke ([&]() -> CFUniquePtr<CTFontRef>
         {
-            if (auto f = getRegistered().findMatch (font.getTypefaceName(), font.getTypefaceStyle()))
-                return f;
-
             CFUniquePtr<CFStringRef> cfFontFamily (FontStyleHelpers::getConcreteFamilyName (font).toCFString());
 
             if (cfFontFamily == nullptr)
@@ -153,7 +67,7 @@ public:
                 return {};
 
             return CFUniquePtr<CTFontRef> { CTFontCreateWithFontDescriptor (ctFontDescRef.get(), 1, nullptr) };
-        }();
+        });
 
         if (ctFont == nullptr)
             return {};
@@ -166,9 +80,7 @@ public:
         FontStyleHelpers::initSynthetics (result.get(), font);
 
         return new CoreTextTypeface (std::move (ctFont),
-                                     std::move (result),
-                                     font.getTypefaceName(),
-                                     font.getTypefaceStyle());
+                                     std::move (result));
     }
 
     static CFUniquePtr<CFDictionaryRef> createVariableDictionary (Span<const FontVariableSetting> variables)
@@ -195,7 +107,8 @@ public:
 
     Typeface::Ptr cloneWithVariableSettings (Span<const FontVariableSetting> variables) const override
     {
-        auto sanitisedVariables = getNativeDetails()->getVariableRegistry().sanitiseVariables (variables);
+        const auto registry = getNativeDetails()->getVariableRegistry();
+        auto sanitisedVariables = registry->sanitiseVariables (variables);
         auto variableDict = createVariableDictionary (sanitisedVariables);
 
         if (variableDict == nullptr)
@@ -227,9 +140,8 @@ public:
 
         return new CoreTextTypeface (std::move (newFont),
                                      std::move (result),
-                                     getName(),
-                                     "",
-                                     {},
+                                     storage,
+                                     registry,
                                      std::move (sanitisedVariables));
     }
 
@@ -237,11 +149,11 @@ public:
     {
         // We can't use CFDataCreate here as this triggers a false positive in ASAN
         // so copy the data manually and use CFDataCreateWithBytesNoCopy
-        MemoryBlock copy { data.data(), data.size() };
+        auto copy = std::make_shared<MemoryBlock> (data.data(), data.size());
 
         const CFUniquePtr<CFDataRef> cfData { CFDataCreateWithBytesNoCopy (kCFAllocatorDefault,
-                                                                           static_cast<const UInt8*> (copy.getData()),
-                                                                           (CFIndex) copy.getSize(),
+                                                                           static_cast<const UInt8*> (copy->getData()),
+                                                                           (CFIndex) copy->getSize(),
                                                                            kCFAllocatorNull) };
 
         if (cfData == nullptr)
@@ -274,13 +186,8 @@ public:
         if (result == nullptr)
             return {};
 
-        const CFUniquePtr<CFStringRef> family { CTFontCopyName (ctFont.get(), kCTFontFamilyNameKey) };
-        const CFUniquePtr<CFStringRef> style  { CTFontCopyName (ctFont.get(), kCTFontStyleNameKey) };
-
         return new CoreTextTypeface (std::move (ctFont),
                                      std::move (result),
-                                     String::fromCFString (family.get()),
-                                     String::fromCFString (style.get()),
                                      std::move (copy));
     }
 
@@ -310,31 +217,8 @@ public:
         if (result == nullptr)
             return {};
 
-        return new CoreTextTypeface { std::move (newFont),
-                                      std::move (result),
-                                      String::fromCFString (newName.get()),
-                                      String::fromCFString (newStyle.get()),
-                                      {} };
-    }
-
-    static std::set<String> getRegisteredFamilies()
-    {
-        return getRegistered().getRegisteredFamilies();
-    }
-
-    static std::vector<CFUniquePtr<CTFontRef>> findRegisteredStylesForFamily (const String& family)
-    {
-        return getRegistered().findAllStylesForFamily (family);
-    }
-
-    ~CoreTextTypeface() override
-    {
-        getRegistered().remove (ctFont.get());
-    }
-
-    CTFontRef getFontRef() const
-    {
-        return ctFont.get();
+        return new CoreTextTypeface (std::move (newFont),
+                                     std::move (result));
     }
 
     const Native* getNativeDetails() const override
@@ -355,11 +239,8 @@ public:
         if (result == nullptr)
             return {};
 
-        return new CoreTextTypeface { std::move (defaultCtFont),
-                                      std::move (result),
-                                      String::fromCFString (newName.get()),
-                                      String::fromCFString (newStyle.get()),
-                                      {} };
+        return new CoreTextTypeface (std::move (defaultCtFont),
+                                     std::move (result));
     }
 
 private:
@@ -377,19 +258,28 @@ private:
 
     CoreTextTypeface (CFUniquePtr<CTFontRef> nativeFont,
                       HbFont fontIn,
-                      const String& name,
-                      const String& style,
-                      MemoryBlock data = {},
-                      std::vector<FontVariableSetting>&& variables = {})
-        : Typeface (name, style),
+                      std::shared_ptr<MemoryBlock> data = {},
+                      std::shared_ptr<VariableAxisRegistry> variableAxisRegistry = {},
+                      std::vector<FontVariableSetting> variables = {})
+        : CoreTextTypeface (addOwner (nativeFont.get()),
+                            std::make_unique<Native> (TypefaceNativeOptions { fontIn,
+                                                                              getNativeMetrics (nativeFont.get()),
+                                                                              std::move (variables),
+                                                                              {},
+                                                                              {},
+                                                                              variableAxisRegistry }),
+                            std::move (data))
+    {
+    }
+
+    CoreTextTypeface (CFUniquePtr<CTFontRef> nativeFont,
+                      std::unique_ptr<Native> nativeIn,
+                      std::shared_ptr<MemoryBlock> data)
+        : Typeface (nativeIn->getTypefaceName(), nativeIn->getTypefaceStyle()),
           ctFont (std::move (nativeFont)),
           storage (std::move (data)),
-          native (std::make_unique<Native> (TypefaceNativeOptions { std::move (fontIn),
-                                                                    getNativeMetrics (ctFont.get()),
-                                                                    std::move (variables) }))
+          native (std::move (nativeIn))
     {
-        if (! storage.isEmpty())
-            getRegistered().add (ctFont.get());
     }
 
     static String findBestAvailableStyle (const Font& font)
@@ -406,19 +296,19 @@ private:
     // We store this, rather than calling hb_coretext_font_get_ct_font, because harfbuzz may
     // override the font cascade list in the returned font.
     CFUniquePtr<CTFontRef> ctFont;
-    MemoryBlock storage;
+    std::shared_ptr<MemoryBlock> storage;
     std::unique_ptr<Native> native;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CoreTextTypeface)
 };
 
 //==============================================================================
-Typeface::Ptr Typeface::createSystemTypefaceFor (const Font& font)
+Typeface::Ptr Typeface::createFromFontImpl (const Font& font)
 {
     return CoreTextTypeface::from (font);
 }
 
-Typeface::Ptr Typeface::createSystemTypefaceFor (Span<const std::byte> data)
+Typeface::Ptr Typeface::createFromDataImpl (Span<const std::byte> data)
 {
     return CoreTextTypeface::from (data);
 }
@@ -435,11 +325,9 @@ Typeface::Ptr Typeface::findSystemTypeface()
     return CoreTextTypeface::findSystemTypeface();
 }
 
-StringArray Font::findAllTypefaceNames()
+StringArray Font::findAllTypefaceNamesImpl()
 {
     StringArray names;
-
-    auto nameSet = CoreTextTypeface::getRegisteredFamilies();
 
     CFUniquePtr<CTFontCollectionRef> fontCollectionRef (CTFontCollectionCreateFromAvailableFonts (nullptr));
     CFUniquePtr<CFArrayRef> fontDescriptorArray (CTFontCollectionCreateMatchingFontDescriptors (fontCollectionRef.get()));
@@ -449,32 +337,18 @@ StringArray Font::findAllTypefaceNames()
         auto ctFontDescriptorRef = (CTFontDescriptorRef) CFArrayGetValueAtIndex (fontDescriptorArray.get(), i);
         CFUniquePtr<CFStringRef> cfsFontFamily ((CFStringRef) CTFontDescriptorCopyAttribute (ctFontDescriptorRef, kCTFontFamilyNameAttribute));
 
-        nameSet.insert (String::fromCFString (cfsFontFamily.get()));
+        names.add (String::fromCFString (cfsFontFamily.get()));
     }
-
-    for (auto& item : nameSet)
-        names.add (item);
 
     return names;
 }
 
-StringArray Font::findAllTypefaceStyles (const String& family)
+StringArray Font::findAllTypefaceStylesImpl (const String& family)
 {
     if (FontStyleHelpers::isPlaceholderFamilyName (family))
         return findAllTypefaceStyles (FontStyleHelpers::getConcreteFamilyNameFromPlaceholder (family));
 
-    std::set<String> uniqueResults;
-    StringArray orderedResults;
-
-    for (const auto& font : CoreTextTypeface::findRegisteredStylesForFamily (family))
-    {
-        const CFUniquePtr<CTFontDescriptorRef> descriptor (CTFontCopyFontDescriptor (font.get()));
-        const CFUniquePtr<CFStringRef> cfsFontStyle ((CFStringRef) CTFontDescriptorCopyAttribute (descriptor.get(), kCTFontStyleNameAttribute));
-        const auto name = String::fromCFString (cfsFontStyle.get());
-
-        if (uniqueResults.insert (name).second)
-            orderedResults.add (name);
-    }
+    StringArray results;
 
     CFUniquePtr<CFStringRef> cfsFontFamily (family.toCFString());
     CFStringRef keys[] { kCTFontFamilyNameAttribute };
@@ -496,12 +370,11 @@ StringArray Font::findAllTypefaceStyles (const String& family)
             CFUniquePtr<CFStringRef> cfsFontStyle ((CFStringRef) CTFontDescriptorCopyAttribute (ctFontDescriptorRef, kCTFontStyleNameAttribute));
             const auto name = String::fromCFString (cfsFontStyle.get());
 
-            if (uniqueResults.insert (name).second)
-                orderedResults.add (name);
+            results.add (name);
         }
     }
 
-    return orderedResults;
+    return results;
 }
 
 struct DefaultFontNames

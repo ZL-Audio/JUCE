@@ -78,12 +78,12 @@ void Typeface::scanFolderForFonts (const File& folder)
     FTTypefaceList::getInstance()->scanFontPaths (StringArray (folder.getFullPathName()));
 }
 
-StringArray Font::findAllTypefaceNames()
+StringArray Font::findAllTypefaceNamesImpl()
 {
     return FTTypefaceList::getInstance()->findAllFamilyNames();
 }
 
-StringArray Font::findAllTypefaceStyles (const String& family)
+StringArray Font::findAllTypefaceStylesImpl (const String& family)
 {
     return FTTypefaceList::getInstance()->findAllTypefaceStyles (family);
 }
