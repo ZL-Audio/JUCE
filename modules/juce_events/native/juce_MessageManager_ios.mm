@@ -23,7 +23,7 @@ void MessageManager::runDispatchLoop()
 {
     jassert (isThisTheMessageThread()); // must only be called by the message thread
 
-    while (quitMessagePosted.get() == 0)
+    while (! quitMessagePosted)
     {
         JUCE_AUTORELEASEPOOL
         {
@@ -51,7 +51,7 @@ bool MessageManager::runDispatchLoopUntil (int millisecondsToRunFor)
         uint32 startTime = Time::getMillisecondCounter();
         NSDate* endDate = [NSDate dateWithTimeIntervalSinceNow: millisecondsToRunFor * 0.001];
 
-        while (quitMessagePosted.get() == 0)
+        while (! quitMessagePosted)
         {
             JUCE_AUTORELEASEPOOL
             {
@@ -64,7 +64,7 @@ bool MessageManager::runDispatchLoopUntil (int millisecondsToRunFor)
             }
         }
 
-        return quitMessagePosted.get() == 0;
+        return ! quitMessagePosted;
     }
 }
 #endif

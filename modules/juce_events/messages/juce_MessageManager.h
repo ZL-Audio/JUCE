@@ -78,7 +78,7 @@ public:
 
     /** Returns true if the stopDispatchLoop() method has been called.
     */
-    bool hasStopMessageBeenSent() const noexcept        { return quitMessagePosted.get() != 0; }
+    bool hasStopMessageBeenSent() const noexcept        { return quitMessagePosted; }
 
    #if JUCE_MODAL_LOOPS_PERMITTED
     /** Synchronously dispatches messages until a given time has elapsed.
@@ -391,9 +391,9 @@ private:
     friend class MessageManagerLock;
 
     std::unique_ptr<ActionBroadcaster> broadcaster;
-    Atomic<int> quitMessagePosted { 0 }, quitMessageReceived { 0 };
+    std::atomic<bool> quitMessagePosted { false }, quitMessageReceived { false };
     Thread::ThreadID messageThreadId;
-    Atomic<Thread::ThreadID> threadWithLock;
+    std::atomic<Thread::ThreadID> threadWithLock;
     mutable std::mutex messageThreadIdMutex;
 
     template <typename Function>
