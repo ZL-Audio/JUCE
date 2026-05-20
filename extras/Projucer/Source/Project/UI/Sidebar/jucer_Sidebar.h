@@ -324,13 +324,14 @@ struct ProjectSettingsComponent final : public Component,
         group.setProperties (props);
         group.setName ("Project Settings");
 
-        lastProjectType = project.getProjectTypeString();
         parentSizeChanged();
     }
 
     void changeListenerCallback (ChangeBroadcaster*) override
     {
-        if (lastProjectType != project.getProjectTypeString())
+        const auto next = getProjectStatesRequiringRebuild();
+
+        if (std::exchange (states, next) != next)
             updatePropertyList();
     }
 
@@ -344,8 +345,30 @@ struct ProjectSettingsComponent final : public Component,
         setSize (width, y);
     }
 
+    struct StatesRequiringPropertyRebuild
+    {
+        var projectType;
+        var enableARA;
+
+        bool operator== (const StatesRequiringPropertyRebuild& other) const
+        {
+            const auto tie = [] (auto& x) { return std::tuple (x.projectType, x.enableARA); };
+            return tie (*this) == tie (other);
+        }
+
+        bool operator!= (const StatesRequiringPropertyRebuild& other) const
+        {
+            return ! operator== (other);
+        }
+    };
+
+    StatesRequiringPropertyRebuild getProjectStatesRequiringRebuild() const
+    {
+        return { project.getProjectTypeString(), project.shouldEnableARA() };
+    }
+
     Project& project;
-    var lastProjectType;
+    StatesRequiringPropertyRebuild states = getProjectStatesRequiringRebuild();
     PropertyGroupComponent group;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ProjectSettingsComponent)
