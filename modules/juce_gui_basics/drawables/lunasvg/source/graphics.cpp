@@ -1,5 +1,5 @@
 #include "graphics.h"
-#include "lunasvg.h"
+#include "../include/lunasvg.h"
 
 #include <cfloat>
 #include <cmath>

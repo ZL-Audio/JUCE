@@ -1,4 +1,4 @@
-#include "lunasvg.h"
+#include "../include/lunasvg.h"
 #include "svgelement.h"
 #include "svgrenderstate.h"
 

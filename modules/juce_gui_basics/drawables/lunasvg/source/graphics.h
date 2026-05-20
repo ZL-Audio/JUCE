@@ -1,7 +1,7 @@
 #ifndef LUNASVG_GRAPHICS_H
 #define LUNASVG_GRAPHICS_H
 
-#include <plutovg.h>
+#include "../plutovg/include/plutovg.h"
 
 #include <cstdint>
 #include <algorithm>

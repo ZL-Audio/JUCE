@@ -1,7 +1,7 @@
 #ifndef LUNASVG_SVGELEMENT_H
 #define LUNASVG_SVGELEMENT_H
 
-#include "lunasvg.h"
+#include "../include/lunasvg.h"
 #include "svgproperty.h"
 
 #include <string>
