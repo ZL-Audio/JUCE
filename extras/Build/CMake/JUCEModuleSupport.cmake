@@ -676,3 +676,12 @@ function(_juce_fixup_module_source_groups)
         endforeach()
     endif()
 endfunction()
+
+function(_juce_fixup_unity_property)
+    get_property(all_modules GLOBAL PROPERTY _juce_module_names)
+
+    foreach(module_name IN LISTS all_modules)
+        get_target_property(source_files ${module_name} INTERFACE_JUCE_MODULE_SOURCES)
+        set_source_files_properties(${source_files} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    endforeach()
+endfunction()

@@ -2154,6 +2154,7 @@ function(_juce_initialise_target target)
     _juce_write_generate_time_info(${target})
     _juce_link_optional_libraries(${target})
     _juce_fixup_module_source_groups()
+    _juce_fixup_unity_property()
 endfunction()
 
 # ==================================================================================================
