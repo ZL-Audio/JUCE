@@ -4,6 +4,26 @@
 
 ## Change
 
+The function Drawable::createFromSVG (const XmlElement& svgDocument) has been
+removed.
+
+**Possible Issues**
+
+Code that calls the function will fail to compile.
+
+**Workaround**
+
+Use the createFromSVGFile() or createFromSVGString() functions instead.
+
+**Rationale**
+
+The SVG parsing features in JUCE have been fundamentally reworked, and they now
+depend on the lunasvg library. Lunasvg does its own XML parsing, and is not
+compatible with the juce::XmlElement type.
+
+
+## Change
+
 The return types of `DrawableShape::getStrokeType()` and
 `DrawableShape::getDashLengths()` changed from `const PathStrokeType&` to
 `PathStrokeType`, and from `const Array<float>&` to `Span<const float>`

@@ -108,8 +108,8 @@ std::unique_ptr<Drawable> Drawable::createFromImageData (const void* data, const
     if (image.isValid())
         return std::make_unique<DrawableImage> (image);
 
-    if (auto svg = parseXMLIfTagMatches (String::createStringFromData (data, (int) numBytes), "svg"))
-        return Drawable::createFromSVG (*svg);
+    if (const auto s = String::createStringFromData (data, (int) numBytes); s.contains ("<svg"))
+        return Drawable::createFromSVGString (s);
 
     return {};
 }

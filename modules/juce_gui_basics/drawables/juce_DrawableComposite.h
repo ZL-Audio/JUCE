@@ -106,19 +106,6 @@ public:
         return *children[(size_t) index];
     }
 
-    void addChildComponent (Drawable* newChild)
-    {
-        addChild (rawToUniquePtr (newChild));
-    }
-
-    void addAndMakeVisible (Drawable* newChild)
-    {
-        if (newChild == nullptr)
-            return;
-
-        addChild (rawToUniquePtr (newChild));
-    }
-
     void setBlendMode (BlendMode newBlendMode)
     {
         blendMode = newBlendMode;

@@ -100,8 +100,8 @@ private:
         }
 
         if (drawable == nullptr)
-            if (auto svg = parseXML (file))
-                drawable = Drawable::createFromSVG (*svg);
+            if (const auto s = file.loadFileAsString(); s.contains ("<svg"))
+                drawable = Drawable::createFromSVGString (s);
 
         facts.removeEmptyStrings (true);
     }

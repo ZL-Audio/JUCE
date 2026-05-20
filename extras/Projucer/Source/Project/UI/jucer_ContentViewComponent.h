@@ -85,8 +85,13 @@ private:
     private:
         std::unique_ptr<Drawable> logo = []() -> std::unique_ptr<Drawable>
         {
-            if (auto svg = parseXML (BinaryData::background_logo_svg))
-                return Drawable::createFromSVG (*svg);
+
+            if (const auto s = String::createStringFromData (BinaryData::background_logo_svg,
+                                                             BinaryData::background_logo_svgSize);
+                s.contains ("<svg"))
+            {
+                return Drawable::createFromSVGString (s);
+            }
 
             jassertfalse;
             return {};

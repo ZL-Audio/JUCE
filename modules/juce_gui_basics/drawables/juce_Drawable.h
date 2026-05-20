@@ -135,16 +135,6 @@ public:
     */
     static std::unique_ptr<Drawable> createFromImageFile (const File& file);
 
-    /** Attempts to parse an SVG (Scalable Vector Graphics) document, and to turn this
-        into a Drawable tree.
-
-        If something goes wrong while parsing, it may return nullptr.
-
-        SVG is a pretty large and complex spec, and this doesn't aim to be a full
-        implementation, but it can return the basic vector objects.
-    */
-    static std::unique_ptr<Drawable> createFromSVG (const XmlElement& svgDocument);
-
     /** Attempts to parse an SVG (Scalable Vector Graphics) document from a file,
         and to turn this into a Drawable tree.
 

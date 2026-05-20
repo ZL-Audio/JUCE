@@ -65,10 +65,7 @@ public:
 private:
     static std::unique_ptr<Drawable> makeIcon (const char* iconSvgData)
     {
-        if (auto svg = XmlDocument::parse (iconSvgData))
-            return Drawable::createFromSVG (*svg);
-
-        return {};
+        return Drawable::createFromSVGString (iconSvgData);
     }
 
     Label nameLabel, descriptionLabel;
