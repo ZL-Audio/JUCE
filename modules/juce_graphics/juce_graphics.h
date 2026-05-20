@@ -139,6 +139,14 @@ namespace juce
 #include "effects/juce_GlowEffect.h"
 #include "detail/juce_Unicode.h"
 #include "detail/juce_TwoPointConicalGradient.h"
+#include "drawables/juce_Drawable.h"
+#include "drawables/juce_StrokeOptions.h"
+#include "drawables/juce_DrawableShape.h"
+#include "drawables/juce_DrawableComposite.h"
+#include "drawables/juce_DrawableImage.h"
+#include "drawables/juce_DrawablePath.h"
+#include "drawables/juce_DrawableRectangle.h"
+#include "drawables/juce_DrawableText.h"
 
 #if JUCE_GRAPHICS_INCLUDE_RENDERING_HELPERS
  #include "native/juce_RenderingHelpers.h"

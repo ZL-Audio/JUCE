@@ -14,6 +14,7 @@
 		1683F77932E40BFDB5BB5385 /* include_juce_gui_basics_4.cpp */ = {isa = PBXBuildFile; fileRef = DC7E90D5ED3F4B96335423A1; };
 		1F7A8BD2B43B3D191132301D /* CoreImage.framework */ = {isa = PBXBuildFile; fileRef = E51ABCA80B75F33848F28184; };
 		204FE224D562F0519DE438A4 /* include_juce_core_CompilationTime.cpp */ = {isa = PBXBuildFile; fileRef = BD85090C86849423E95A0014; };
+		22F59D1B33807354C257F4D2 /* include_juce_graphics_lunasvg.c */ = {isa = PBXBuildFile; fileRef = D7DC62402EA011FA46185BB2; };
 		2E28F61A64DEF942FE7B94C4 /* include_juce_audio_processors.mm */ = {isa = PBXBuildFile; fileRef = AED58461CE961C62A0E0A552; };
 		366A216FDEBD7BDDC1BA12D9 /* CoreGraphics.framework */ = {isa = PBXBuildFile; fileRef = DA40ED39AF4B56000E5A2743; };
 		3717B9F9A0F7C9CB95F1BE7F /* include_juce_gui_extra.mm */ = {isa = PBXBuildFile; fileRef = 7BE6330821794919A88ED8ED; };
@@ -33,7 +34,6 @@
 		8CE87C0D717B6D9BF77437D2 /* include_juce_audio_processors_headless.mm */ = {isa = PBXBuildFile; fileRef = 52CBBACAC86AD67BAF0687F6; };
 		8ECB0767EE340DD83869E37D /* WebKit.framework */ = {isa = PBXBuildFile; fileRef = EC794872987FEA2E129C589A; };
 		987CBD5330E76B404F0D966C /* Main.cpp */ = {isa = PBXBuildFile; fileRef = 77C0AC21C1028911123844FC; };
-		9BF063BEBBB39FD10A2A27AE /* include_juce_gui_basics_lunasvg.c */ = {isa = PBXBuildFile; fileRef = 80B6C4BA72F64455BDC841F0; };
 		9EFD2AA2FFF3C125FDAA4279 /* include_juce_data_structures.mm */ = {isa = PBXBuildFile; fileRef = 7525879E73E8AF32FFA0CDDE; };
 		9F618C008A503063D10076C4 /* BinaryData.cpp */ = {isa = PBXBuildFile; fileRef = 74711D7544168CCAC4969A07; };
 		A1204C6C832C4F05CB526169 /* include_juce_audio_processors_headless_ara.cpp */ = {isa = PBXBuildFile; fileRef = 6033B963F05D21CB55E99E91; };
@@ -88,7 +88,6 @@
 		7525879E73E8AF32FFA0CDDE /* include_juce_data_structures.mm */ /* include_juce_data_structures.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_data_structures.mm; path = ../../JuceLibraryCode/include_juce_data_structures.mm; sourceTree = SOURCE_ROOT; };
 		77C0AC21C1028911123844FC /* Main.cpp */ /* Main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Main.cpp; path = ../../Source/Main.cpp; sourceTree = SOURCE_ROOT; };
 		7BE6330821794919A88ED8ED /* include_juce_gui_extra.mm */ /* include_juce_gui_extra.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_extra.mm; path = ../../JuceLibraryCode/include_juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
-		80B6C4BA72F64455BDC841F0 /* include_juce_gui_basics_lunasvg.c */ /* include_juce_gui_basics_lunasvg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_gui_basics_lunasvg.c; path = ../../JuceLibraryCode/include_juce_gui_basics_lunasvg.c; sourceTree = SOURCE_ROOT; };
 		84B287BB2AD252B7D69AC47E /* include_juce_gui_basics.mm */ /* include_juce_gui_basics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_basics.mm; path = ../../JuceLibraryCode/include_juce_gui_basics.mm; sourceTree = SOURCE_ROOT; };
 		8914CC86A626EEFD963A0658 /* include_juce_gui_basics_3.cpp */ /* include_juce_gui_basics_3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_gui_basics_3.cpp; path = ../../JuceLibraryCode/include_juce_gui_basics_3.cpp; sourceTree = SOURCE_ROOT; };
 		89583CD42AD218E9753DF11C /* juce_audio_devices */ /* juce_audio_devices */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_devices; path = ../../../../modules/juce_audio_devices; sourceTree = SOURCE_ROOT; };
@@ -120,6 +119,7 @@
 		C8C4E9A4028028FF1F5B76F2 /* MetalKit.framework */ /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		D12A0DFFE18728E84D9AB739 /* JuceHeader.h */ /* JuceHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JuceHeader.h; path = ../../JuceLibraryCode/JuceHeader.h; sourceTree = SOURCE_ROOT; };
 		D37E4AB5BF7B4DAB27F60645 /* include_juce_gui_basics_5.cpp */ /* include_juce_gui_basics_5.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_gui_basics_5.cpp; path = ../../JuceLibraryCode/include_juce_gui_basics_5.cpp; sourceTree = SOURCE_ROOT; };
+		D7DC62402EA011FA46185BB2 /* include_juce_graphics_lunasvg.c */ /* include_juce_graphics_lunasvg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_graphics_lunasvg.c; path = ../../JuceLibraryCode/include_juce_graphics_lunasvg.c; sourceTree = SOURCE_ROOT; };
 		DA40ED39AF4B56000E5A2743 /* CoreGraphics.framework */ /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		DC7E90D5ED3F4B96335423A1 /* include_juce_gui_basics_4.cpp */ /* include_juce_gui_basics_4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_gui_basics_4.cpp; path = ../../JuceLibraryCode/include_juce_gui_basics_4.cpp; sourceTree = SOURCE_ROOT; };
 		E4162459ED4C829EF7B19691 /* App */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "JUCE Network Graphics Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -251,13 +251,13 @@
 				33AA348465F512DBA8778DAF,
 				A7FF2B353C8568B5A7A80117,
 				AC684ED3A008C6E513200C05,
+				D7DC62402EA011FA46185BB2,
 				53EC217F09F0762DFA2910A8,
 				84B287BB2AD252B7D69AC47E,
 				6F448A205D85D5419A8766DD,
 				8914CC86A626EEFD963A0658,
 				DC7E90D5ED3F4B96335423A1,
 				D37E4AB5BF7B4DAB27F60645,
-				80B6C4BA72F64455BDC841F0,
 				7BE6330821794919A88ED8ED,
 				660F1970CF687A7AE8371C6D,
 				3BF06B70407FFDBE9534F942,
@@ -406,13 +406,13 @@
 				C5E7BAD864E02CF37F7BD707,
 				CBC8F7E5225C73CEDFB3B72E,
 				EA153740F801BC51EFD75A5A,
+				22F59D1B33807354C257F4D2,
 				5FF49672946F9857D0566A06,
 				CADEA83EAAC94E0011C07908,
 				3E99AFD8F597D7D96B383389,
 				D0A216D18DA4B8BE0B7DE49F,
 				1683F77932E40BFDB5BB5385,
 				602138A25FD8ACB48B8BA915,
-				9BF063BEBBB39FD10A2A27AE,
 				3717B9F9A0F7C9CB95F1BE7F,
 				61B523C52EBA17F738FFE31A,
 				C6348C6B1D0312580E97EA19,

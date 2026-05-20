@@ -5,4 +5,4 @@
 
 */
 
-#include <juce_gui_basics/juce_gui_basics_lunasvg.c>
+#include <juce_graphics/juce_graphics_lunasvg.c>

@@ -194,6 +194,66 @@ extern "C"
 #include "effects/juce_DropShadowEffect.cpp"
 #include "effects/juce_GlowEffect.cpp"
 
+
+#include "drawables/juce_StrokeOptions.cpp"
+#include "drawables/juce_Drawable.cpp"
+#include "drawables/juce_DrawableComposite.cpp"
+#include "drawables/juce_DrawableImage.cpp"
+#include "drawables/juce_DrawablePath.cpp"
+#include "drawables/juce_DrawableRectangle.cpp"
+#include "drawables/juce_DrawableShape.cpp"
+#include "drawables/juce_DrawableText.cpp"
+
+#include "detail/juce_LunaSvgFontReplacement.cpp"
+
+// A project may be linking against lunasvg in which case this may already be defined on the command-line
+#ifndef LUNASVG_BUILD
+ #define LUNASVG_BUILD
+#endif
+#ifndef LUNASVG_BUILD_STATIC
+ #define LUNASVG_BUILD_STATIC
+#endif
+#define JUCE_PLUTOVG_BUILD
+#define JUCE_PLUTOVG_BUILD_STATIC
+
+JUCE_BEGIN_IGNORE_WARNINGS_MSVC (4100 4244 4267 6323)
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wfloat-conversion",
+                                     "-Wfloat-equal",
+                                     "-Wmissing-field-initializers",
+                                     "-Wshadow-field-in-constructor",
+                                     "-Wshadow-uncaptured-local",
+                                     "-Wshorten-64-to-32",
+                                     "-Wsign-conversion",
+                                     "-Wswitch-enum",
+                                     "-Wunused-parameter",
+                                     "-Wimplicit-int-float-conversion",
+                                     "-Wshadow",
+                                     "-Wunused-function")
+
+#include "drawables/lunasvg/include/lunasvg.h"
+#include "drawables/lunasvg/source/graphics.h"
+
+#include "drawables/lunasvg/source/graphics.cpp"
+#include "drawables/lunasvg/source/lunasvg.cpp"
+#include "drawables/lunasvg/source/svgelement.cpp"
+#include "drawables/lunasvg/source/svggeometryelement.cpp"
+#include "drawables/lunasvg/source/svglayoutstate.cpp"
+#include "drawables/lunasvg/source/svgpaintelement.cpp"
+#include "drawables/lunasvg/source/svgparser.cpp"
+#include "drawables/lunasvg/source/svgproperty.cpp"
+#include "drawables/lunasvg/source/svgrenderstate.cpp"
+#include "drawables/lunasvg/source/svgtextelement.cpp"
+
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+JUCE_END_IGNORE_WARNINGS_MSVC
+
+#undef JUCE_PLUTOVG_BUILD_STATIC
+#undef JUCE_PLUTOVG_BUILD
+#undef LUNASVG_BUILD_STATIC
+#undef LUNASVG_BUILD
+
+#include "drawables/juce_SVGParser.cpp"
+
 #if JUCE_UNIT_TESTS
  #include "geometry/juce_Parallelogram_test.cpp"
  #include "geometry/juce_Rectangle_test.cpp"

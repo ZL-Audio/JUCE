@@ -37,17 +37,17 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wcast-align",
                                      "-Wimplicit-int-float-conversion",
                                      "-Wunused-but-set-variable")
 
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-blend.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-canvas.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-font.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-ft-math.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-ft-raster.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-ft-stroker.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-matrix.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-paint.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-path.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-rasterize.c>
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-surface.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-blend.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-canvas.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-font.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-ft-math.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-ft-raster.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-ft-stroker.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-matrix.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-paint.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-path.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-rasterize.c>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-surface.c>
 
 JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 JUCE_END_IGNORE_WARNINGS_MSVC

@@ -16,7 +16,7 @@
   ==============================================================================
 */
 
-#include <juce_gui_basics/drawables/lunasvg/plutovg/source/plutovg-private.h>
+#include <juce_graphics/drawables/lunasvg/plutovg/source/plutovg-private.h>
 
 #include <stack>
 
