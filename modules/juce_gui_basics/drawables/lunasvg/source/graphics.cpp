@@ -466,29 +466,6 @@ FontFaceCache* fontFaceCache()
     return &cache;
 }
 
-Font::Font(const FontFace& face, float size)
-    : m_face(face), m_size(size)
-{
-    if(m_size > 0.f && !m_face.isNull()) {
-        juce_plutovg_font_face_get_metrics(m_face.get(), m_size, &m_ascent, &m_descent, &m_lineGap, nullptr);
-    }
-}
-
-float Font::xHeight() const
-{
-    juce_plutovg_rect_t extents = {0};
-    if(m_size > 0.f && !m_face.isNull())
-        juce_plutovg_font_face_get_glyph_metrics(m_face.get(), m_size, 'x', nullptr, nullptr, &extents);
-    return extents.h;
-}
-
-float Font::measureText(const std::u32string_view& text) const
-{
-    if(m_size > 0.f && !m_face.isNull())
-        return juce_plutovg_font_face_text_extents(m_face.get(), m_size, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, nullptr);
-    return 0;
-}
-
 std::shared_ptr<Canvas> Canvas::create(const Bitmap& bitmap)
 {
     return createFromBitmap(bitmap);
@@ -570,7 +547,7 @@ void CanvasImpl::fillText(const std::u32string_view& text, const Font& font, con
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
     juce_plutovg_canvas_set_fill_rule(m_canvas, JUCE_PLUTOVG_FILL_RULE_NON_ZERO);
     juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
-    juce_plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
+//    juce_plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
     juce_plutovg_canvas_fill_text(m_canvas, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
 }
 
@@ -585,7 +562,7 @@ void CanvasImpl::strokeText(const std::u32string_view& text, float strokeWidth, 
     juce_plutovg_canvas_set_dash_offset(m_canvas, 0.f);
     juce_plutovg_canvas_set_dash_array(m_canvas, nullptr, 0);
     juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
-    juce_plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
+//    juce_plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
     juce_plutovg_canvas_stroke_text(m_canvas, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
 }
 

@@ -602,7 +602,7 @@ Font SVGLayoutState::font() const
 
     if(face.isNull())
         face = fontFaceCache()->getFontFace(emptyString, bold, italic);
-    return Font(face, m_font_size);
+    return Font(m_font_size, face.isNull() ? "" : font_family(), bold, italic);
 }
 
 } // namespace lunasvg
