@@ -52,6 +52,8 @@
 #include "drawables/juce_DrawableShape.cpp"
 #include "drawables/juce_DrawableText.cpp"
 
+#include <juce_gui_basics/detail/juce_LunaSvgFontReplacement.cpp>
+
 // A project may be linking against lunasvg in which case this may already be defined on the command-line
 #ifndef LUNASVG_BUILD
  #define LUNASVG_BUILD

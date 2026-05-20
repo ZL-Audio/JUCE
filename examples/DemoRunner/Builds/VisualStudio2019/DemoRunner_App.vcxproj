@@ -2685,6 +2685,9 @@
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\detail\juce_ComponentPeerHelpers.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\detail\juce_LunaSvgFontReplacement.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-blend.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
