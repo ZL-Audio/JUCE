@@ -662,6 +662,7 @@ private:
 using ElementList = std::vector<Element>;
 
 class SVGRootElement;
+class Canvas;
 
 class LUNASVG_API Document {
 public:
@@ -734,6 +735,8 @@ public:
      * @brief Forces an immediate layout update.
      */
     void forceLayout();
+
+    void renderToCanvas(std::shared_ptr<Canvas> canvas, const Matrix& matrix) const;
 
     /**
      * @brief Renders the document onto a bitmap using a transformation matrix.

@@ -509,6 +509,10 @@ class Bitmap;
 
 class Canvas {
 public:
+    std::shared_ptr<Canvas> create(const Bitmap& bitmap);
+    std::shared_ptr<Canvas> create(float x, float y, float width, float height);
+    std::shared_ptr<Canvas> create(const Rect& extents);
+
     virtual void setColor(const Color& color) = 0;
     virtual void setColor(float r, float g, float b, float a) = 0;
     virtual void setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform) = 0;
@@ -543,13 +547,15 @@ public:
     virtual juce_plutovg_canvas_t* canvas() const = 0;
 
     virtual ~Canvas() = default;
+
+protected:
+    virtual std::shared_ptr<Canvas> createFromBounds(int x, int y, int width, int height) = 0;
+    virtual std::shared_ptr<Canvas> createFromBitmap(const Bitmap& bitmap) = 0;
 };
 
 class CanvasImpl : public Canvas {
 public:
-    static std::shared_ptr<Canvas> create(const Bitmap& bitmap);
-    static std::shared_ptr<Canvas> create(float x, float y, float width, float height);
-    static std::shared_ptr<Canvas> create(const Rect& extents);
+    static std::shared_ptr<Canvas> createCanvasImpl(const Bitmap& bitmap);
 
     void setColor(const Color& color) override;
     void setColor(float r, float g, float b, float a) override;
@@ -585,6 +591,10 @@ public:
     juce_plutovg_canvas_t* canvas() const override { return m_canvas; }
 
     ~CanvasImpl() override;
+
+protected:
+    std::shared_ptr<Canvas> createFromBounds(int x, int y, int width, int height) override;
+    std::shared_ptr<Canvas> createFromBitmap(const Bitmap& bitmap) override;
 
 private:
     CanvasImpl(const Bitmap& bitmap);

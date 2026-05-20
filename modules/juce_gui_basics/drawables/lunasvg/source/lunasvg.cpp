@@ -334,7 +334,7 @@ void Element::render(Bitmap& bitmap, const Matrix& matrix) const
 {
     if(m_node == nullptr || bitmap.isNull())
         return;
-    auto canvas = CanvasImpl::create(bitmap);
+    auto canvas = CanvasImpl::createCanvasImpl(bitmap);
     SVGRenderState state(nullptr, nullptr, matrix, SVGRenderMode::Painting, canvas);
     element(true)->render(state);
 }
@@ -472,13 +472,18 @@ void Document::forceLayout()
     m_rootElement->forceLayout();
 }
 
+void Document::renderToCanvas(std::shared_ptr<Canvas> canvas, const Matrix& matrix) const
+{
+    SVGRenderState state(nullptr, nullptr, matrix, SVGRenderMode::Painting, canvas);
+    rootElement(true)->render(state);
+}
+
 void Document::render(Bitmap& bitmap, const Matrix& matrix) const
 {
     if(bitmap.isNull())
         return;
-    auto canvas = CanvasImpl::create(bitmap);
-    SVGRenderState state(nullptr, nullptr, matrix, SVGRenderMode::Painting, canvas);
-    rootElement(true)->render(state);
+    auto canvas = CanvasImpl::createCanvasImpl(bitmap);
+    renderToCanvas(canvas, matrix);
 }
 
 Bitmap Document::renderToBitmap(int width, int height, uint32_t backgroundColor) const

@@ -489,26 +489,31 @@ float Font::measureText(const std::u32string_view& text) const
     return 0;
 }
 
-std::shared_ptr<Canvas> CanvasImpl::create(const Bitmap& bitmap)
+std::shared_ptr<Canvas> Canvas::create(const Bitmap& bitmap)
 {
-    return std::shared_ptr<Canvas>(new CanvasImpl(bitmap));
+    return createFromBitmap(bitmap);
 }
 
-std::shared_ptr<Canvas> CanvasImpl::create(float x, float y, float width, float height)
+std::shared_ptr<Canvas> Canvas::create(float x, float y, float width, float height)
 {
     constexpr int kMaxSize = 1 << 15;
     if(width <= 0 || height <= 0 || width >= kMaxSize || height >= kMaxSize)
-        return std::shared_ptr<Canvas>(new CanvasImpl(0, 0, 1, 1));
+        return createFromBounds(0, 0, 1, 1);
     auto l = static_cast<int>(std::floor(x));
     auto t = static_cast<int>(std::floor(y));
     auto r = static_cast<int>(std::ceil(x + width));
     auto b = static_cast<int>(std::ceil(y + height));
-    return std::shared_ptr<Canvas>(new CanvasImpl(l, t, r - l, b - t));
+    return createFromBounds(l, t, r - l, b - t);
 }
 
-std::shared_ptr<Canvas> CanvasImpl::create(const Rect& extents)
+std::shared_ptr<Canvas> Canvas::create(const Rect& extents)
 {
     return create(extents.x, extents.y, extents.w, extents.h);
+}
+
+std::shared_ptr<Canvas> CanvasImpl::createCanvasImpl(const Bitmap& bitmap)
+{
+    return std::shared_ptr<Canvas>(new CanvasImpl(bitmap));
 }
 
 void CanvasImpl::setColor(const Color& color)
@@ -689,6 +694,16 @@ CanvasImpl::CanvasImpl(int x, int y, int width, int height)
     , m_translation({1, 0, 0, 1, -static_cast<float>(x), -static_cast<float>(y)})
     , m_x(x), m_y(y)
 {
+}
+
+std::shared_ptr<Canvas> CanvasImpl::createFromBounds(int x, int y, int width, int height)
+{
+    return std::shared_ptr<Canvas>(new CanvasImpl(x, y, width, height));
+}
+
+std::shared_ptr<Canvas> CanvasImpl::createFromBitmap(const Bitmap& bitmap)
+{
+    return std::shared_ptr<Canvas>(new CanvasImpl(bitmap));
 }
 
 } // namespace lunasvg
