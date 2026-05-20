@@ -1,4 +1,4 @@
-#include "plutovg.h"
+#include "../include/plutovg.h"
 #include "plutovg-utils.h"
 
 void plutovg_matrix_init(plutovg_matrix_t* matrix, float a, float b, float c, float d, float e, float f)

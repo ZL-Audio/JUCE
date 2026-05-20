@@ -1,7 +1,7 @@
 #ifndef PLUTOVG_PRIVATE_H
 #define PLUTOVG_PRIVATE_H
 
-#include "plutovg.h"
+#include "../include/plutovg.h"
 
 #if defined(_WIN32)
 
