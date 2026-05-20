@@ -1,4 +1,5 @@
 #include "svgrenderstate.h"
+namespace {
 
 namespace lunasvg {
 
@@ -59,3 +60,4 @@ void SVGRenderState::endGroup(const SVGBlendInfo& blendInfo)
 }
 
 } // namespace lunasvg
+}

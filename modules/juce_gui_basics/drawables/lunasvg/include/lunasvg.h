@@ -63,8 +63,8 @@
 extern "C" {
 #endif
 
-typedef struct plutovg_surface plutovg_surface_t;
-typedef struct plutovg_matrix plutovg_matrix_t;
+typedef struct juce_plutovg_surface juce_plutovg_surface_t;
+typedef struct juce_plutovg_matrix juce_plutovg_matrix_t;
 
 /**
  * @brief Callback for cleaning up resources.
@@ -130,6 +130,7 @@ LUNASVG_API bool lunasvg_add_font_face_from_data(const char* family, bool bold, 
 }
 #endif
 
+namespace {
 namespace lunasvg {
 
 /**
@@ -175,7 +176,7 @@ public:
     /**
      * @internal
      */
-    Bitmap(plutovg_surface_t* surface) : m_surface(surface) {}
+    Bitmap(juce_plutovg_surface_t* surface) : m_surface(surface) {}
 
     /**
      * @brief Cleans up any resources associated with the bitmap.
@@ -268,11 +269,11 @@ public:
     /**
      * @internal
      */
-    plutovg_surface_t* surface() const { return m_surface; }
+    juce_plutovg_surface_t* surface() const { return m_surface; }
 
 private:
-    plutovg_surface_t* release();
-    plutovg_surface_t* m_surface{nullptr};
+    juce_plutovg_surface_t* release();
+    juce_plutovg_surface_t* m_surface{nullptr};
 };
 
 class Rect;
@@ -348,7 +349,7 @@ public:
     /**
      * @internal
      */
-    Matrix(const plutovg_matrix_t& matrix);
+    Matrix(const juce_plutovg_matrix_t& matrix);
 
     /**
      * @internal
@@ -787,5 +788,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_H

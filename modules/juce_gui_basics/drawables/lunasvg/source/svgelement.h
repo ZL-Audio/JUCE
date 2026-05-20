@@ -8,6 +8,7 @@
 #include <forward_list>
 #include <list>
 #include <map>
+namespace {
 
 namespace lunasvg {
 
@@ -494,5 +495,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGELEMENT_H

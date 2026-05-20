@@ -3,6 +3,7 @@
 #include "svgparserutils.h"
 
 #include <cassert>
+namespace {
 
 namespace lunasvg {
 
@@ -213,7 +214,7 @@ bool SVGAngle::parse(std::string_view input)
         return false;
     if(!input.empty()) {
         if(input == "rad")
-            value *= 180.f / PLUTOVG_PI;
+            value *= 180.f / JUCE_PLUTOVG_PI;
         else if(input == "grad")
             value *= 360.f / 400.f;
         else if(input == "turn")
@@ -341,7 +342,7 @@ float LengthContext::viewportDimension(LengthDirection direction) const
     case LengthDirection::Vertical:
         return viewportSize.h;
     default:
-        return std::sqrt(viewportSize.w * viewportSize.w + viewportSize.h * viewportSize.h) / PLUTOVG_SQRT2;
+        return std::sqrt(viewportSize.w * viewportSize.w + viewportSize.h * viewportSize.h) / JUCE_PLUTOVG_SQRT2;
     }
 }
 
@@ -703,3 +704,4 @@ void SVGPreserveAspectRatio::transformRect(Rect& dstRect, Rect& srcRect) const
 }
 
 } // namespace lunasvg
+}

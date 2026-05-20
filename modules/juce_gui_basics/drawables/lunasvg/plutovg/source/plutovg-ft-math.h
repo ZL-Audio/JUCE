@@ -15,8 +15,8 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef PLUTOVG_FT_MATH_H
-#define PLUTOVG_FT_MATH_H
+#ifndef JUCE_PLUTOVG_FT_MATH_H
+#define JUCE_PLUTOVG_FT_MATH_H
 
 #include "plutovg-ft-types.h"
 
@@ -433,4 +433,4 @@ PVG_FT_Vector_From_Polar( PVG_FT_Vector*  vec,
     PVG_FT_Fixed    length,
     PVG_FT_Angle    angle );
 
-#endif /* PLUTOVG_FT_MATH_H */
+#endif /* JUCE_PLUTOVG_FT_MATH_H */

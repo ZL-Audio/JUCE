@@ -148,8 +148,8 @@ LICENSE
 
 */
 
-#ifndef PLUTOVG_STB_IMAGE_WRITE_H
-#define PLUTOVG_STB_IMAGE_WRITE_H
+#ifndef JUCE_PLUTOVG_STB_IMAGE_WRITE_H
+#define JUCE_PLUTOVG_STB_IMAGE_WRITE_H
 
 #include <stdlib.h>
 
@@ -194,7 +194,7 @@ STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x,
 
 STBIWDEF void stbi_flip_vertically_on_write(int flip_boolean);
 
-#endif//PLUTOVG_STB_IMAGE_WRITE_H
+#endif//JUCE_PLUTOVG_STB_IMAGE_WRITE_H
 
 #ifdef STB_IMAGE_WRITE_IMPLEMENTATION
 

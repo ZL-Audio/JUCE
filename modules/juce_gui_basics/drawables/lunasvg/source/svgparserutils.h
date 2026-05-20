@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string_view>
 #include <limits>
+namespace {
 
 namespace lunasvg {
 
@@ -206,5 +207,6 @@ inline bool parseNumber(std::string_view& input, T& number)
 }
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGPARSERUTILS_H

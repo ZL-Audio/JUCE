@@ -4,6 +4,7 @@
 #include "svgelement.h"
 
 #include <optional>
+namespace {
 
 namespace lunasvg {
 
@@ -151,5 +152,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGTEXTELEMENT_H

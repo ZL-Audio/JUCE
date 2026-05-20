@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <set>
+namespace {
 
 namespace lunasvg {
 
@@ -362,3 +363,4 @@ SVGPatternAttributes SVGPatternElement::collectPatternAttributes() const
 }
 
 } // namespace lunasvg
+}

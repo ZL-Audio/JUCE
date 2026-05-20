@@ -3,6 +3,7 @@
 #include "svgparserutils.h"
 
 #include <optional>
+namespace {
 
 namespace lunasvg {
 
@@ -12,12 +13,12 @@ static std::optional<Color> parseColorValue(std::string_view& input, const SVGLa
         return state->color();
     }
 
-    plutovg_color_t color;
-    int length = plutovg_color_parse(&color, input.data(), input.length());
+    juce_plutovg_color_t color;
+    int length = juce_plutovg_color_parse(&color, input.data(), input.length());
     if(length == 0)
         return std::nullopt;
     input.remove_prefix(length);
-    return Color(plutovg_color_to_argb32(&color));
+    return Color(juce_plutovg_color_to_argb32(&color));
 }
 
 static Color parseColor(std::string_view input, const SVGLayoutState* state, const Color& defaultValue)
@@ -605,3 +606,4 @@ Font SVGLayoutState::font() const
 }
 
 } // namespace lunasvg
+}

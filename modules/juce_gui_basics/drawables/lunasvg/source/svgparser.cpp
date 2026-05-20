@@ -3,6 +3,7 @@
 #include "svgparserutils.h"
 
 #include <cassert>
+namespace {
 
 namespace lunasvg {
 
@@ -940,3 +941,4 @@ ElementList Document::querySelectorAll(const std::string& content) const
 }
 
 } // namespace lunasvg
+}

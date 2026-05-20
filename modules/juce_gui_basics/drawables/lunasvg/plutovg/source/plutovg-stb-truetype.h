@@ -496,8 +496,8 @@ int main(int arg, char **argv)
 ////
 ////
 
-#ifndef PLUTOVG_STB_TRUETYPE_H
-#define PLUTOVG_STB_TRUETYPE_H
+#ifndef JUCE_PLUTOVG_STB_TRUETYPE_H
+#define JUCE_PLUTOVG_STB_TRUETYPE_H
 
 #ifdef STBTT_STATIC
 #define STBTT_DEF static
@@ -1094,7 +1094,7 @@ enum { // languageID for STBTT_PLATFORM_ID_MAC
 }
 #endif
 
-#endif // PLUTOVG_STB_TRUETYPE_H
+#endif // JUCE_PLUTOVG_STB_TRUETYPE_H
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

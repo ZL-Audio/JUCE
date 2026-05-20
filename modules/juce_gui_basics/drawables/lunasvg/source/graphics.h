@@ -10,30 +10,31 @@
 #include <vector>
 #include <array>
 #include <string>
+namespace {
 
 namespace lunasvg {
 
 enum class LineCap : uint8_t {
-    Butt = PLUTOVG_LINE_CAP_BUTT,
-    Round = PLUTOVG_LINE_CAP_ROUND,
-    Square = PLUTOVG_LINE_CAP_SQUARE
+    Butt = JUCE_PLUTOVG_LINE_CAP_BUTT,
+    Round = JUCE_PLUTOVG_LINE_CAP_ROUND,
+    Square = JUCE_PLUTOVG_LINE_CAP_SQUARE
 };
 
 enum class LineJoin : uint8_t {
-    Miter = PLUTOVG_LINE_JOIN_MITER,
-    Round = PLUTOVG_LINE_JOIN_ROUND,
-    Bevel = PLUTOVG_LINE_JOIN_BEVEL
+    Miter = JUCE_PLUTOVG_LINE_JOIN_MITER,
+    Round = JUCE_PLUTOVG_LINE_JOIN_ROUND,
+    Bevel = JUCE_PLUTOVG_LINE_JOIN_BEVEL
 };
 
 enum class FillRule : uint8_t {
-    NonZero = PLUTOVG_FILL_RULE_NON_ZERO,
-    EvenOdd = PLUTOVG_FILL_RULE_EVEN_ODD
+    NonZero = JUCE_PLUTOVG_FILL_RULE_NON_ZERO,
+    EvenOdd = JUCE_PLUTOVG_FILL_RULE_EVEN_ODD
 };
 
 enum class SpreadMethod : uint8_t {
-    Pad = PLUTOVG_SPREAD_METHOD_PAD,
-    Reflect = PLUTOVG_SPREAD_METHOD_REFLECT,
-    Repeat = PLUTOVG_SPREAD_METHOD_REPEAT
+    Pad = JUCE_PLUTOVG_SPREAD_METHOD_PAD,
+    Reflect = JUCE_PLUTOVG_SPREAD_METHOD_REFLECT,
+    Repeat = JUCE_PLUTOVG_SPREAD_METHOD_REPEAT
 };
 
 class Color {
@@ -78,7 +79,7 @@ constexpr Color Color::colorWithAlpha(float opacity) const
 class Point {
 public:
     constexpr Point() = default;
-    constexpr Point(const plutovg_point_t& point) : Point(point.x, point.y) {}
+    constexpr Point(const juce_plutovg_point_t& point) : Point(point.x, point.y) {}
     constexpr Point(float x, float y) : x(x), y(y) {}
 
     constexpr void move(float dx, float dy) { x += dx; y += dy; }
@@ -183,7 +184,7 @@ public:
     constexpr explicit Rect(const Size& size) : Rect(size.w, size.h) {}
     constexpr Rect(float width, float height) : Rect(0, 0, width, height) {}
     constexpr Rect(const Point& origin, const Size& size) : Rect(origin.x, origin.y, size.w, size.h) {}
-    constexpr Rect(const plutovg_rect_t& rect) : Rect(rect.x, rect.y, rect.w, rect.h) {}
+    constexpr Rect(const juce_plutovg_rect_t& rect) : Rect(rect.x, rect.y, rect.w, rect.h) {}
     constexpr Rect(float x, float y, float w, float h) : x(x), y(y), w(w), h(h) {}
 
     Rect(const Box& box);
@@ -275,7 +276,7 @@ public:
     Transform();
     Transform(const Matrix& matrix);
     Transform(float a, float b, float c, float d, float e, float f);
-    Transform(const plutovg_matrix_t& matrix) : m_matrix(matrix) {}
+    Transform(const juce_plutovg_matrix_t& matrix) : m_matrix(matrix) {}
 
     Transform operator*(const Transform& transform) const;
     Transform& operator*=(const Transform& transform);
@@ -304,8 +305,8 @@ public:
     float xScale() const;
     float yScale() const;
 
-    const plutovg_matrix_t& matrix() const { return m_matrix; }
-    plutovg_matrix_t& matrix() { return m_matrix; }
+    const juce_plutovg_matrix_t& matrix() const { return m_matrix; }
+    juce_plutovg_matrix_t& matrix() { return m_matrix; }
 
     bool parse(const char* data, size_t length);
 
@@ -317,14 +318,14 @@ public:
     static const Transform Identity;
 
 private:
-    plutovg_matrix_t m_matrix;
+    juce_plutovg_matrix_t m_matrix;
 };
 
 enum class PathCommand {
-    MoveTo = PLUTOVG_PATH_COMMAND_MOVE_TO,
-    LineTo = PLUTOVG_PATH_COMMAND_LINE_TO,
-    CubicTo = PLUTOVG_PATH_COMMAND_CUBIC_TO,
-    Close = PLUTOVG_PATH_COMMAND_CLOSE
+    MoveTo = JUCE_PLUTOVG_PATH_COMMAND_MOVE_TO,
+    LineTo = JUCE_PLUTOVG_PATH_COMMAND_LINE_TO,
+    CubicTo = JUCE_PLUTOVG_PATH_COMMAND_CUBIC_TO,
+    Close = JUCE_PLUTOVG_PATH_COMMAND_CLOSE
 };
 
 class Path {
@@ -360,14 +361,14 @@ public:
     bool isEmpty() const;
     bool isUnique() const;
     bool isNull() const { return m_data == nullptr; }
-    plutovg_path_t* data() const { return m_data; }
+    juce_plutovg_path_t* data() const { return m_data; }
 
     bool parse(const char* data, size_t length);
 
 private:
-    plutovg_path_t* release();
-    plutovg_path_t* ensure();
-    plutovg_path_t* m_data = nullptr;
+    juce_plutovg_path_t* release();
+    juce_plutovg_path_t* ensure();
+    juce_plutovg_path_t* m_data = nullptr;
 };
 
 inline void Path::swap(Path& path)
@@ -375,7 +376,7 @@ inline void Path::swap(Path& path)
     std::swap(m_data, path.m_data);
 }
 
-inline plutovg_path_t* Path::release()
+inline juce_plutovg_path_t* Path::release()
 {
     return std::exchange(m_data, nullptr);
 }
@@ -389,7 +390,7 @@ public:
     void next();
 
 private:
-    const plutovg_path_element_t* m_elements;
+    const juce_plutovg_path_element_t* m_elements;
     const int m_size;
     int m_index;
 };
@@ -397,8 +398,8 @@ private:
 class FontFace {
 public:
     FontFace() = default;
-    explicit FontFace(plutovg_font_face_t* face);
-    FontFace(const void* data, size_t length, plutovg_destroy_func_t destroy_func, void* closure);
+    explicit FontFace(juce_plutovg_font_face_t* face);
+    FontFace(const void* data, size_t length, juce_plutovg_destroy_func_t destroy_func, void* closure);
     FontFace(const char* filename);
     FontFace(const FontFace& face);
     FontFace(FontFace&& face);
@@ -410,11 +411,11 @@ public:
     void swap(FontFace& face);
 
     bool isNull() const { return m_face == nullptr; }
-    plutovg_font_face_t* get() const { return m_face; }
+    juce_plutovg_font_face_t* get() const { return m_face; }
 
 private:
-    plutovg_font_face_t* release();
-    plutovg_font_face_t* m_face = nullptr;
+    juce_plutovg_font_face_t* release();
+    juce_plutovg_font_face_t* m_face = nullptr;
 };
 
 class FontFaceCache {
@@ -424,7 +425,7 @@ public:
 
 private:
     FontFaceCache();
-    plutovg_font_face_cache_t* m_cache;
+    juce_plutovg_font_face_cache_t* m_cache;
     friend FontFaceCache* fontFaceCache();
 };
 
@@ -457,15 +458,15 @@ private:
 };
 
 enum class TextureType {
-    Plain = PLUTOVG_TEXTURE_TYPE_PLAIN,
-    Tiled = PLUTOVG_TEXTURE_TYPE_TILED
+    Plain = JUCE_PLUTOVG_TEXTURE_TYPE_PLAIN,
+    Tiled = JUCE_PLUTOVG_TEXTURE_TYPE_TILED
 };
 
 enum class BlendMode {
-    Src = PLUTOVG_OPERATOR_SRC,
-    Src_Over = PLUTOVG_OPERATOR_SRC_OVER,
-    Dst_In = PLUTOVG_OPERATOR_DST_IN,
-    Dst_Out = PLUTOVG_OPERATOR_DST_OUT
+    Src = JUCE_PLUTOVG_OPERATOR_SRC,
+    Src_Over = JUCE_PLUTOVG_OPERATOR_SRC_OVER,
+    Dst_In = JUCE_PLUTOVG_OPERATOR_DST_IN,
+    Dst_Out = JUCE_PLUTOVG_OPERATOR_DST_OUT
 };
 
 using DashArray = std::vector<float>;
@@ -501,7 +502,7 @@ private:
     DashArray m_dashArray;
 };
 
-using GradientStop = plutovg_gradient_stop_t;
+using GradientStop = juce_plutovg_gradient_stop_t;
 using GradientStops = std::vector<GradientStop>;
 
 class Bitmap;
@@ -542,21 +543,22 @@ public:
 
     Rect extents() const { return Rect(m_x, m_y, width(), height()); }
 
-    plutovg_surface_t* surface() const { return m_surface; }
-    plutovg_canvas_t* canvas() const { return m_canvas; }
+    juce_plutovg_surface_t* surface() const { return m_surface; }
+    juce_plutovg_canvas_t* canvas() const { return m_canvas; }
 
     ~Canvas();
 
 private:
     Canvas(const Bitmap& bitmap);
     Canvas(int x, int y, int width, int height);
-    plutovg_surface_t* m_surface;
-    plutovg_canvas_t* m_canvas;
-    plutovg_matrix_t m_translation;
+    juce_plutovg_surface_t* m_surface;
+    juce_plutovg_canvas_t* m_canvas;
+    juce_plutovg_matrix_t m_translation;
     const int m_x;
     const int m_y;
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_GRAPHICS_H

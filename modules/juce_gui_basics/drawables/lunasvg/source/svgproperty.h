@@ -4,6 +4,7 @@
 #include "graphics.h"
 
 #include <string>
+namespace {
 
 namespace lunasvg {
 
@@ -566,5 +567,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGPROPERTY_H

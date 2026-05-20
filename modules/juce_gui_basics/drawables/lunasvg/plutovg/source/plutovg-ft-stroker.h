@@ -15,8 +15,8 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef PLUTOVG_FT_STROKER_H
-#define PLUTOVG_FT_STROKER_H
+#ifndef JUCE_PLUTOVG_FT_STROKER_H
+#define JUCE_PLUTOVG_FT_STROKER_H
 
 #include "plutovg-ft-raster.h"
 
@@ -317,4 +317,4 @@ void
 PVG_FT_Stroker_Done( PVG_FT_Stroker  stroker );
 
 
-#endif // PLUTOVG_FT_STROKER_H
+#endif // JUCE_PLUTOVG_FT_STROKER_H

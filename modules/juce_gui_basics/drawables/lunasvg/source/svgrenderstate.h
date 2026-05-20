@@ -2,6 +2,7 @@
 #define LUNASVG_SVGRENDERSTATE_H
 
 #include "svgelement.h"
+namespace {
 
 namespace lunasvg {
 
@@ -65,5 +66,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGRENDERSTATE_H

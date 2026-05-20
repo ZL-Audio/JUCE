@@ -7,6 +7,7 @@
 #include "svgrenderstate.h"
 
 #include <cassert>
+namespace {
 
 namespace lunasvg {
 
@@ -905,10 +906,10 @@ static Bitmap loadImageResource(const std::string& href)
         if(index == std::string_view::npos)
             return Bitmap();
         input.remove_prefix(index + 1);
-        return plutovg_surface_load_from_image_base64(input.data(), input.length());
+        return juce_plutovg_surface_load_from_image_base64(input.data(), input.length());
     }
 
-    return plutovg_surface_load_from_image_file(href.data());
+    return juce_plutovg_surface_load_from_image_file(href.data());
 }
 
 void SVGImageElement::parseAttribute(PropertyID id, const std::string& value)
@@ -1223,3 +1224,4 @@ void SVGMaskElement::layoutElement(const SVGLayoutState& state)
 }
 
 } // namespace lunasvg
+}

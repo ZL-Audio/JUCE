@@ -1,5 +1,5 @@
-#ifndef PLUTOVG_UTILS_H
-#define PLUTOVG_UTILS_H
+#ifndef JUCE_PLUTOVG_UTILS_H
+#define JUCE_PLUTOVG_UTILS_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,28 +9,28 @@
 #include <float.h>
 #include <math.h>
 
-#define PLUTOVG_IS_NUM(c) ((c) >= '0' && (c) <= '9')
-#define PLUTOVG_IS_ALPHA(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
-#define PLUTOVG_IS_ALNUM(c) (PLUTOVG_IS_ALPHA(c) || PLUTOVG_IS_NUM(c))
-#define PLUTOVG_IS_WS(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
+#define JUCE_PLUTOVG_IS_NUM(c) ((c) >= '0' && (c) <= '9')
+#define JUCE_PLUTOVG_IS_ALPHA(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+#define JUCE_PLUTOVG_IS_ALNUM(c) (JUCE_PLUTOVG_IS_ALPHA(c) || JUCE_PLUTOVG_IS_NUM(c))
+#define JUCE_PLUTOVG_IS_WS(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
 
-#define plutovg_min(a, b) ((a) < (b) ? (a) : (b))
-#define plutovg_max(a, b) ((a) > (b) ? (a) : (b))
-#define plutovg_clamp(v, lo, hi) ((v) < (lo) ? (lo) : ((v) > (hi) ? (hi) : (v)))
+#define juce_plutovg_min(a, b) ((a) < (b) ? (a) : (b))
+#define juce_plutovg_max(a, b) ((a) > (b) ? (a) : (b))
+#define juce_plutovg_clamp(v, lo, hi) ((v) < (lo) ? (lo) : ((v) > (hi) ? (hi) : (v)))
 
-#define plutovg_alpha(c) (((c) >> 24) & 0xff)
-#define plutovg_red(c) (((c) >> 16) & 0xff)
-#define plutovg_green(c) (((c) >> 8) & 0xff)
-#define plutovg_blue(c) (((c) >> 0) & 0xff)
+#define juce_plutovg_alpha(c) (((c) >> 24) & 0xff)
+#define juce_plutovg_red(c) (((c) >> 16) & 0xff)
+#define juce_plutovg_green(c) (((c) >> 8) & 0xff)
+#define juce_plutovg_blue(c) (((c) >> 0) & 0xff)
 
-#define plutovg_array_init(array) \
+#define juce_plutovg_array_init(array) \
     do { \
         (array).data = NULL; \
         (array).size = 0; \
         (array).capacity = 0; \
     } while(0)
 
-#define plutovg_array_ensure(array, count) \
+#define juce_plutovg_array_ensure(array, count) \
     do { \
         if((array).size + (count) > (array).capacity) { \
             int capacity = (array).size + (count); \
@@ -41,25 +41,25 @@
         } \
     } while(0)
 
-#define plutovg_array_append_data(array, newdata, count) \
+#define juce_plutovg_array_append_data(array, newdata, count) \
     do { \
         if(newdata && count > 0) { \
-            plutovg_array_ensure(array, count); \
+            juce_plutovg_array_ensure(array, count); \
             memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
             (array).size += count; \
         } \
     } while(0)
 
-#define plutovg_array_append(array, other) plutovg_array_append_data(array, (other).data, (other).size)
-#define plutovg_array_clear(array) ((array).size = 0)
-#define plutovg_array_destroy(array) free((array).data)
+#define juce_plutovg_array_append(array, other) juce_plutovg_array_append_data(array, (other).data, (other).size)
+#define juce_plutovg_array_clear(array) ((array).size = 0)
+#define juce_plutovg_array_destroy(array) free((array).data)
 
-static inline uint32_t plutovg_premultiply_argb(uint32_t color)
+static inline uint32_t juce_plutovg_premultiply_argb(uint32_t color)
 {
-    uint32_t a = plutovg_alpha(color);
-    uint32_t r = plutovg_red(color);
-    uint32_t g = plutovg_green(color);
-    uint32_t b = plutovg_blue(color);
+    uint32_t a = juce_plutovg_alpha(color);
+    uint32_t r = juce_plutovg_red(color);
+    uint32_t g = juce_plutovg_green(color);
+    uint32_t b = juce_plutovg_blue(color);
     if(a != 255) {
         r = (r * a) / 255;
         g = (g * a) / 255;
@@ -69,7 +69,7 @@ static inline uint32_t plutovg_premultiply_argb(uint32_t color)
     return (a << 24) | (r << 16) | (g << 8) | (b);
 }
 
-static inline bool plutovg_parse_number(const char** begin, const char* end, float* number)
+static inline bool juce_plutovg_parse_number(const char** begin, const char* end, float* number)
 {
     const char* it = *begin;
     float integer = 0;
@@ -85,23 +85,23 @@ static inline bool plutovg_parse_number(const char** begin, const char* end, flo
         sign = -1;
     }
 
-    if(it >= end || (*it != '.' && !PLUTOVG_IS_NUM(*it)))
+    if(it >= end || (*it != '.' && !JUCE_PLUTOVG_IS_NUM(*it)))
         return false;
-    if(PLUTOVG_IS_NUM(*it)) {
+    if(JUCE_PLUTOVG_IS_NUM(*it)) {
         do {
             integer = 10.f * integer + (*it++ - '0');
-        } while(it < end && PLUTOVG_IS_NUM(*it));
+        } while(it < end && JUCE_PLUTOVG_IS_NUM(*it));
     }
 
     if(it < end && *it == '.') {
         ++it;
-        if(it >= end || !PLUTOVG_IS_NUM(*it))
+        if(it >= end || !JUCE_PLUTOVG_IS_NUM(*it))
             return false;
         float divisor = 1.f;
         do {
             fraction = 10.f * fraction + (*it++ - '0');
             divisor *= 10.f;
-        } while(it < end && PLUTOVG_IS_NUM(*it));
+        } while(it < end && JUCE_PLUTOVG_IS_NUM(*it));
         fraction /= divisor;
     }
 
@@ -114,11 +114,11 @@ static inline bool plutovg_parse_number(const char** begin, const char* end, flo
             expsign = -1;
         }
 
-        if(it >= end || !PLUTOVG_IS_NUM(*it))
+        if(it >= end || !JUCE_PLUTOVG_IS_NUM(*it))
             return false;
         do {
             exponent = 10 * exponent + (*it++ - '0');
-        } while(it < end && PLUTOVG_IS_NUM(*it));
+        } while(it < end && JUCE_PLUTOVG_IS_NUM(*it));
     }
 
     *begin = it;
@@ -128,7 +128,7 @@ static inline bool plutovg_parse_number(const char** begin, const char* end, flo
     return *number >= -FLT_MAX && *number <= FLT_MAX;
 }
 
-static inline bool plutovg_skip_delim(const char** begin, const char* end, const char delim)
+static inline bool juce_plutovg_skip_delim(const char** begin, const char* end, const char delim)
 {
     const char* it = *begin;
     if(it < end && *it == delim) {
@@ -139,7 +139,7 @@ static inline bool plutovg_skip_delim(const char** begin, const char* end, const
     return false;
 }
 
-static inline bool plutovg_skip_string(const char** begin, const char* end, const char* data)
+static inline bool juce_plutovg_skip_string(const char** begin, const char* end, const char* data)
 {
     const char* it = *begin;
     while(it < end && *data && *it == *data) {
@@ -155,22 +155,22 @@ static inline bool plutovg_skip_string(const char** begin, const char* end, cons
     return false;
 }
 
-static inline bool plutovg_skip_ws(const char** begin, const char* end)
+static inline bool juce_plutovg_skip_ws(const char** begin, const char* end)
 {
     const char* it = *begin;
-    while(it < end && PLUTOVG_IS_WS(*it))
+    while(it < end && JUCE_PLUTOVG_IS_WS(*it))
         ++it;
     *begin = it;
     return it < end;
 }
 
-static inline bool plutovg_skip_ws_and_delim(const char** begin, const char* end, char delim)
+static inline bool juce_plutovg_skip_ws_and_delim(const char** begin, const char* end, char delim)
 {
     const char* it = *begin;
-    if(plutovg_skip_ws(&it, end)) {
-        if(!plutovg_skip_delim(&it, end, delim))
+    if(juce_plutovg_skip_ws(&it, end)) {
+        if(!juce_plutovg_skip_delim(&it, end, delim))
             return false;
-        plutovg_skip_ws(&it, end);
+        juce_plutovg_skip_ws(&it, end);
     } else {
         return false;
     }
@@ -179,21 +179,21 @@ static inline bool plutovg_skip_ws_and_delim(const char** begin, const char* end
     return it < end;
 }
 
-static inline bool plutovg_skip_ws_and_comma(const char** begin, const char* end)
+static inline bool juce_plutovg_skip_ws_and_comma(const char** begin, const char* end)
 {
-    return plutovg_skip_ws_and_delim(begin, end, ',');
+    return juce_plutovg_skip_ws_and_delim(begin, end, ',');
 }
 
-static inline bool plutovg_skip_ws_or_delim(const char** begin, const char* end, char delim, bool* has_delim)
+static inline bool juce_plutovg_skip_ws_or_delim(const char** begin, const char* end, char delim, bool* has_delim)
 {
     const char* it = *begin;
     if(has_delim)
         *has_delim = false;
-    if(plutovg_skip_ws(&it, end)) {
-        if(plutovg_skip_delim(&it, end, delim)) {
+    if(juce_plutovg_skip_ws(&it, end)) {
+        if(juce_plutovg_skip_delim(&it, end, delim)) {
             if(has_delim)
                 *has_delim = true;
-            plutovg_skip_ws(&it, end);
+            juce_plutovg_skip_ws(&it, end);
         }
     }
 
@@ -203,9 +203,9 @@ static inline bool plutovg_skip_ws_or_delim(const char** begin, const char* end,
     return it < end;
 }
 
-static inline bool plutovg_skip_ws_or_comma(const char** begin, const char* end, bool* has_comma)
+static inline bool juce_plutovg_skip_ws_or_comma(const char** begin, const char* end, bool* has_comma)
 {
-    return plutovg_skip_ws_or_delim(begin, end, ',', has_comma);
+    return juce_plutovg_skip_ws_or_delim(begin, end, ',', has_comma);
 }
 
-#endif // PLUTOVG_UTILS_H
+#endif // JUCE_PLUTOVG_UTILS_H

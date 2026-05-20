@@ -2,6 +2,7 @@
 #define LUNASVG_SVGGEOMETRYELEMENT_H
 
 #include "svgelement.h"
+namespace {
 
 namespace lunasvg {
 
@@ -135,5 +136,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGGEOMETRYELEMENT_H

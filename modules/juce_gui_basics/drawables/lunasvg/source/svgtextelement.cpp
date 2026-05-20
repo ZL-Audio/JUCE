@@ -3,6 +3,7 @@
 #include "svgrenderstate.h"
 
 #include <cassert>
+namespace {
 
 namespace lunasvg {
 
@@ -359,10 +360,10 @@ void SVGTextFragmentsBuilder::handleText(const SVGTextNode* node)
         lastCharacter = m_text.back();
     }
 
-    plutovg_text_iterator_t it;
-    plutovg_text_iterator_init(&it, text.data(), text.length(), PLUTOVG_TEXT_ENCODING_UTF8);
-    while(plutovg_text_iterator_has_next(&it)) {
-        auto currentCharacter = plutovg_text_iterator_next(&it);
+    juce_plutovg_text_iterator_t it;
+    juce_plutovg_text_iterator_init(&it, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF8);
+    while(juce_plutovg_text_iterator_has_next(&it)) {
+        auto currentCharacter = juce_plutovg_text_iterator_next(&it);
         if(currentCharacter == '\t' || currentCharacter == '\n' || currentCharacter == '\r')
             currentCharacter = ' ';
         if(currentCharacter == ' ' && lastCharacter == ' ' && element->white_space() == WhiteSpace::Default)
@@ -577,3 +578,4 @@ Rect SVGTextElement::boundingBox(bool includeStroke) const
 }
 
 } // namespace lunasvg
+}

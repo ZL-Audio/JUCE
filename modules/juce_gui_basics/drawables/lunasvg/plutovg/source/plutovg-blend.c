@@ -6,8 +6,8 @@
 
 #define COLOR_TABLE_SIZE 1024
 typedef struct {
-    plutovg_matrix_t matrix;
-    plutovg_spread_method_t spread;
+    juce_plutovg_matrix_t matrix;
+    juce_plutovg_spread_method_t spread;
     uint32_t colortable[COLOR_TABLE_SIZE];
     union {
         struct {
@@ -22,7 +22,7 @@ typedef struct {
 } gradient_data_t;
 
 typedef struct {
-    plutovg_matrix_t matrix;
+    juce_plutovg_matrix_t matrix;
     uint8_t* data;
     int width;
     int height;
@@ -46,7 +46,7 @@ typedef struct {
     bool extended;
 } radial_gradient_values_t;
 
-static inline uint32_t premultiply_color_with_opacity(const plutovg_color_t* color, float opacity)
+static inline uint32_t premultiply_color_with_opacity(const juce_plutovg_color_t* color, float opacity)
 {
     uint32_t alpha = lroundf(color->a * opacity * 255);
     uint32_t pr = lroundf(color->r * alpha);
@@ -83,7 +83,7 @@ static inline uint32_t BYTE_MUL(uint32_t x, uint32_t a)
 
 #include <emmintrin.h>
 
-void plutovg_memfill32(unsigned int* dest, int length, unsigned int value)
+void juce_plutovg_memfill32(unsigned int* dest, int length, unsigned int value)
 {
     __m128i vector_data = _mm_set_epi32(value, value, value, value);
     while(length && ((uintptr_t)dest & 0xf)) {
@@ -138,7 +138,7 @@ void plutovg_memfill32(unsigned int* dest, int length, unsigned int value)
 
 #else
 
-void plutovg_memfill32(unsigned int* dest, int length, unsigned int value)
+void juce_plutovg_memfill32(unsigned int* dest, int length, unsigned int value)
 {
     while(length--) {
         *dest++ = value;
@@ -149,10 +149,10 @@ void plutovg_memfill32(unsigned int* dest, int length, unsigned int value)
 
 static inline int gradient_clamp(const gradient_data_t* gradient, int ipos)
 {
-    if(gradient->spread == PLUTOVG_SPREAD_METHOD_REPEAT) {
+    if(gradient->spread == JUCE_PLUTOVG_SPREAD_METHOD_REPEAT) {
         ipos = ipos % COLOR_TABLE_SIZE;
         ipos = ipos < 0 ? COLOR_TABLE_SIZE + ipos : ipos;
-    } else if(gradient->spread == PLUTOVG_SPREAD_METHOD_REFLECT) {
+    } else if(gradient->spread == JUCE_PLUTOVG_SPREAD_METHOD_REFLECT) {
         const int limit = COLOR_TABLE_SIZE * 2;
         ipos = ipos % limit;
         ipos = ipos < 0 ? limit + ipos : ipos;
@@ -200,7 +200,7 @@ static void fetch_linear_gradient(uint32_t* buffer, const linear_gradient_values
 
     const uint32_t* end = buffer + length;
     if(inc > -1e-5f && inc < 1e-5f) {
-        plutovg_memfill32(buffer, length, gradient_pixel_fixed(gradient, (int)(t * FIXPT_SIZE)));
+        juce_plutovg_memfill32(buffer, length, gradient_pixel_fixed(gradient, (int)(t * FIXPT_SIZE)));
     } else {
         if(t + inc * length < (float)(INT_MAX >> (FIXPT_BITS + 1)) && t + inc * length > (float)(INT_MIN >> (FIXPT_BITS + 1))) {
             int t_fixed = (int)(t * FIXPT_SIZE);
@@ -223,7 +223,7 @@ static void fetch_linear_gradient(uint32_t* buffer, const linear_gradient_values
 static void fetch_radial_gradient(uint32_t* buffer, const radial_gradient_values_t* v, const gradient_data_t* gradient, int y, int x, int length)
 {
     if(v->a == 0.f) {
-        plutovg_memfill32(buffer, length, 0);
+        juce_plutovg_memfill32(buffer, length, 0);
         return;
     }
 
@@ -289,7 +289,7 @@ static void fetch_radial_gradient(uint32_t* buffer, const radial_gradient_values
 static void composition_solid_clear(uint32_t* dest, int length, uint32_t color, uint32_t const_alpha)
 {
     if(const_alpha == 255) {
-        plutovg_memfill32(dest, length, 0);
+        juce_plutovg_memfill32(dest, length, 0);
     } else {
         uint32_t ialpha = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
@@ -301,7 +301,7 @@ static void composition_solid_clear(uint32_t* dest, int length, uint32_t color, 
 static void composition_solid_source(uint32_t* dest, int length, uint32_t color, uint32_t const_alpha)
 {
     if(const_alpha == 255) {
-        plutovg_memfill32(dest, length, color);
+        juce_plutovg_memfill32(dest, length, color);
     } else {
         uint32_t ialpha = 255 - const_alpha;
         color = BYTE_MUL(color, const_alpha);
@@ -319,7 +319,7 @@ static void composition_solid_source_over(uint32_t* dest, int length, uint32_t c
 {
     if(const_alpha != 255)
         color = BYTE_MUL(color, const_alpha);
-    uint32_t ialpha = 255 - plutovg_alpha(color);
+    uint32_t ialpha = 255 - juce_plutovg_alpha(color);
     for(int i = 0; i < length; i++) {
         dest[i] = color + BYTE_MUL(dest[i], ialpha);
     }
@@ -331,7 +331,7 @@ static void composition_solid_destination_over(uint32_t* dest, int length, uint3
         color = BYTE_MUL(color, const_alpha);
     for(int i = 0; i < length; i++) {
         uint32_t d = dest[i];
-        dest[i] = d + BYTE_MUL(color, plutovg_alpha(~d));
+        dest[i] = d + BYTE_MUL(color, juce_plutovg_alpha(~d));
     }
 }
 
@@ -339,21 +339,21 @@ static void composition_solid_source_in(uint32_t* dest, int length, uint32_t col
 {
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
-            dest[i] = BYTE_MUL(color, plutovg_alpha(dest[i]));
+            dest[i] = BYTE_MUL(color, juce_plutovg_alpha(dest[i]));
         }
     } else {
         color = BYTE_MUL(color, const_alpha);
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
-            dest[i] = INTERPOLATE_PIXEL(color, plutovg_alpha(d), d, cia);
+            dest[i] = INTERPOLATE_PIXEL(color, juce_plutovg_alpha(d), d, cia);
         }
     }
 }
 
 static void composition_solid_destination_in(uint32_t* dest, int length, uint32_t color, uint32_t const_alpha)
 {
-    uint32_t a = plutovg_alpha(color);
+    uint32_t a = juce_plutovg_alpha(color);
     if(const_alpha != 255)
         a = BYTE_MUL(a, const_alpha) + 255 - const_alpha;
     for(int i = 0; i < length; i++) {
@@ -365,21 +365,21 @@ static void composition_solid_source_out(uint32_t* dest, int length, uint32_t co
 {
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
-            dest[i] = BYTE_MUL(color, plutovg_alpha(~dest[i]));
+            dest[i] = BYTE_MUL(color, juce_plutovg_alpha(~dest[i]));
         }
     } else {
         color = BYTE_MUL(color, const_alpha);
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
-            dest[i] = INTERPOLATE_PIXEL(color, plutovg_alpha(~d), d, cia);
+            dest[i] = INTERPOLATE_PIXEL(color, juce_plutovg_alpha(~d), d, cia);
         }
     }
 }
 
 static void composition_solid_destination_out(uint32_t* dest, int length, uint32_t color, uint32_t const_alpha)
 {
-    uint32_t a = plutovg_alpha(~color);
+    uint32_t a = juce_plutovg_alpha(~color);
     if(const_alpha != 255)
         a = BYTE_MUL(a, const_alpha) + 255 - const_alpha;
     for(int i = 0; i < length; i++) {
@@ -391,24 +391,24 @@ static void composition_solid_source_atop(uint32_t* dest, int length, uint32_t c
 {
     if(const_alpha != 255)
         color = BYTE_MUL(color, const_alpha);
-    uint32_t sia = plutovg_alpha(~color);
+    uint32_t sia = juce_plutovg_alpha(~color);
     for(int i = 0; i < length; i++) {
         uint32_t d = dest[i];
-        dest[i] = INTERPOLATE_PIXEL(color, plutovg_alpha(d), d, sia);
+        dest[i] = INTERPOLATE_PIXEL(color, juce_plutovg_alpha(d), d, sia);
     }
 }
 
 static void composition_solid_destination_atop(uint32_t* dest, int length, uint32_t color, uint32_t const_alpha)
 {
-    uint32_t a = plutovg_alpha(color);
+    uint32_t a = juce_plutovg_alpha(color);
     if(const_alpha != 255) {
         color = BYTE_MUL(color, const_alpha);
-        a = plutovg_alpha(color) + 255 - const_alpha;
+        a = juce_plutovg_alpha(color) + 255 - const_alpha;
     }
 
     for(int i = 0; i < length; i++) {
         uint32_t d = dest[i];
-        dest[i] = INTERPOLATE_PIXEL(d, a, color, plutovg_alpha(~d));
+        dest[i] = INTERPOLATE_PIXEL(d, a, color, juce_plutovg_alpha(~d));
     }
 }
 
@@ -416,10 +416,10 @@ static void composition_solid_xor(uint32_t* dest, int length, uint32_t color, ui
 {
     if(const_alpha != 255)
         color = BYTE_MUL(color, const_alpha);
-    uint32_t sia = plutovg_alpha(~color);
+    uint32_t sia = juce_plutovg_alpha(~color);
     for(int i = 0; i < length; i++) {
         uint32_t d = dest[i];
-        dest[i] = INTERPOLATE_PIXEL(color, plutovg_alpha(~d), d, sia);
+        dest[i] = INTERPOLATE_PIXEL(color, juce_plutovg_alpha(~d), d, sia);
     }
 }
 
@@ -443,7 +443,7 @@ static const composition_solid_function_t composition_solid_table[] = {
 static void composition_clear(uint32_t* dest, int length, const uint32_t* src, uint32_t const_alpha)
 {
     if(const_alpha == 255) {
-        plutovg_memfill32(dest, length, 0);
+        juce_plutovg_memfill32(dest, length, 0);
     } else {
         uint32_t ialpha = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
@@ -476,13 +476,13 @@ static void composition_source_over(uint32_t* dest, int length, const uint32_t* 
             if(s >= 0xff000000) {
                 dest[i] = s;
             } else if (s != 0) {
-                dest[i] = s + BYTE_MUL(dest[i], plutovg_alpha(~s));
+                dest[i] = s + BYTE_MUL(dest[i], juce_plutovg_alpha(~s));
             }
         }
     } else {
         for(int i = 0; i < length; i++) {
             uint32_t s = BYTE_MUL(src[i], const_alpha);
-            dest[i] = s + BYTE_MUL(dest[i], plutovg_alpha(~s));
+            dest[i] = s + BYTE_MUL(dest[i], juce_plutovg_alpha(~s));
         }
     }
 }
@@ -492,13 +492,13 @@ static void composition_destination_over(uint32_t* dest, int length, const uint3
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
-            dest[i] = d + BYTE_MUL(src[i], plutovg_alpha(~d));
+            dest[i] = d + BYTE_MUL(src[i], juce_plutovg_alpha(~d));
         }
     } else {
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
             uint32_t s = BYTE_MUL(src[i], const_alpha);
-            dest[i] = d + BYTE_MUL(s, plutovg_alpha(~d));
+            dest[i] = d + BYTE_MUL(s, juce_plutovg_alpha(~d));
         }
     }
 }
@@ -507,14 +507,14 @@ static void composition_source_in(uint32_t* dest, int length, const uint32_t* sr
 {
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
-            dest[i] = BYTE_MUL(src[i], plutovg_alpha(dest[i]));
+            dest[i] = BYTE_MUL(src[i], juce_plutovg_alpha(dest[i]));
         }
     } else {
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
             uint32_t s = BYTE_MUL(src[i], const_alpha);
-            dest[i] = INTERPOLATE_PIXEL(s, plutovg_alpha(d), d, cia);
+            dest[i] = INTERPOLATE_PIXEL(s, juce_plutovg_alpha(d), d, cia);
         }
     }
 }
@@ -523,12 +523,12 @@ static void composition_destination_in(uint32_t* dest, int length, const uint32_
 {
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
-            dest[i] = BYTE_MUL(dest[i], plutovg_alpha(src[i]));
+            dest[i] = BYTE_MUL(dest[i], juce_plutovg_alpha(src[i]));
         }
     } else {
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
-            uint32_t a = BYTE_MUL(plutovg_alpha(src[i]), const_alpha) + cia;
+            uint32_t a = BYTE_MUL(juce_plutovg_alpha(src[i]), const_alpha) + cia;
             dest[i] = BYTE_MUL(dest[i], a);
         }
     }
@@ -538,14 +538,14 @@ static void composition_source_out(uint32_t* dest, int length, const uint32_t* s
 {
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
-            dest[i] = BYTE_MUL(src[i], plutovg_alpha(~dest[i]));
+            dest[i] = BYTE_MUL(src[i], juce_plutovg_alpha(~dest[i]));
         }
     } else {
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
             uint32_t s = BYTE_MUL(src[i], const_alpha);
             uint32_t d = dest[i];
-            dest[i] = INTERPOLATE_PIXEL(s, plutovg_alpha(~d), d, cia);
+            dest[i] = INTERPOLATE_PIXEL(s, juce_plutovg_alpha(~d), d, cia);
         }
     }
 }
@@ -554,12 +554,12 @@ static void composition_destination_out(uint32_t* dest, int length, const uint32
 {
     if(const_alpha == 255) {
         for(int i = 0; i < length; i++) {
-            dest[i] = BYTE_MUL(dest[i], plutovg_alpha(~src[i]));
+            dest[i] = BYTE_MUL(dest[i], juce_plutovg_alpha(~src[i]));
         }
     } else {
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
-            uint32_t sia = BYTE_MUL(plutovg_alpha(~src[i]), const_alpha) + cia;
+            uint32_t sia = BYTE_MUL(juce_plutovg_alpha(~src[i]), const_alpha) + cia;
             dest[i] = BYTE_MUL(dest[i], sia);
         }
     }
@@ -571,13 +571,13 @@ static void composition_source_atop(uint32_t* dest, int length, const uint32_t* 
         for(int i = 0; i < length; i++) {
             uint32_t s = src[i];
             uint32_t d = dest[i];
-            dest[i] = INTERPOLATE_PIXEL(s, plutovg_alpha(d), d, plutovg_alpha(~s));
+            dest[i] = INTERPOLATE_PIXEL(s, juce_plutovg_alpha(d), d, juce_plutovg_alpha(~s));
         }
     } else {
         for(int i = 0; i < length; i++) {
             uint32_t s = BYTE_MUL(src[i], const_alpha);
             uint32_t d = dest[i];
-            dest[i] = INTERPOLATE_PIXEL(s, plutovg_alpha(d), d, plutovg_alpha(~s));
+            dest[i] = INTERPOLATE_PIXEL(s, juce_plutovg_alpha(d), d, juce_plutovg_alpha(~s));
         }
     }
 }
@@ -588,15 +588,15 @@ static void composition_destination_atop(uint32_t* dest, int length, const uint3
         for(int i = 0; i < length; i++) {
             uint32_t s = src[i];
             uint32_t d = dest[i];
-            dest[i] = INTERPOLATE_PIXEL(d, plutovg_alpha(s), s, plutovg_alpha(~d));
+            dest[i] = INTERPOLATE_PIXEL(d, juce_plutovg_alpha(s), s, juce_plutovg_alpha(~d));
         }
     } else {
         uint32_t cia = 255 - const_alpha;
         for(int i = 0; i < length; i++) {
             uint32_t s = BYTE_MUL(src[i], const_alpha);
             uint32_t d = dest[i];
-            uint32_t a = plutovg_alpha(s) + cia;
-            dest[i] = INTERPOLATE_PIXEL(d, a, s, plutovg_alpha(~d));
+            uint32_t a = juce_plutovg_alpha(s) + cia;
+            dest[i] = INTERPOLATE_PIXEL(d, a, s, juce_plutovg_alpha(~d));
         }
     }
 }
@@ -607,13 +607,13 @@ static void composition_xor(uint32_t* dest, int length, const uint32_t* src, uin
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
             uint32_t s = src[i];
-            dest[i] = INTERPOLATE_PIXEL(s, plutovg_alpha(~d), d, plutovg_alpha(~s));
+            dest[i] = INTERPOLATE_PIXEL(s, juce_plutovg_alpha(~d), d, juce_plutovg_alpha(~s));
         }
     } else {
         for(int i = 0; i < length; i++) {
             uint32_t d = dest[i];
             uint32_t s = BYTE_MUL(src[i], const_alpha);
-            dest[i] = INTERPOLATE_PIXEL(s, plutovg_alpha(~d), d, plutovg_alpha(~s));
+            dest[i] = INTERPOLATE_PIXEL(s, juce_plutovg_alpha(~d), d, juce_plutovg_alpha(~s));
         }
     }
 }
@@ -635,11 +635,11 @@ static const composition_function_t composition_table[] = {
     composition_xor
 };
 
-static void blend_solid(plutovg_surface_t* surface, plutovg_operator_t op, uint32_t solid, const plutovg_span_buffer_t* span_buffer)
+static void blend_solid(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, uint32_t solid, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_solid_function_t func = composition_solid_table[op];
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         uint32_t* target = (uint32_t*)(surface->data + spans->y * surface->stride) + spans->x;
         func(target, spans->len, solid, spans->coverage);
@@ -648,7 +648,7 @@ static void blend_solid(plutovg_surface_t* surface, plutovg_operator_t op, uint3
 }
 
 #define BUFFER_SIZE 1024
-static void blend_linear_gradient(plutovg_surface_t* surface, plutovg_operator_t op, const gradient_data_t* gradient, const plutovg_span_buffer_t* span_buffer)
+static void blend_linear_gradient(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, const gradient_data_t* gradient, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_function_t func = composition_table[op];
     unsigned int buffer[BUFFER_SIZE];
@@ -665,12 +665,12 @@ static void blend_linear_gradient(plutovg_surface_t* surface, plutovg_operator_t
     }
 
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         int length = spans->len;
         int x = spans->x;
         while(length) {
-            int l = plutovg_min(length, BUFFER_SIZE);
+            int l = juce_plutovg_min(length, BUFFER_SIZE);
             fetch_linear_gradient(buffer, &v, gradient, spans->y, x, l);
             uint32_t* target = (uint32_t*)(surface->data + spans->y * surface->stride) + x;
             func(target, l, buffer, spans->coverage);
@@ -682,7 +682,7 @@ static void blend_linear_gradient(plutovg_surface_t* surface, plutovg_operator_t
     }
 }
 
-static void blend_radial_gradient(plutovg_surface_t* surface, plutovg_operator_t op, const gradient_data_t* gradient, const plutovg_span_buffer_t* span_buffer)
+static void blend_radial_gradient(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, const gradient_data_t* gradient, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_function_t func = composition_table[op];
     unsigned int buffer[BUFFER_SIZE];
@@ -696,12 +696,12 @@ static void blend_radial_gradient(plutovg_surface_t* surface, plutovg_operator_t
     v.extended = gradient->values.radial.fr != 0.f || v.a <= 0.f;
 
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         int length = spans->len;
         int x = spans->x;
         while(length) {
-            int l = plutovg_min(length, BUFFER_SIZE);
+            int l = juce_plutovg_min(length, BUFFER_SIZE);
             fetch_radial_gradient(buffer, &v, gradient, spans->y, x, l);
             uint32_t* target = (uint32_t*)(surface->data + spans->y * surface->stride) + x;
             func(target, l, buffer, spans->coverage);
@@ -713,7 +713,7 @@ static void blend_radial_gradient(plutovg_surface_t* surface, plutovg_operator_t
     }
 }
 
-static void blend_untransformed_argb(plutovg_surface_t* surface, plutovg_operator_t op, const texture_data_t* texture, const plutovg_span_buffer_t* span_buffer)
+static void blend_untransformed_argb(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, const texture_data_t* texture, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_function_t func = composition_table[op];
 
@@ -724,7 +724,7 @@ static void blend_untransformed_argb(plutovg_surface_t* surface, plutovg_operato
     int yoff = (int)(texture->matrix.f);
 
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         int x = spans->x;
         int length = spans->len;
@@ -752,7 +752,7 @@ static void blend_untransformed_argb(plutovg_surface_t* surface, plutovg_operato
 }
 
 #define FIXED_SCALE (1 << 16)
-static void blend_transformed_argb(plutovg_surface_t* surface, plutovg_operator_t op, const texture_data_t* texture, const plutovg_span_buffer_t* span_buffer)
+static void blend_transformed_argb(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, const texture_data_t* texture, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_function_t func = composition_table[op];
     uint32_t buffer[BUFFER_SIZE];
@@ -764,7 +764,7 @@ static void blend_transformed_argb(plutovg_surface_t* surface, plutovg_operator_
     int fdy = (int)(texture->matrix.b * FIXED_SCALE);
 
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         uint32_t* target = (uint32_t*)(surface->data + spans->y * surface->stride) + spans->x;
 
@@ -777,7 +777,7 @@ static void blend_transformed_argb(plutovg_surface_t* surface, plutovg_operator_
         int length = spans->len;
         const int coverage = (spans->coverage * texture->const_alpha) >> 8;
         while(length) {
-            int l = plutovg_min(length, BUFFER_SIZE);
+            int l = juce_plutovg_min(length, BUFFER_SIZE);
             const uint32_t* end = buffer + l;
             uint32_t* b = buffer;
             while(b < end) {
@@ -803,7 +803,7 @@ static void blend_transformed_argb(plutovg_surface_t* surface, plutovg_operator_
     }
 }
 
-static void blend_untransformed_tiled_argb(plutovg_surface_t* surface, plutovg_operator_t op, const texture_data_t* texture, const plutovg_span_buffer_t* span_buffer)
+static void blend_untransformed_tiled_argb(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, const texture_data_t* texture, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_function_t func = composition_table[op];
 
@@ -820,7 +820,7 @@ static void blend_untransformed_tiled_argb(plutovg_surface_t* surface, plutovg_o
     }
 
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         int x = spans->x;
         int length = spans->len;
@@ -834,7 +834,7 @@ static void blend_untransformed_tiled_argb(plutovg_surface_t* surface, plutovg_o
 
         const int coverage = (spans->coverage * texture->const_alpha) >> 8;
         while(length) {
-            int l = plutovg_min(image_width - sx, length);
+            int l = juce_plutovg_min(image_width - sx, length);
             if(BUFFER_SIZE < l)
                 l = BUFFER_SIZE;
             const uint32_t* src = (const uint32_t*)(texture->data + sy * texture->stride) + sx;
@@ -852,7 +852,7 @@ static void blend_untransformed_tiled_argb(plutovg_surface_t* surface, plutovg_o
     }
 }
 
-static void blend_transformed_tiled_argb(plutovg_surface_t* surface, plutovg_operator_t op, const texture_data_t* texture, const plutovg_span_buffer_t* span_buffer)
+static void blend_transformed_tiled_argb(juce_plutovg_surface_t* surface, juce_plutovg_operator_t op, const texture_data_t* texture, const juce_plutovg_span_buffer_t* span_buffer)
 {
     composition_function_t func = composition_table[op];
     uint32_t buffer[BUFFER_SIZE];
@@ -865,7 +865,7 @@ static void blend_transformed_tiled_argb(plutovg_surface_t* surface, plutovg_ope
     int fdy = (int)(texture->matrix.b * FIXED_SCALE);
 
     int count = span_buffer->spans.size;
-    const plutovg_span_t* spans = span_buffer->spans.data;
+    const juce_plutovg_span_t* spans = span_buffer->spans.data;
     while(count--) {
         uint32_t* target = (uint32_t*)(surface->data + spans->y * surface->stride) + spans->x;
         const uint32_t* image_bits = (const uint32_t*)texture->data;
@@ -879,7 +879,7 @@ static void blend_transformed_tiled_argb(plutovg_surface_t* surface, plutovg_ope
         const int coverage = (spans->coverage * texture->const_alpha) >> 8;
         int length = spans->len;
         while(length) {
-            int l = plutovg_min(length, BUFFER_SIZE);
+            int l = juce_plutovg_min(length, BUFFER_SIZE);
             const uint32_t* end = buffer + l;
             uint32_t* b = buffer;
             while(b < end) {
@@ -909,32 +909,32 @@ static void blend_transformed_tiled_argb(plutovg_surface_t* surface, plutovg_ope
     }
 }
 
-static void plutovg_blend_color(plutovg_canvas_t* canvas, const plutovg_color_t* color, const plutovg_span_buffer_t* span_buffer)
+static void juce_plutovg_blend_color(juce_plutovg_canvas_t* canvas, const juce_plutovg_color_t* color, const juce_plutovg_span_buffer_t* span_buffer)
 {
-    plutovg_state_t* state = canvas->state;
+    juce_plutovg_state_t* state = canvas->state;
     uint32_t solid = premultiply_color_with_opacity(color, state->opacity);
-    uint32_t alpha = plutovg_alpha(solid);
+    uint32_t alpha = juce_plutovg_alpha(solid);
 
-    if(alpha == 255 && state->op == PLUTOVG_OPERATOR_SRC_OVER) {
-        blend_solid(canvas->surface, PLUTOVG_OPERATOR_SRC, solid, span_buffer);
+    if(alpha == 255 && state->op == JUCE_PLUTOVG_OPERATOR_SRC_OVER) {
+        blend_solid(canvas->surface, JUCE_PLUTOVG_OPERATOR_SRC, solid, span_buffer);
     } else {
         blend_solid(canvas->surface, state->op, solid, span_buffer);
     }
 }
 
-static void plutovg_blend_gradient(plutovg_canvas_t* canvas, const plutovg_gradient_paint_t* gradient, const plutovg_span_buffer_t* span_buffer)
+static void juce_plutovg_blend_gradient(juce_plutovg_canvas_t* canvas, const juce_plutovg_gradient_paint_t* gradient, const juce_plutovg_span_buffer_t* span_buffer)
 {
     if(gradient->nstops == 0)
         return;
-    plutovg_state_t* state = canvas->state;
+    juce_plutovg_state_t* state = canvas->state;
     gradient_data_t data;
     data.spread = gradient->spread;
     data.matrix = gradient->matrix;
-    plutovg_matrix_multiply(&data.matrix, &data.matrix, &state->matrix);
-    if(!plutovg_matrix_invert(&data.matrix, &data.matrix))
+    juce_plutovg_matrix_multiply(&data.matrix, &data.matrix, &state->matrix);
+    if(!juce_plutovg_matrix_invert(&data.matrix, &data.matrix))
         return;
     int i, pos = 0, nstops = gradient->nstops;
-    const plutovg_gradient_stop_t *curr, *next, *start, *last;
+    const juce_plutovg_gradient_stop_t *curr, *next, *start, *last;
     uint32_t curr_color, next_color, last_color;
     uint32_t dist, idist;
     float delta, t, incr, fpos;
@@ -979,7 +979,7 @@ static void plutovg_blend_gradient(plutovg_canvas_t* canvas, const plutovg_gradi
         data.colortable[pos] = last_color;
     }
 
-    if(gradient->type == PLUTOVG_GRADIENT_TYPE_LINEAR) {
+    if(gradient->type == JUCE_PLUTOVG_GRADIENT_TYPE_LINEAR) {
         data.values.linear.x1 = gradient->values[0];
         data.values.linear.y1 = gradient->values[1];
         data.values.linear.x2 = gradient->values[2];
@@ -996,11 +996,11 @@ static void plutovg_blend_gradient(plutovg_canvas_t* canvas, const plutovg_gradi
     }
 }
 
-static void plutovg_blend_texture(plutovg_canvas_t* canvas, const plutovg_texture_paint_t* texture, const plutovg_span_buffer_t* span_buffer)
+static void juce_plutovg_blend_texture(juce_plutovg_canvas_t* canvas, const juce_plutovg_texture_paint_t* texture, const juce_plutovg_span_buffer_t* span_buffer)
 {
     if(texture->surface == NULL)
         return;
-    plutovg_state_t* state = canvas->state;
+    juce_plutovg_state_t* state = canvas->state;
     texture_data_t data;
     data.matrix = texture->matrix;
     data.data = texture->surface->data;
@@ -1009,18 +1009,18 @@ static void plutovg_blend_texture(plutovg_canvas_t* canvas, const plutovg_textur
     data.stride = texture->surface->stride;
     data.const_alpha = lroundf(state->opacity * texture->opacity * 256);
 
-    plutovg_matrix_multiply(&data.matrix, &data.matrix, &state->matrix);
-    if(!plutovg_matrix_invert(&data.matrix, &data.matrix))
+    juce_plutovg_matrix_multiply(&data.matrix, &data.matrix, &state->matrix);
+    if(!juce_plutovg_matrix_invert(&data.matrix, &data.matrix))
         return;
-    const plutovg_matrix_t* matrix = &data.matrix;
+    const juce_plutovg_matrix_t* matrix = &data.matrix;
     if(matrix->a == 1 && matrix->b == 0 && matrix->c == 0 && matrix->d == 1) {
-        if(texture->type == PLUTOVG_TEXTURE_TYPE_PLAIN) {
+        if(texture->type == JUCE_PLUTOVG_TEXTURE_TYPE_PLAIN) {
             blend_untransformed_argb(canvas->surface, state->op, &data, span_buffer);
         } else {
             blend_untransformed_tiled_argb(canvas->surface, state->op, &data, span_buffer);
         }
     } else {
-        if(texture->type == PLUTOVG_TEXTURE_TYPE_PLAIN) {
+        if(texture->type == JUCE_PLUTOVG_TEXTURE_TYPE_PLAIN) {
             blend_transformed_argb(canvas->surface, state->op, &data, span_buffer);
         } else {
             blend_transformed_tiled_argb(canvas->surface, state->op, &data, span_buffer);
@@ -1028,24 +1028,24 @@ static void plutovg_blend_texture(plutovg_canvas_t* canvas, const plutovg_textur
     }
 }
 
-void plutovg_blend(plutovg_canvas_t* canvas, const plutovg_span_buffer_t* span_buffer)
+void juce_plutovg_blend(juce_plutovg_canvas_t* canvas, const juce_plutovg_span_buffer_t* span_buffer)
 {
     if(span_buffer->spans.size == 0)
         return;
     if(canvas->state->paint == NULL) {
-        plutovg_blend_color(canvas, &canvas->state->color, span_buffer);
+        juce_plutovg_blend_color(canvas, &canvas->state->color, span_buffer);
         return;
     }
 
-    plutovg_paint_t* paint = canvas->state->paint;
-    if(paint->type == PLUTOVG_PAINT_TYPE_COLOR) {
-        plutovg_solid_paint_t* solid = (plutovg_solid_paint_t*)(paint);
-        plutovg_blend_color(canvas, &solid->color, span_buffer);
-    } else if(paint->type == PLUTOVG_PAINT_TYPE_GRADIENT) {
-        plutovg_gradient_paint_t* gradient = (plutovg_gradient_paint_t*)(paint);
-        plutovg_blend_gradient(canvas, gradient, span_buffer);
+    juce_plutovg_paint_t* paint = canvas->state->paint;
+    if(paint->type == JUCE_PLUTOVG_PAINT_TYPE_COLOR) {
+        juce_plutovg_solid_paint_t* solid = (juce_plutovg_solid_paint_t*)(paint);
+        juce_plutovg_blend_color(canvas, &solid->color, span_buffer);
+    } else if(paint->type == JUCE_PLUTOVG_PAINT_TYPE_GRADIENT) {
+        juce_plutovg_gradient_paint_t* gradient = (juce_plutovg_gradient_paint_t*)(paint);
+        juce_plutovg_blend_gradient(canvas, gradient, span_buffer);
     } else {
-        plutovg_texture_paint_t* texture = (plutovg_texture_paint_t*)(paint);
-        plutovg_blend_texture(canvas, texture, span_buffer);
+        juce_plutovg_texture_paint_t* texture = (juce_plutovg_texture_paint_t*)(paint);
+        juce_plutovg_blend_texture(canvas, texture, span_buffer);
     }
 }

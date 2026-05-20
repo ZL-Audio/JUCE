@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fstream>
 #include <cmath>
+namespace {
 
 int lunasvg_version()
 {
@@ -29,17 +30,17 @@ bool lunasvg_add_font_face_from_data(const char* family, bool bold, bool italic,
 namespace lunasvg {
 
 Bitmap::Bitmap(int width, int height)
-    : m_surface(plutovg_surface_create(width, height))
+    : m_surface(juce_plutovg_surface_create(width, height))
 {
 }
 
 Bitmap::Bitmap(uint8_t* data, int width, int height, int stride)
-    : m_surface(plutovg_surface_create_for_data(data, width, height, stride))
+    : m_surface(juce_plutovg_surface_create_for_data(data, width, height, stride))
 {
 }
 
 Bitmap::Bitmap(const Bitmap& bitmap)
-    : m_surface(plutovg_surface_reference(bitmap.surface()))
+    : m_surface(juce_plutovg_surface_reference(bitmap.surface()))
 {
 }
 
@@ -50,7 +51,7 @@ Bitmap::Bitmap(Bitmap&& bitmap)
 
 Bitmap::~Bitmap()
 {
-    plutovg_surface_destroy(m_surface);
+    juce_plutovg_surface_destroy(m_surface);
 }
 
 Bitmap& Bitmap::operator=(const Bitmap& bitmap)
@@ -67,28 +68,28 @@ void Bitmap::swap(Bitmap& bitmap)
 uint8_t* Bitmap::data() const
 {
     if(m_surface)
-        return plutovg_surface_get_data(m_surface);
+        return juce_plutovg_surface_get_data(m_surface);
     return nullptr;
 }
 
 int Bitmap::width() const
 {
     if(m_surface)
-        return plutovg_surface_get_width(m_surface);
+        return juce_plutovg_surface_get_width(m_surface);
     return 0;
 }
 
 int Bitmap::height() const
 {
     if(m_surface)
-        return plutovg_surface_get_height(m_surface);
+        return juce_plutovg_surface_get_height(m_surface);
     return 0;
 }
 
 int Bitmap::stride() const
 {
     if(m_surface)
-        return plutovg_surface_get_stride(m_surface);
+        return juce_plutovg_surface_get_stride(m_surface);
     return 0;
 }
 
@@ -96,20 +97,20 @@ void Bitmap::clear(uint32_t value)
 {
     if(m_surface == nullptr)
         return;
-    plutovg_color_t color;
-    plutovg_color_init_rgba32(&color, value);
-    plutovg_surface_clear(m_surface, &color);
+    juce_plutovg_color_t color;
+    juce_plutovg_color_init_rgba32(&color, value);
+    juce_plutovg_surface_clear(m_surface, &color);
 }
 
 void Bitmap::convertToRGBA()
 {
     if(m_surface == nullptr)
         return;
-    auto data = plutovg_surface_get_data(m_surface);
-    auto width = plutovg_surface_get_width(m_surface);
-    auto height = plutovg_surface_get_height(m_surface);
-    auto stride = plutovg_surface_get_stride(m_surface);
-    plutovg_convert_argb_to_rgba(data, data, width, height, stride);
+    auto data = juce_plutovg_surface_get_data(m_surface);
+    auto width = juce_plutovg_surface_get_width(m_surface);
+    auto height = juce_plutovg_surface_get_height(m_surface);
+    auto stride = juce_plutovg_surface_get_stride(m_surface);
+    juce_plutovg_convert_argb_to_rgba(data, data, width, height, stride);
 }
 
 Bitmap& Bitmap::operator=(Bitmap&& bitmap)
@@ -121,18 +122,18 @@ Bitmap& Bitmap::operator=(Bitmap&& bitmap)
 bool Bitmap::writeToPng(const std::string& filename) const
 {
     if(m_surface)
-        return plutovg_surface_write_to_png(m_surface, filename.data());
+        return juce_plutovg_surface_write_to_png(m_surface, filename.data());
     return false;
 }
 
 bool Bitmap::writeToPng(lunasvg_write_func_t callback, void* closure) const
 {
     if(m_surface)
-        return plutovg_surface_write_to_png_stream(m_surface, callback, closure);
+        return juce_plutovg_surface_write_to_png_stream(m_surface, callback, closure);
     return false;
 }
 
-plutovg_surface_t* Bitmap::release()
+juce_plutovg_surface_t* Bitmap::release()
 {
     return std::exchange(m_surface, nullptr);
 }
@@ -163,7 +164,7 @@ Matrix::Matrix(float a, float b, float c, float d, float e, float f)
 {
 }
 
-Matrix::Matrix(const plutovg_matrix_t& matrix)
+Matrix::Matrix(const juce_plutovg_matrix_t& matrix)
     : a(matrix.a), b(matrix.b), c(matrix.c), d(matrix.d), e(matrix.e), f(matrix.f)
 {
 }
@@ -534,3 +535,4 @@ Document::Document() = default;
 Document::~Document() = default;
 
 } // namespace lunasvg
+}

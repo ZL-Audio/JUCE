@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef PLUTOVG_FT_TYPES_H
-#define PLUTOVG_FT_TYPES_H
+#ifndef JUCE_PLUTOVG_FT_TYPES_H
+#define JUCE_PLUTOVG_FT_TYPES_H
 
 /*************************************************************************/
 /*                                                                       */
@@ -173,4 +173,4 @@ typedef unsigned int            PVG_FT_UInt32;
 #define PVG_FT_BEGIN_STMNT do {
 #define PVG_FT_END_STMNT } while (0)
 
-#endif // PLUTOVG_FT_TYPES_H
+#endif // JUCE_PLUTOVG_FT_TYPES_H

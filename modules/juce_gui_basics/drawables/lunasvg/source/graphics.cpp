@@ -3,6 +3,7 @@
 
 #include <cfloat>
 #include <cmath>
+namespace {
 
 namespace lunasvg {
 
@@ -23,12 +24,12 @@ const Transform Transform::Identity(1, 0, 0, 1, 0, 0);
 
 Transform::Transform()
 {
-    plutovg_matrix_init_identity(&m_matrix);
+    juce_plutovg_matrix_init_identity(&m_matrix);
 }
 
 Transform::Transform(float a, float b, float c, float d, float e, float f)
 {
-    plutovg_matrix_init(&m_matrix, a, b, c, d, e, f);
+    juce_plutovg_matrix_init(&m_matrix, a, b, c, d, e, f);
 }
 
 Transform::Transform(const Matrix& matrix)
@@ -38,8 +39,8 @@ Transform::Transform(const Matrix& matrix)
 
 Transform Transform::operator*(const Transform& transform) const
 {
-    plutovg_matrix_t result;
-    plutovg_matrix_multiply(&result, &transform.m_matrix, &m_matrix);
+    juce_plutovg_matrix_t result;
+    juce_plutovg_matrix_multiply(&result, &transform.m_matrix, &m_matrix);
     return result;
 }
 
@@ -100,25 +101,25 @@ Transform& Transform::postShear(float shx, float shy)
 
 Transform Transform::inverse() const
 {
-    plutovg_matrix_t inverse;
-    plutovg_matrix_invert(&m_matrix, &inverse);
+    juce_plutovg_matrix_t inverse;
+    juce_plutovg_matrix_invert(&m_matrix, &inverse);
     return inverse;
 }
 
 Transform& Transform::invert()
 {
-    plutovg_matrix_invert(&m_matrix, &m_matrix);
+    juce_plutovg_matrix_invert(&m_matrix, &m_matrix);
     return *this;
 }
 
 void Transform::reset()
 {
-    plutovg_matrix_init_identity(&m_matrix);
+    juce_plutovg_matrix_init_identity(&m_matrix);
 }
 
 Point Transform::mapPoint(float x, float y) const
 {
-    plutovg_matrix_map(&m_matrix, x, y, &x, &y);
+    juce_plutovg_matrix_map(&m_matrix, x, y, &x, &y);
     return Point(x, y);
 }
 
@@ -133,8 +134,8 @@ Rect Transform::mapRect(const Rect& rect) const
         return Rect::Invalid;
     }
 
-    plutovg_rect_t result = {rect.x, rect.y, rect.w, rect.h};
-    plutovg_matrix_map_rect(&m_matrix, &result, &result);
+    juce_plutovg_rect_t result = {rect.x, rect.y, rect.w, rect.h};
+    juce_plutovg_matrix_map_rect(&m_matrix, &result, &result);
     return result;
 }
 
@@ -150,18 +151,18 @@ float Transform::yScale() const
 
 bool Transform::parse(const char* data, size_t length)
 {
-    return plutovg_matrix_parse(&m_matrix, data, length);
+    return juce_plutovg_matrix_parse(&m_matrix, data, length);
 }
 
 Transform Transform::rotated(float angle, float cx, float cy)
 {
-    plutovg_matrix_t matrix;
+    juce_plutovg_matrix_t matrix;
     if(cx == 0.f && cy == 0.f) {
-        plutovg_matrix_init_rotate(&matrix, PLUTOVG_DEG2RAD(angle));
+        juce_plutovg_matrix_init_rotate(&matrix, JUCE_PLUTOVG_DEG2RAD(angle));
     } else {
-        plutovg_matrix_init_translate(&matrix, cx, cy);
-        plutovg_matrix_rotate(&matrix, PLUTOVG_DEG2RAD(angle));
-        plutovg_matrix_translate(&matrix, -cx, -cy);
+        juce_plutovg_matrix_init_translate(&matrix, cx, cy);
+        juce_plutovg_matrix_rotate(&matrix, JUCE_PLUTOVG_DEG2RAD(angle));
+        juce_plutovg_matrix_translate(&matrix, -cx, -cy);
     }
 
     return matrix;
@@ -169,27 +170,27 @@ Transform Transform::rotated(float angle, float cx, float cy)
 
 Transform Transform::scaled(float sx, float sy)
 {
-    plutovg_matrix_t matrix;
-    plutovg_matrix_init_scale(&matrix, sx, sy);
+    juce_plutovg_matrix_t matrix;
+    juce_plutovg_matrix_init_scale(&matrix, sx, sy);
     return matrix;
 }
 
 Transform Transform::sheared(float shx, float shy)
 {
-    plutovg_matrix_t matrix;
-    plutovg_matrix_init_shear(&matrix, PLUTOVG_DEG2RAD(shx), PLUTOVG_DEG2RAD(shy));
+    juce_plutovg_matrix_t matrix;
+    juce_plutovg_matrix_init_shear(&matrix, JUCE_PLUTOVG_DEG2RAD(shx), JUCE_PLUTOVG_DEG2RAD(shy));
     return matrix;
 }
 
 Transform Transform::translated(float tx, float ty)
 {
-    plutovg_matrix_t matrix;
-    plutovg_matrix_init_translate(&matrix, tx, ty);
+    juce_plutovg_matrix_t matrix;
+    juce_plutovg_matrix_init_translate(&matrix, tx, ty);
     return matrix;
 }
 
 Path::Path(const Path& path)
-    : m_data(plutovg_path_reference(path.data()))
+    : m_data(juce_plutovg_path_reference(path.data()))
 {
 }
 
@@ -200,7 +201,7 @@ Path::Path(Path&& path)
 
 Path::~Path()
 {
-    plutovg_path_destroy(m_data);
+    juce_plutovg_path_destroy(m_data);
 }
 
 Path& Path::operator=(const Path& path)
@@ -217,47 +218,47 @@ Path& Path::operator=(Path&& path)
 
 void Path::moveTo(float x, float y)
 {
-    plutovg_path_move_to(ensure(), x, y);
+    juce_plutovg_path_move_to(ensure(), x, y);
 }
 
 void Path::lineTo(float x, float y)
 {
-    plutovg_path_line_to(ensure(), x, y);
+    juce_plutovg_path_line_to(ensure(), x, y);
 }
 
 void Path::quadTo(float x1, float y1, float x2, float y2)
 {
-    plutovg_path_quad_to(ensure(), x1, y1, x2, y2);
+    juce_plutovg_path_quad_to(ensure(), x1, y1, x2, y2);
 }
 
 void Path::cubicTo(float x1, float y1, float x2, float y2, float x3, float y3)
 {
-    plutovg_path_cubic_to(ensure(), x1, y1, x2, y2, x3, y3);
+    juce_plutovg_path_cubic_to(ensure(), x1, y1, x2, y2, x3, y3);
 }
 
 void Path::arcTo(float rx, float ry, float xAxisRotation, bool largeArcFlag, bool sweepFlag, float x, float y)
 {
-    plutovg_path_arc_to(ensure(), rx, ry, PLUTOVG_DEG2RAD(xAxisRotation), largeArcFlag, sweepFlag, x, y);
+    juce_plutovg_path_arc_to(ensure(), rx, ry, JUCE_PLUTOVG_DEG2RAD(xAxisRotation), largeArcFlag, sweepFlag, x, y);
 }
 
 void Path::close()
 {
-    plutovg_path_close(ensure());
+    juce_plutovg_path_close(ensure());
 }
 
 void Path::addEllipse(float cx, float cy, float rx, float ry)
 {
-    plutovg_path_add_ellipse(ensure(), cx, cy, rx, ry);
+    juce_plutovg_path_add_ellipse(ensure(), cx, cy, rx, ry);
 }
 
 void Path::addRoundRect(float x, float y, float w, float h, float rx, float ry)
 {
-    plutovg_path_add_round_rect(ensure(), x, y, w, h, rx, ry);
+    juce_plutovg_path_add_round_rect(ensure(), x, y, w, h, rx, ry);
 }
 
 void Path::addRect(float x, float y, float w, float h)
 {
-    plutovg_path_add_rect(ensure(), x, y, w, h);
+    juce_plutovg_path_add_rect(ensure(), x, y, w, h);
 }
 
 void Path::addEllipse(const Point& center, const Size& radii)
@@ -280,9 +281,9 @@ void Path::reset()
     if(m_data == nullptr)
         return;
     if(isUnique()) {
-        plutovg_path_reset(m_data);
+        juce_plutovg_path_reset(m_data);
     } else {
-        plutovg_path_destroy(m_data);
+        juce_plutovg_path_destroy(m_data);
         m_data = nullptr;
     }
 }
@@ -291,43 +292,43 @@ Rect Path::boundingRect() const
 {
     if(m_data == nullptr)
         return Rect::Empty;
-    plutovg_rect_t extents;
-    plutovg_path_extents(m_data, &extents, false);
+    juce_plutovg_rect_t extents;
+    juce_plutovg_path_extents(m_data, &extents, false);
     return extents;
 }
 
 bool Path::isEmpty() const
 {
     if(m_data)
-        return plutovg_path_get_elements(m_data, nullptr) == 0;
+        return juce_plutovg_path_get_elements(m_data, nullptr) == 0;
     return true;
 }
 
 bool Path::isUnique() const
 {
-    return plutovg_path_get_reference_count(m_data) == 1;
+    return juce_plutovg_path_get_reference_count(m_data) == 1;
 }
 
 bool Path::parse(const char* data, size_t length)
 {
-    plutovg_path_reset(ensure());
-    return plutovg_path_parse(m_data, data, length);
+    juce_plutovg_path_reset(ensure());
+    return juce_plutovg_path_parse(m_data, data, length);
 }
 
-plutovg_path_t* Path::ensure()
+juce_plutovg_path_t* Path::ensure()
 {
     if(isNull()) {
-        m_data = plutovg_path_create();
+        m_data = juce_plutovg_path_create();
     } else if(!isUnique()) {
-        plutovg_path_destroy(m_data);
-        m_data = plutovg_path_clone(m_data);
+        juce_plutovg_path_destroy(m_data);
+        m_data = juce_plutovg_path_clone(m_data);
     }
 
     return m_data;
 }
 
 PathIterator::PathIterator(const Path& path)
-    : m_size(plutovg_path_get_elements(path.data(), &m_elements))
+    : m_size(juce_plutovg_path_get_elements(path.data(), &m_elements))
     , m_index(0)
 {
 }
@@ -336,18 +337,18 @@ PathCommand PathIterator::currentSegment(std::array<Point, 3>& points) const
 {
     auto command = m_elements[m_index].header.command;
     switch(command) {
-    case PLUTOVG_PATH_COMMAND_MOVE_TO:
+    case JUCE_PLUTOVG_PATH_COMMAND_MOVE_TO:
         points[0] = m_elements[m_index + 1].point;
         break;
-    case PLUTOVG_PATH_COMMAND_LINE_TO:
+    case JUCE_PLUTOVG_PATH_COMMAND_LINE_TO:
         points[0] = m_elements[m_index + 1].point;
         break;
-    case PLUTOVG_PATH_COMMAND_CUBIC_TO:
+    case JUCE_PLUTOVG_PATH_COMMAND_CUBIC_TO:
         points[0] = m_elements[m_index + 1].point;
         points[1] = m_elements[m_index + 2].point;
         points[2] = m_elements[m_index + 3].point;
         break;
-    case PLUTOVG_PATH_COMMAND_CLOSE:
+    case JUCE_PLUTOVG_PATH_COMMAND_CLOSE:
         points[0] = m_elements[m_index + 1].point;
         break;
     }
@@ -360,23 +361,23 @@ void PathIterator::next()
     m_index += m_elements[m_index].header.length;
 }
 
-FontFace::FontFace(plutovg_font_face_t* face)
-    : m_face(plutovg_font_face_reference(face))
+FontFace::FontFace(juce_plutovg_font_face_t* face)
+    : m_face(juce_plutovg_font_face_reference(face))
 {
 }
 
-FontFace::FontFace(const void* data, size_t length, plutovg_destroy_func_t destroy_func, void* closure)
-    : m_face(plutovg_font_face_load_from_data(data, length, 0, destroy_func, closure))
+FontFace::FontFace(const void* data, size_t length, juce_plutovg_destroy_func_t destroy_func, void* closure)
+    : m_face(juce_plutovg_font_face_load_from_data(data, length, 0, destroy_func, closure))
 {
 }
 
 FontFace::FontFace(const char* filename)
-    : m_face(plutovg_font_face_load_from_file(filename, 0))
+    : m_face(juce_plutovg_font_face_load_from_file(filename, 0))
 {
 }
 
 FontFace::FontFace(const FontFace& face)
-    : m_face(plutovg_font_face_reference(face.get()))
+    : m_face(juce_plutovg_font_face_reference(face.get()))
 {
 }
 
@@ -387,7 +388,7 @@ FontFace::FontFace(FontFace&& face)
 
 FontFace::~FontFace()
 {
-    plutovg_font_face_destroy(m_face);
+    juce_plutovg_font_face_destroy(m_face);
 }
 
 FontFace& FontFace::operator=(const FontFace& face)
@@ -407,7 +408,7 @@ void FontFace::swap(FontFace& face)
     std::swap(m_face, face.m_face);
 }
 
-plutovg_font_face_t* FontFace::release()
+juce_plutovg_font_face_t* FontFace::release()
 {
     return std::exchange(m_face, nullptr);
 }
@@ -415,13 +416,13 @@ plutovg_font_face_t* FontFace::release()
 bool FontFaceCache::addFontFace(const std::string& family, bool bold, bool italic, const FontFace& face)
 {
     if(!face.isNull())
-        plutovg_font_face_cache_add(m_cache, family.data(), bold, italic, face.get());
+        juce_plutovg_font_face_cache_add(m_cache, family.data(), bold, italic, face.get());
     return !face.isNull();
 }
 
 FontFace FontFaceCache::getFontFace(const std::string& family, bool bold, bool italic) const
 {
-    if(auto face = plutovg_font_face_cache_get(m_cache, family.data(), bold, italic)) {
+    if(auto face = juce_plutovg_font_face_cache_get(m_cache, family.data(), bold, italic)) {
         return FontFace(face);
     }
 
@@ -444,7 +445,7 @@ FontFace FontFaceCache::getFontFace(const std::string& family, bool bold, bool i
 
     for(auto value : generic_fallbacks) {
         if(value.generic == family || family.empty()) {
-            return FontFace(plutovg_font_face_cache_get(m_cache, value.fallback, bold, italic));
+            return FontFace(juce_plutovg_font_face_cache_get(m_cache, value.fallback, bold, italic));
         }
     }
 
@@ -452,10 +453,10 @@ FontFace FontFaceCache::getFontFace(const std::string& family, bool bold, bool i
 }
 
 FontFaceCache::FontFaceCache()
-    : m_cache(plutovg_font_face_cache_create())
+    : m_cache(juce_plutovg_font_face_cache_create())
 {
 #ifndef LUNASVG_DISABLE_LOAD_SYSTEM_FONTS
-    plutovg_font_face_cache_load_sys(m_cache);
+    juce_plutovg_font_face_cache_load_sys(m_cache);
 #endif
 }
 
@@ -469,22 +470,22 @@ Font::Font(const FontFace& face, float size)
     : m_face(face), m_size(size)
 {
     if(m_size > 0.f && !m_face.isNull()) {
-        plutovg_font_face_get_metrics(m_face.get(), m_size, &m_ascent, &m_descent, &m_lineGap, nullptr);
+        juce_plutovg_font_face_get_metrics(m_face.get(), m_size, &m_ascent, &m_descent, &m_lineGap, nullptr);
     }
 }
 
 float Font::xHeight() const
 {
-    plutovg_rect_t extents = {0};
+    juce_plutovg_rect_t extents = {0};
     if(m_size > 0.f && !m_face.isNull())
-        plutovg_font_face_get_glyph_metrics(m_face.get(), m_size, 'x', nullptr, nullptr, &extents);
+        juce_plutovg_font_face_get_glyph_metrics(m_face.get(), m_size, 'x', nullptr, nullptr, &extents);
     return extents.h;
 }
 
 float Font::measureText(const std::u32string_view& text) const
 {
     if(m_size > 0.f && !m_face.isNull())
-        return plutovg_font_face_text_extents(m_face.get(), m_size, text.data(), text.length(), PLUTOVG_TEXT_ENCODING_UTF32, nullptr);
+        return juce_plutovg_font_face_text_extents(m_face.get(), m_size, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, nullptr);
     return 0;
 }
 
@@ -517,137 +518,137 @@ void Canvas::setColor(const Color& color)
 
 void Canvas::setColor(float r, float g, float b, float a)
 {
-    plutovg_canvas_set_rgba(m_canvas, r, g, b, a);
+    juce_plutovg_canvas_set_rgba(m_canvas, r, g, b, a);
 }
 
 void Canvas::setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform)
 {
-    plutovg_canvas_set_linear_gradient(m_canvas, x1, y1, x2, y2, static_cast<plutovg_spread_method_t>(spread), stops.data(), stops.size(), &transform.matrix());
+    juce_plutovg_canvas_set_linear_gradient(m_canvas, x1, y1, x2, y2, static_cast<juce_plutovg_spread_method_t>(spread), stops.data(), stops.size(), &transform.matrix());
 }
 
 void Canvas::setRadialGradient(float cx, float cy, float r, float fx, float fy, SpreadMethod spread, const GradientStops& stops, const Transform& transform)
 {
-    plutovg_canvas_set_radial_gradient(m_canvas, cx, cy, r, fx, fy, 0.f, static_cast<plutovg_spread_method_t>(spread), stops.data(), stops.size(), &transform.matrix());
+    juce_plutovg_canvas_set_radial_gradient(m_canvas, cx, cy, r, fx, fy, 0.f, static_cast<juce_plutovg_spread_method_t>(spread), stops.data(), stops.size(), &transform.matrix());
 }
 
 void Canvas::setTexture(const Canvas& source, TextureType type, float opacity, const Transform& transform)
 {
-    plutovg_canvas_set_texture(m_canvas, source.surface(), static_cast<plutovg_texture_type_t>(type), opacity, &transform.matrix());
+    juce_plutovg_canvas_set_texture(m_canvas, source.surface(), static_cast<juce_plutovg_texture_type_t>(type), opacity, &transform.matrix());
 }
 
 void Canvas::fillPath(const Path& path, FillRule fillRule, const Transform& transform)
 {
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_set_fill_rule(m_canvas, static_cast<plutovg_fill_rule_t>(fillRule));
-    plutovg_canvas_set_operator(m_canvas, PLUTOVG_OPERATOR_SRC_OVER);
-    plutovg_canvas_fill_path(m_canvas, path.data());
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_set_fill_rule(m_canvas, static_cast<juce_plutovg_fill_rule_t>(fillRule));
+    juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
+    juce_plutovg_canvas_fill_path(m_canvas, path.data());
 }
 
 void Canvas::strokePath(const Path& path, const StrokeData& strokeData, const Transform& transform)
 {
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_set_line_width(m_canvas, strokeData.lineWidth());
-    plutovg_canvas_set_miter_limit(m_canvas, strokeData.miterLimit());
-    plutovg_canvas_set_line_cap(m_canvas, static_cast<plutovg_line_cap_t>(strokeData.lineCap()));
-    plutovg_canvas_set_line_join(m_canvas, static_cast<plutovg_line_join_t>(strokeData.lineJoin()));
-    plutovg_canvas_set_dash_offset(m_canvas, strokeData.dashOffset());
-    plutovg_canvas_set_dash_array(m_canvas, strokeData.dashArray().data(), strokeData.dashArray().size());
-    plutovg_canvas_set_operator(m_canvas, PLUTOVG_OPERATOR_SRC_OVER);
-    plutovg_canvas_stroke_path(m_canvas, path.data());
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_set_line_width(m_canvas, strokeData.lineWidth());
+    juce_plutovg_canvas_set_miter_limit(m_canvas, strokeData.miterLimit());
+    juce_plutovg_canvas_set_line_cap(m_canvas, static_cast<juce_plutovg_line_cap_t>(strokeData.lineCap()));
+    juce_plutovg_canvas_set_line_join(m_canvas, static_cast<juce_plutovg_line_join_t>(strokeData.lineJoin()));
+    juce_plutovg_canvas_set_dash_offset(m_canvas, strokeData.dashOffset());
+    juce_plutovg_canvas_set_dash_array(m_canvas, strokeData.dashArray().data(), strokeData.dashArray().size());
+    juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
+    juce_plutovg_canvas_stroke_path(m_canvas, path.data());
 }
 
 void Canvas::fillText(const std::u32string_view& text, const Font& font, const Point& origin, const Transform& transform)
 {
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_set_fill_rule(m_canvas, PLUTOVG_FILL_RULE_NON_ZERO);
-    plutovg_canvas_set_operator(m_canvas, PLUTOVG_OPERATOR_SRC_OVER);
-    plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
-    plutovg_canvas_fill_text(m_canvas, text.data(), text.length(), PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_set_fill_rule(m_canvas, JUCE_PLUTOVG_FILL_RULE_NON_ZERO);
+    juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
+    juce_plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
+    juce_plutovg_canvas_fill_text(m_canvas, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
 }
 
 void Canvas::strokeText(const std::u32string_view& text, float strokeWidth, const Font& font, const Point& origin, const Transform& transform)
 {
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_set_line_width(m_canvas, strokeWidth);
-    plutovg_canvas_set_miter_limit(m_canvas, 4.f);
-    plutovg_canvas_set_line_cap(m_canvas, PLUTOVG_LINE_CAP_BUTT);
-    plutovg_canvas_set_line_join(m_canvas, PLUTOVG_LINE_JOIN_MITER);
-    plutovg_canvas_set_dash_offset(m_canvas, 0.f);
-    plutovg_canvas_set_dash_array(m_canvas, nullptr, 0);
-    plutovg_canvas_set_operator(m_canvas, PLUTOVG_OPERATOR_SRC_OVER);
-    plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
-    plutovg_canvas_stroke_text(m_canvas, text.data(), text.length(), PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_set_line_width(m_canvas, strokeWidth);
+    juce_plutovg_canvas_set_miter_limit(m_canvas, 4.f);
+    juce_plutovg_canvas_set_line_cap(m_canvas, JUCE_PLUTOVG_LINE_CAP_BUTT);
+    juce_plutovg_canvas_set_line_join(m_canvas, JUCE_PLUTOVG_LINE_JOIN_MITER);
+    juce_plutovg_canvas_set_dash_offset(m_canvas, 0.f);
+    juce_plutovg_canvas_set_dash_array(m_canvas, nullptr, 0);
+    juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
+    juce_plutovg_canvas_set_font(m_canvas, font.face().get(), font.size());
+    juce_plutovg_canvas_stroke_text(m_canvas, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
 }
 
 void Canvas::clipPath(const Path& path, FillRule clipRule, const Transform& transform)
 {
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_set_fill_rule(m_canvas, static_cast<plutovg_fill_rule_t>(clipRule));
-    plutovg_canvas_clip_path(m_canvas, path.data());
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_set_fill_rule(m_canvas, static_cast<juce_plutovg_fill_rule_t>(clipRule));
+    juce_plutovg_canvas_clip_path(m_canvas, path.data());
 }
 
 void Canvas::clipRect(const Rect& rect, FillRule clipRule, const Transform& transform)
 {
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_set_fill_rule(m_canvas, static_cast<plutovg_fill_rule_t>(clipRule));
-    plutovg_canvas_clip_rect(m_canvas, rect.x, rect.y, rect.w, rect.h);
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_set_fill_rule(m_canvas, static_cast<juce_plutovg_fill_rule_t>(clipRule));
+    juce_plutovg_canvas_clip_rect(m_canvas, rect.x, rect.y, rect.w, rect.h);
 }
 
 void Canvas::drawImage(const Bitmap& image, const Rect& dstRect, const Rect& srcRect, const Transform& transform)
 {
     auto xScale = dstRect.w / srcRect.w;
     auto yScale = dstRect.h / srcRect.h;
-    plutovg_matrix_t matrix = { xScale, 0, 0, yScale, -srcRect.x * xScale, -srcRect.y * yScale };
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_transform(m_canvas, &transform.matrix());
-    plutovg_canvas_translate(m_canvas, dstRect.x, dstRect.y);
-    plutovg_canvas_set_fill_rule(m_canvas, PLUTOVG_FILL_RULE_NON_ZERO);
-    plutovg_canvas_set_operator(m_canvas, PLUTOVG_OPERATOR_SRC_OVER);
-    plutovg_canvas_set_texture(m_canvas, image.surface(), PLUTOVG_TEXTURE_TYPE_PLAIN, 1.f, &matrix);
-    plutovg_canvas_fill_rect(m_canvas, 0, 0, dstRect.w, dstRect.h);
+    juce_plutovg_matrix_t matrix = { xScale, 0, 0, yScale, -srcRect.x * xScale, -srcRect.y * yScale };
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
+    juce_plutovg_canvas_translate(m_canvas, dstRect.x, dstRect.y);
+    juce_plutovg_canvas_set_fill_rule(m_canvas, JUCE_PLUTOVG_FILL_RULE_NON_ZERO);
+    juce_plutovg_canvas_set_operator(m_canvas, JUCE_PLUTOVG_OPERATOR_SRC_OVER);
+    juce_plutovg_canvas_set_texture(m_canvas, image.surface(), JUCE_PLUTOVG_TEXTURE_TYPE_PLAIN, 1.f, &matrix);
+    juce_plutovg_canvas_fill_rect(m_canvas, 0, 0, dstRect.w, dstRect.h);
 }
 
 void Canvas::blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacity)
 {
-    plutovg_matrix_t matrix = { 1, 0, 0, 1, static_cast<float>(canvas.x()), static_cast<float>(canvas.y()) };
-    plutovg_canvas_set_matrix(m_canvas, &m_translation);
-    plutovg_canvas_set_operator(m_canvas, static_cast<plutovg_operator_t>(blendMode));
-    plutovg_canvas_set_texture(m_canvas, canvas.surface(), PLUTOVG_TEXTURE_TYPE_PLAIN, opacity, &matrix);
-    plutovg_canvas_paint(m_canvas);
+    juce_plutovg_matrix_t matrix = { 1, 0, 0, 1, static_cast<float>(canvas.x()), static_cast<float>(canvas.y()) };
+    juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
+    juce_plutovg_canvas_set_operator(m_canvas, static_cast<juce_plutovg_operator_t>(blendMode));
+    juce_plutovg_canvas_set_texture(m_canvas, canvas.surface(), JUCE_PLUTOVG_TEXTURE_TYPE_PLAIN, opacity, &matrix);
+    juce_plutovg_canvas_paint(m_canvas);
 }
 
 void Canvas::save()
 {
-    plutovg_canvas_save(m_canvas);
+    juce_plutovg_canvas_save(m_canvas);
 }
 
 void Canvas::restore()
 {
-    plutovg_canvas_restore(m_canvas);
+    juce_plutovg_canvas_restore(m_canvas);
 }
 
 int Canvas::width() const
 {
-    return plutovg_surface_get_width(m_surface);
+    return juce_plutovg_surface_get_width(m_surface);
 }
 
 int Canvas::height() const
 {
-    return plutovg_surface_get_height(m_surface);
+    return juce_plutovg_surface_get_height(m_surface);
 }
 
 void Canvas::convertToLuminanceMask()
 {
-    auto width = plutovg_surface_get_width(m_surface);
-    auto height = plutovg_surface_get_height(m_surface);
-    auto stride = plutovg_surface_get_stride(m_surface);
-    auto data = plutovg_surface_get_data(m_surface);
+    auto width = juce_plutovg_surface_get_width(m_surface);
+    auto height = juce_plutovg_surface_get_height(m_surface);
+    auto stride = juce_plutovg_surface_get_stride(m_surface);
+    auto data = juce_plutovg_surface_get_data(m_surface);
     for(int y = 0; y < height; y++) {
         auto pixels = reinterpret_cast<uint32_t*>(data + stride * y);
         for(int x = 0; x < width; x++) {
@@ -670,24 +671,25 @@ void Canvas::convertToLuminanceMask()
 
 Canvas::~Canvas()
 {
-    plutovg_canvas_destroy(m_canvas);
-    plutovg_surface_destroy(m_surface);
+    juce_plutovg_canvas_destroy(m_canvas);
+    juce_plutovg_surface_destroy(m_surface);
 }
 
 Canvas::Canvas(const Bitmap& bitmap)
-    : m_surface(plutovg_surface_reference(bitmap.surface()))
-    , m_canvas(plutovg_canvas_create(m_surface))
+    : m_surface(juce_plutovg_surface_reference(bitmap.surface()))
+    , m_canvas(juce_plutovg_canvas_create(m_surface))
     , m_translation({1, 0, 0, 1, 0, 0})
     , m_x(0), m_y(0)
 {
 }
 
 Canvas::Canvas(int x, int y, int width, int height)
-    : m_surface(plutovg_surface_create(width, height))
-    , m_canvas(plutovg_canvas_create(m_surface))
+    : m_surface(juce_plutovg_surface_create(width, height))
+    , m_canvas(juce_plutovg_canvas_create(m_surface))
     , m_translation({1, 0, 0, 1, -static_cast<float>(x), -static_cast<float>(y)})
     , m_x(x), m_y(y)
 {
 }
 
 } // namespace lunasvg
+}

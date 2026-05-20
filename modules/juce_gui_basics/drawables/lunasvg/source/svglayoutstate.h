@@ -2,6 +2,7 @@
 #define LUNASVG_SVGLAYOUTSTATE_H
 
 #include "svgproperty.h"
+namespace {
 
 namespace lunasvg {
 
@@ -125,5 +126,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGLAYOUTSTATE_H

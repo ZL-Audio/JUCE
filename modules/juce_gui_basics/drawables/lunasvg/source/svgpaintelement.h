@@ -2,6 +2,7 @@
 #define LUNASVG_SVGPAINTELEMENT_H
 
 #include "svgelement.h"
+namespace {
 
 namespace lunasvg {
 
@@ -284,5 +285,6 @@ private:
 };
 
 } // namespace lunasvg
+}
 
 #endif // LUNASVG_SVGPAINTELEMENT_H

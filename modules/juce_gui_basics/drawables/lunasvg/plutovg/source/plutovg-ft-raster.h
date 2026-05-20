@@ -16,8 +16,8 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef PLUTOVG_FT_RASTER_H
-#define PLUTOVG_FT_RASTER_H
+#ifndef JUCE_PLUTOVG_FT_RASTER_H
+#define JUCE_PLUTOVG_FT_RASTER_H
 
 #include "plutovg-ft-types.h"
 
@@ -417,4 +417,4 @@ typedef struct  PVG_FT_Raster_Params_
 void
 PVG_FT_Raster_Render(const PVG_FT_Raster_Params *params);
 
-#endif // PLUTOVG_FT_RASTER_H
+#endif // JUCE_PLUTOVG_FT_RASTER_H
