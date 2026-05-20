@@ -25,7 +25,7 @@ static Color parseColor(std::string_view input, const SVGLayoutState* state, con
     auto color = parseColorValue(input, state);
     if(!color || !input.empty())
         color = defaultValue;
-    return color.value();
+    return *color;
 }
 
 static Color parseColorOrNone(std::string_view input, const SVGLayoutState* state, const Color& defaultValue)
