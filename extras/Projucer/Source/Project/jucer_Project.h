@@ -708,6 +708,7 @@ private:
 
     //==============================================================================
     void updateTitleDependencies();
+    void updateVersionDependencies();
     void updateCompanyNameDependencies();
     void updateProjectSettings();
     void updateWebsiteDependencies();

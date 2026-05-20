@@ -179,6 +179,11 @@ void Project::updateTitleDependencies()
     pluginARACompatibleArchiveIDsValue.setDefault (getDefaultARACompatibleArchiveIDs());
 }
 
+void Project::updateVersionDependencies()
+{
+    pluginARAArchiveIDValue.setDefault (getDefaultARADocumentArchiveID());
+}
+
 String Project::getDocumentTitle()
 {
     return getProjectNameString();
@@ -357,7 +362,7 @@ void Project::initialiseAudioPluginValues()
     pluginVST3CategoryValue.referTo          (projectRoot, Ids::pluginVST3Category,         getUndoManager(), getDefaultVST3Categories(), ",");
     pluginAAXCategoryValue.referTo           (projectRoot, Ids::pluginAAXCategory,          getUndoManager(), getDefaultAAXCategories(),  ",");
 
-    pluginEnableARA.referTo                  (projectRoot, Ids::enableARA,                  getUndoManager(),  shouldEnableARA(), ",");
+    pluginEnableARA.referTo                  (projectRoot, Ids::enableARA,                  getUndoManager(), shouldEnableARA(), ",");
     pluginARAAnalyzableContentValue.referTo  (projectRoot, Ids::pluginARAAnalyzableContent, getUndoManager(), getDefaultARAContentTypes(), ",");
     pluginARATransformFlagsValue.referTo     (projectRoot, Ids::pluginARATransformFlags,    getUndoManager(), getDefaultARATransformationFlags(), ",");
     pluginARACompatibleArchiveIDsValue.referTo (projectRoot, Ids::araCompatibleArchiveIDs,  getUndoManager(), getDefaultARACompatibleArchiveIDs());
@@ -1119,6 +1124,10 @@ void Project::valueTreePropertyChanged (ValueTree& tree, const Identifier& prope
         if (property == Ids::name)
         {
             updateTitleDependencies();
+        }
+        else if (property == Ids::version)
+        {
+            updateVersionDependencies();
         }
         else if (property == Ids::companyName)
         {
