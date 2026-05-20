@@ -70,6 +70,21 @@ FontOptions::FontOptions (const Typeface::Ptr& ptr)
 {
 }
 
+FontOptions FontOptions::withStyleFlags (int x) const
+{
+    if (typeface == nullptr)
+    {
+        auto copy = withMember (*this, &FontOptions::style, FontStyleHelpers::getStyleName (x));
+        copy.underlined = (x & Font::FontStyleFlags::underlined) != 0;
+        return copy;
+    }
+
+    // This field will be ignored if the typeface pointer is non-null.
+    // If you want to set a custom style, first set the typeface pointer to null.
+    jassertfalse;
+    return *this;
+}
+
 auto FontOptions::tie() const
 {
     return std::tuple (name,

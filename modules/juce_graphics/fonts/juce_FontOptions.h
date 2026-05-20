@@ -100,6 +100,14 @@ public:
         return *this;
     }
 
+    /** Returns a copy of these options with a new typeface style. The style can be a combination
+        of the Font::bold, Font::italic and Font::underlined, or just Font::plain for the normal
+        style.
+        If the options include a non-null Typeface::Ptr, this will be ignored.
+        Otherwise, a suitable typeface will be located based on the typeface name and style strings.
+    */
+    [[nodiscard]] FontOptions withStyleFlags (int x) const;
+
     /** Returns a copy of these options with a new typeface.
         If the typeface is non-null, it takes precedence over the name and style strings.
     */
