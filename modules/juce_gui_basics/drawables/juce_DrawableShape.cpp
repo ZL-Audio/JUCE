@@ -19,79 +19,61 @@
 namespace juce
 {
 
-DrawableShape::DrawableShape()
-    : strokeType (0.0f),
-      mainFill (Colours::black),
-      strokeFill (Colours::black)
-{
-}
-
-DrawableShape::DrawableShape (const DrawableShape& other)
-    : Drawable (other),
-      strokeType (other.strokeType),
-      dashLengths (other.dashLengths),
-      mainFill (other.mainFill),
-      strokeFill (other.strokeFill)
-{
-}
-
-DrawableShape::~DrawableShape()
-{
-}
-
-//==============================================================================
 void DrawableShape::setFill (const FillType& newFill)
 {
-    if (mainFill != newFill)
-    {
-        mainFill = newFill;
-        repaint();
-    }
+    if (std::exchange (mainFill, newFill) != newFill)
+        callListeners();
 }
 
-void DrawableShape::setStrokeFill (const FillType& newFill)
+void DrawableShape::setStrokeFill (const FillType& newStrokeFill)
 {
-    if (strokeFill != newFill)
-    {
-        strokeFill = newFill;
-        repaint();
-    }
+    if (std::exchange (strokeFill, newStrokeFill) != newStrokeFill)
+        strokeChanged();
 }
 
 void DrawableShape::setStrokeType (const PathStrokeType& newStrokeType)
 {
-    if (strokeType != newStrokeType)
-    {
-        strokeType = newStrokeType;
+    const auto newStrokeAttributes = strokeOptions.withWidth (newStrokeType.getStrokeThickness())
+                                                  .withLineJoin (newStrokeType.getJointStyle())
+                                                  .withLineCap (newStrokeType.getEndStyle())
+                                                  .withMiterLimit (newStrokeType.getMiterLimit());
+
+    if (std::exchange (strokeOptions, newStrokeAttributes) != newStrokeAttributes)
         strokeChanged();
-    }
 }
 
-void DrawableShape::setDashLengths (const Array<float>& newDashLengths)
+void DrawableShape::setDashLengths (Span<const float> newDashLengths)
 {
-    if (dashLengths != newDashLengths)
-    {
-        dashLengths = newDashLengths;
+    const auto newStrokeAttributes = strokeOptions.withDashArray (newDashLengths);
+
+    if (std::exchange (strokeOptions, newStrokeAttributes) != newStrokeAttributes)
         strokeChanged();
-    }
+}
+
+void DrawableShape::setDashOffset (float dashOffset)
+{
+    const auto newStrokeAttributes = strokeOptions.withDashOffset (dashOffset);
+
+    if (std::exchange (strokeOptions, newStrokeAttributes) != newStrokeAttributes)
+        strokeChanged();
 }
 
 void DrawableShape::setStrokeThickness (const float newThickness)
 {
-    setStrokeType (PathStrokeType (newThickness, strokeType.getJointStyle(), strokeType.getEndStyle()));
+    const auto newStrokeAttributes = strokeOptions.withWidth (newThickness);
+
+    if (std::exchange (strokeOptions, newStrokeAttributes) != newStrokeAttributes)
+        strokeChanged();
 }
 
 bool DrawableShape::isStrokeVisible() const noexcept
 {
-    return strokeType.getStrokeThickness() > 0.0f && ! strokeFill.isInvisible();
+    return strokeOptions.createStrokeType().getStrokeThickness() > 0.0f && ! strokeFill.isInvisible();
 }
 
 //==============================================================================
-void DrawableShape::paint (Graphics& g)
+void DrawableShape::paint (Graphics& g) const
 {
-    transformContextToCorrectOrigin (g);
-    applyDrawableClipPath (g);
-
     g.setFillType (mainFill);
     g.fillPath (path);
 
@@ -110,39 +92,43 @@ void DrawableShape::pathChanged()
 void DrawableShape::strokeChanged()
 {
     strokePath.clear();
-    const float extraAccuracy = 4.0f;
+    static constexpr float extraAccuracy = 4.0f;
 
-    if (dashLengths.isEmpty())
+    const auto strokeType = strokeOptions.createStrokeType();
+
+    if (strokeOptions.getDashArray().empty())
         strokeType.createStrokedPath (strokePath, path, AffineTransform(), extraAccuracy);
     else
-        strokeType.createDashedStroke (strokePath, path, dashLengths.getRawDataPointer(),
-                                       dashLengths.size(), AffineTransform(), extraAccuracy);
+        strokeType.createDashedStroke (strokePath,
+                                       path,
+                                       strokeOptions.getDashArray().data(),
+                                       (int) strokeOptions.getDashArray().size(),
+                                       AffineTransform(),
+                                       extraAccuracy,
+                                       strokeOptions.getDashOffset());
 
-    setBoundsToEnclose (getDrawableBounds());
-    repaint();
+    callListeners();
 }
 
 Rectangle<float> DrawableShape::getDrawableBounds() const
 {
     if (isStrokeVisible())
-        return strokePath.getBounds();
+        return strokePath.getBounds().transformedBy (getDrawableTransform());
 
-    return path.getBounds();
+    return path.getBounds().transformedBy (getDrawableTransform());
 }
 
-bool DrawableShape::hitTest (int x, int y)
+bool DrawableShape::hitTest (Point<float> p) const
 {
-    bool allowsClicksOnThisComponent, allowsClicksOnChildComponents;
-    getInterceptsMouseClicks (allowsClicksOnThisComponent, allowsClicksOnChildComponents);
+    const auto contains = [] (const Path& pathToCheck, Point<float> point, const AffineTransform& t)
+    {
+        auto transformed = pathToCheck;
+        transformed.applyTransform (t);
+        return transformed.contains (point);
+    };
 
-    if (! allowsClicksOnThisComponent)
-        return false;
-
-    auto globalX = (float) (x - originRelativeToComponent.x);
-    auto globalY = (float) (y - originRelativeToComponent.y);
-
-    return path.contains (globalX, globalY)
-            || (isStrokeVisible() && strokePath.contains (globalX, globalY));
+    return contains (path, p, getDrawableTransform())
+           || (isStrokeVisible() && contains (strokePath, p, getDrawableTransform()));
 }
 
 //==============================================================================

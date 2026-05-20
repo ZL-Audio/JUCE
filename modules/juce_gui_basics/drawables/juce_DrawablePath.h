@@ -34,11 +34,8 @@ class JUCE_API  DrawablePath  : public DrawableShape
 public:
     //==============================================================================
     /** Creates a DrawablePath. */
-    DrawablePath();
-    DrawablePath (const DrawablePath&);
-
-    /** Destructor. */
-    ~DrawablePath() override;
+    DrawablePath() = default;
+    DrawablePath (const DrawablePath&) = default;
 
     //==============================================================================
     /** Changes the path that will be drawn.
@@ -63,7 +60,6 @@ public:
 
 private:
     //==============================================================================
-    DrawablePath& operator= (const DrawablePath&);
     JUCE_LEAK_DETECTOR (DrawablePath)
 };
 

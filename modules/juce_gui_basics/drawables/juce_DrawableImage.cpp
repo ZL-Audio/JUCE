@@ -19,26 +19,17 @@
 namespace juce
 {
 
-DrawableImage::DrawableImage() : bounds ({ 0.0f, 0.0f, 1.0f, 1.0f })
-{
-}
-
-DrawableImage::DrawableImage (const DrawableImage& other)
-    : Drawable (other),
-      image (other.image),
-      opacity (other.opacity),
-      overlayColour (other.overlayColour),
-      bounds (other.bounds)
-{
-    setBounds (other.getBounds());
-}
-
 DrawableImage::DrawableImage (const Image& imageToUse)
 {
     setImageInternal (imageToUse);
 }
 
-DrawableImage::~DrawableImage()
+DrawableImage::DrawableImage (const Image& imageIn,
+                              Rectangle<int> destinationBoundsIn,
+                              Rectangle<int> sourceBoundsIn)
+    : image (imageIn),
+      destinationBounds (destinationBoundsIn),
+      sourceBounds (sourceBoundsIn)
 {
 }
 
@@ -51,7 +42,7 @@ std::unique_ptr<Drawable> DrawableImage::createCopy() const
 void DrawableImage::setImage (const Image& imageToUse)
 {
     if (setImageInternal (imageToUse))
-        repaint();
+        callListeners();
 }
 
 void DrawableImage::setOpacity (const float newOpacity)
@@ -77,53 +68,83 @@ void DrawableImage::setBoundingBox (Parallelogram<float> newBounds)
 
         if (image.isValid())
         {
-            auto tr = bounds.topLeft + (bounds.topRight   - bounds.topLeft) / (float) image.getWidth();
+            auto tr = bounds.topLeft + (bounds.topRight - bounds.topLeft) / (float) image.getWidth();
             auto bl = bounds.topLeft + (bounds.bottomLeft - bounds.topLeft) / (float) image.getHeight();
 
-            auto t = AffineTransform::fromTargetPoints (bounds.topLeft.x, bounds.topLeft.y,
-                                                        tr.x, tr.y,
-                                                        bl.x, bl.y);
+            auto t = AffineTransform::fromTargetPoints (
+                bounds.topLeft.x, bounds.topLeft.y, tr.x, tr.y, bl.x, bl.y);
 
             if (t.isSingularity())
                 t = {};
 
-            setTransform (t);
+            setDrawableTransform (t);
         }
     }
 }
 
 //==============================================================================
-void DrawableImage::paint (Graphics& g)
+void DrawableImage::paint (Graphics& g) const
 {
-    if (image.isValid())
-    {
-        if (opacity > 0.0f && ! overlayColour.isOpaque())
-        {
-            g.setOpacity (opacity);
-            g.drawImageAt (image, 0, 0, false);
-        }
+    const Graphics::ScopedSaveState ss (g);
 
-        if (! overlayColour.isTransparent())
-        {
-            g.setColour (overlayColour.withMultipliedAlpha (opacity));
-            g.drawImageAt (image, 0, 0, true);
-        }
+    if (! image.isValid())
+        return;
+
+    const auto dst = destinationBounds.isEmpty() ? image.getBounds() : destinationBounds;
+    const auto src = sourceBounds.isEmpty() ? image.getBounds() : sourceBounds;
+
+    if (opacity > 0.0f && ! overlayColour.isOpaque())
+    {
+        g.setOpacity (opacity);
+
+        g.drawImage (image,
+                     dst.getX(),
+                     dst.getY(),
+                     dst.getWidth(),
+                     dst.getHeight(),
+                     src.getX(),
+                     src.getY(),
+                     src.getWidth(),
+                     src.getHeight(),
+                     false);
+    }
+
+    if (! overlayColour.isTransparent())
+    {
+        g.setColour (overlayColour.withMultipliedAlpha (opacity));
+
+        g.drawImage (image,
+                     dst.getX(),
+                     dst.getY(),
+                     dst.getWidth(),
+                     dst.getHeight(),
+                     src.getX(),
+                     src.getY(),
+                     src.getWidth(),
+                     src.getHeight(),
+                     true);
     }
 }
 
 Rectangle<float> DrawableImage::getDrawableBounds() const
 {
-    return image.getBounds().toFloat();
+    return image.getBounds().toFloat().transformedBy (getDrawableTransform());
 }
 
-bool DrawableImage::hitTest (int x, int y)
+bool DrawableImage::hitTest (Point<float> p) const
 {
-    return Drawable::hitTest (x, y) && image.isValid() && image.getPixelAt (x, y).getAlpha() >= 127;
+    const auto pInt = p.roundToInt();
+    return image.isValid() && image.getPixelAt (pInt.x, pInt.y).getAlpha() >= 127;
 }
 
 Path DrawableImage::getOutlineAsPath() const
 {
     return {}; // not applicable for images
+}
+
+bool DrawableImage::isImage() const
+{
+    return true;
 }
 
 //==============================================================================
@@ -132,18 +153,11 @@ bool DrawableImage::setImageInternal (const Image& imageToUse)
     if (image != imageToUse)
     {
         image = imageToUse;
-        setBounds (image.getBounds());
         setBoundingBox (image.getBounds().toFloat());
         return true;
     }
 
     return false;
-}
-
-//==============================================================================
-std::unique_ptr<AccessibilityHandler> DrawableImage::createAccessibilityHandler()
-{
-    return std::make_unique<AccessibilityHandler> (*this, AccessibilityRole::image);
 }
 
 } // namespace juce

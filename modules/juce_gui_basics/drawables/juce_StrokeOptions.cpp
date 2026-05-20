@@ -19,24 +19,20 @@
 namespace juce
 {
 
-std::unique_ptr<Drawable> DrawablePath::createCopy() const
+bool StrokeOptions::operator== (const StrokeOptions& other) const noexcept
 {
-    return std::make_unique<DrawablePath> (*this);
-}
+    const auto tie = [] (auto& x)
+    {
+        return std::tie (x.colour,
+                         x.dashArray,
+                         x.dashOffset,
+                         x.lineCap,
+                         x.lineJoin,
+                         x.miterLimit,
+                         x.width);
+    };
 
-void DrawablePath::setPath (const Path& newPath)
-{
-    path = newPath;
-    pathChanged();
+    return tie (*this) == tie (other);
 }
-
-void DrawablePath::setPath (Path&& newPath)
-{
-    path = std::move (newPath);
-    pathChanged();
-}
-
-const Path& DrawablePath::getPath() const           { return path; }
-const Path& DrawablePath::getStrokePath() const     { return strokePath; }
 
 } // namespace juce

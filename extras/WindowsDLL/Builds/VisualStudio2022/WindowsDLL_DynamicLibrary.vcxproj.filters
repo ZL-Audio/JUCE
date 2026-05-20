@@ -3064,6 +3064,9 @@
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableText.cpp">
       <Filter>JUCE Modules\juce_gui_basics\drawables</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_StrokeOptions.cpp">
+      <Filter>JUCE Modules\juce_gui_basics\drawables</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_SVGParser.cpp">
       <Filter>JUCE Modules\juce_gui_basics\drawables</Filter>
     </ClCompile>
@@ -3209,6 +3212,9 @@
       <Filter>JUCE Modules\juce_gui_basics\menus</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\misc\juce_BubbleComponent.cpp">
+      <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DrawableComponent.cpp">
       <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DropShadower.cpp">
@@ -7203,6 +7209,9 @@
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_MouseInputSourceList.h">
       <Filter>JUCE Modules\juce_gui_basics\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_OwningDrawableComponent.h">
+      <Filter>JUCE Modules\juce_gui_basics\detail</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_PointerState.h">
       <Filter>JUCE Modules\juce_gui_basics\detail</Filter>
     </ClInclude>
@@ -7255,6 +7264,9 @@
       <Filter>JUCE Modules\juce_gui_basics\drawables</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableText.h">
+      <Filter>JUCE Modules\juce_gui_basics\drawables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_StrokeOptions.h">
       <Filter>JUCE Modules\juce_gui_basics\drawables</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\filebrowser\juce_ContentSharer.h">
@@ -7423,6 +7435,9 @@
       <Filter>JUCE Modules\juce_gui_basics\menus</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_BubbleComponent.h">
+      <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DrawableComponent.h">
       <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DropShadower.h">

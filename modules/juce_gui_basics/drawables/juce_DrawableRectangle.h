@@ -33,11 +33,7 @@ class JUCE_API  DrawableRectangle  : public DrawableShape
 {
 public:
     //==============================================================================
-    DrawableRectangle();
-    DrawableRectangle (const DrawableRectangle&);
-
-    /** Destructor. */
-    ~DrawableRectangle() override;
+    DrawableRectangle() = default;
 
     //==============================================================================
     /** Sets the rectangle's bounds. */
@@ -62,7 +58,6 @@ private:
 
     void rebuildPath();
 
-    DrawableRectangle& operator= (const DrawableRectangle&);
     JUCE_LEAK_DETECTOR (DrawableRectangle)
 };
 

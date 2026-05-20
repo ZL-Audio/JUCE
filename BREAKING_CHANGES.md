@@ -4,6 +4,53 @@
 
 ## Change
 
+The return types of `DrawableShape::getStrokeType()` and
+`DrawableShape::getDashLengths()` changed from `const PathStrokeType&` to
+`PathStrokeType`, and from `const Array<float>&` to `Span<const float>`
+respectively. The parameter type to 
+`DrawableShape::setDashLengths (const Array<float>&)` was changed to
+`Span<const float>`.
+
+**Possible Issues**
+
+Code that calls these functions may fail to compile.
+
+**Workaround**
+
+It should be easy to adjust the calling code to handle the new return and
+parameter types.
+
+**Rationale**
+
+The stroke options were extended and generalised to text rendering. The new
+types are a better fit for the adjusted design.
+
+
+## Change
+
+The `Drawable` class no longer inherits from `Component`.
+
+**Possible Issues**
+
+Code that depended on `Drawable` objects inheriting from `Component` will fail
+to compile.
+
+**Workaround**
+
+Affected code can use the new `DrawableComponent` class to wrap `Drawable`
+objects in a `Component` if necessary. There are many examples in the JUCE
+codebase where this transition has already been made.
+
+**Rationale**
+
+This change prepares the way for moving the `Drawable` classes together with the
+SVG parser into the juce_graphics module. This allows us to avoid a dependency
+on the heavyweight `Component` class and juce_gui_basics module, and enables
+using the `Drawable` classes and SVG parser in headless use-cases.
+
+
+## Change
+
 JUCE now uses EGL, rather than GLX, to create an OpenGL context on Linux.
 
 **Possible Issues**

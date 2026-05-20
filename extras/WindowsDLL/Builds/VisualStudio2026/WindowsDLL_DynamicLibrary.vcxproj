@@ -2417,6 +2417,9 @@
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableText.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_StrokeOptions.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_SVGParser.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2562,6 +2565,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\misc\juce_BubbleComponent.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DrawableComponent.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DropShadower.cpp">
@@ -4145,6 +4151,7 @@
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_LookAndFeelHelpers.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_MouseInputSourceImpl.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_MouseInputSourceList.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_OwningDrawableComponent.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_PointerState.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_ScalingHelpers.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_ScopedContentSharerImpl.h"/>
@@ -4163,6 +4170,7 @@
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableRectangle.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableShape.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableText.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_StrokeOptions.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\filebrowser\juce_ContentSharer.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\filebrowser\juce_DirectoryContentsDisplayComponent.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\filebrowser\juce_DirectoryContentsList.h"/>
@@ -4219,6 +4227,7 @@
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\menus\juce_MenuBarModel.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\menus\juce_PopupMenu.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_BubbleComponent.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DrawableComponent.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_DropShadower.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_FocusOutline.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\mouse\juce_ComponentDragger.h"/>

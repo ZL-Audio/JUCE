@@ -19,25 +19,16 @@
 namespace juce
 {
 
-DrawableComposite::DrawableComposite()
-    : bounds ({ 0.0f, 0.0f, 100.0f, 100.0f })
-{
-    setContentArea ({ 0.0f, 0.0f, 100.0f, 100.0f });
-}
-
 DrawableComposite::DrawableComposite (const DrawableComposite& other)
     : Drawable (other),
+      contentArea (other.contentArea),
       bounds (other.bounds),
-      contentArea (other.contentArea)
+      blendMode (other.blendMode),
+      luminanceMask (other.luminanceMask),
+      opacity (other.opacity)
 {
-    for (auto* c : other.getChildren())
-        if (auto* d = dynamic_cast<const Drawable*> (c))
-            addAndMakeVisible (d->createCopy().release());
-}
-
-DrawableComposite::~DrawableComposite()
-{
-    deleteAllChildren();
+    for (const auto& child : other.children)
+        children.push_back (child->createCopy());
 }
 
 std::unique_ptr<Drawable> DrawableComposite::createCopy() const
@@ -50,12 +41,10 @@ Rectangle<float> DrawableComposite::getDrawableBounds() const
 {
     Rectangle<float> r;
 
-    for (auto* c : getChildren())
-        if (auto* d = dynamic_cast<const Drawable*> (c))
-            r = r.getUnion (d->isTransformed() ? d->getDrawableBounds().transformedBy (d->getTransform())
-                                               : d->getDrawableBounds());
+    for (const auto& child : children)
+        r = r.getUnion (child->getDrawableBounds());
 
-    return r;
+    return r.transformedBy (getDrawableTransform());
 }
 
 void DrawableComposite::setContentArea (Rectangle<float> newArea)
@@ -74,14 +63,17 @@ void DrawableComposite::setBoundingBox (Parallelogram<float> newBounds)
     {
         bounds = newBounds;
 
-        auto t = AffineTransform::fromTargetPoints (contentArea.getTopLeft(),     bounds.topLeft,
-                                                    contentArea.getTopRight(),    bounds.topRight,
-                                                    contentArea.getBottomLeft(),  bounds.bottomLeft);
+        auto t = AffineTransform::fromTargetPoints (contentArea.getTopLeft(),
+                                                    bounds.topLeft,
+                                                    contentArea.getTopRight(),
+                                                    bounds.topRight,
+                                                    contentArea.getBottomLeft(),
+                                                    bounds.bottomLeft);
 
         if (t.isSingularity())
             t = {};
 
-        setTransform (t);
+        setDrawableTransform (t);
     }
 }
 
@@ -96,49 +88,32 @@ void DrawableComposite::resetContentAreaAndBoundingBoxToFitChildren()
     resetBoundingBoxToContentArea();
 }
 
-void DrawableComposite::parentHierarchyChanged()
+void DrawableComposite::addChild (std::unique_ptr<Drawable> newChild)
 {
-    if (auto* parent = getParent())
-        originRelativeToComponent = parent->originRelativeToComponent - getPosition();
-}
-
-void DrawableComposite::childBoundsChanged (Component*)
-{
-    updateBoundsToFitChildren();
-}
-
-void DrawableComposite::childrenChanged()
-{
-    updateBoundsToFitChildren();
-}
-
-void DrawableComposite::updateBoundsToFitChildren()
-{
-    if (! updateBoundsReentrant)
+    if (newChild == nullptr)
     {
-        const ScopedValueSetter<bool> setter (updateBoundsReentrant, true, false);
-
-        Rectangle<int> childArea;
-
-        for (auto* c : getChildren())
-            childArea = childArea.getUnion (c->getBoundsInParent());
-
-        auto delta = childArea.getPosition();
-        childArea += getPosition();
-
-        if (childArea != getBounds())
-        {
-            if (! delta.isOrigin())
-            {
-                originRelativeToComponent -= delta;
-
-                for (auto* c : getChildren())
-                    c->setBounds (c->getBounds() - delta);
-            }
-
-            setBounds (childArea);
-        }
+        jassertfalse;
+        return;
     }
+
+    children.emplace_back (std::move (newChild));
+    callListeners();
+}
+
+bool DrawableComposite::replaceColour (Colour originalColour, Colour replacementColour)
+{
+    return std::any_of (children.begin(), children.end(), [&] (const auto& child)
+    {
+        return child->replaceColour (originalColour, replacementColour);
+    });
+}
+
+bool DrawableComposite::hitTest (Point<float> p) const
+{
+    return std::any_of (children.begin(), children.end(), [&] (const auto& child)
+    {
+        return child->hitTest (p);
+    });
 }
 
 //==============================================================================
@@ -146,12 +121,46 @@ Path DrawableComposite::getOutlineAsPath() const
 {
     Path p;
 
-    for (auto* c : getChildren())
-        if (auto* d = dynamic_cast<Drawable*> (c))
-            p.addPath (d->getOutlineAsPath());
+    for (auto& c : children)
+        p.addPath (c->getOutlineAsPath());
 
-    p.applyTransform (getTransform());
+    p.applyTransform (getDrawableTransform());
     return p;
+}
+
+void DrawableComposite::paint (Graphics& g) const
+{
+    const Graphics::ScopedSaveState ss (g);
+
+    if (! requiresBlendBuffer())
+    {
+        for (const auto& child : children)
+            child->draw (g, opacity);
+
+        return;
+    }
+
+    ScopedBlendContext blend { g,
+                               ScopedBlendContext::Options { blendMode }
+                                    .withLuminanceMaskSet (luminanceMask)
+                                    .withScopeClip (getDrawableBounds().getSmallestIntegerContainer()) };
+
+    if (blend.isClipEmpty())
+        return;
+
+    for (const auto& child : children)
+        child->draw (blend.getContext(), opacity);
+}
+
+bool DrawableComposite::requiresBlendBuffer() const
+{
+    if (blendMode != BlendMode::sourceOver || luminanceMask)
+        return true;
+
+    return std::any_of (children.begin(), children.end(), [] (const auto& child)
+    {
+        return child->requiresBlendBuffer();
+    });
 }
 
 } // namespace juce

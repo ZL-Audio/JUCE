@@ -32,11 +32,7 @@ class JUCE_API  DrawableText  : public Drawable
 public:
     //==============================================================================
     /** Creates a DrawableText object. */
-    DrawableText();
-    DrawableText (const DrawableText&);
-
-    /** Destructor. */
-    ~DrawableText() override;
+    DrawableText() = default;
 
     //==============================================================================
     /** Sets the text to display.*/
@@ -55,8 +51,27 @@ public:
     /** Sets the colour of the text. */
     void setColour (Colour newColour);
 
+    /** Sets a fill type for the text. */
+    void setFill (const FillType& newFill);
+
     /** Returns the current text colour. */
     Colour getColour() const noexcept                                   { return colour; }
+
+    /** Changes the properties of the outline that will be drawn around the text.
+
+        By default the text has no stroke. Specifying any StrokeOptions with a width
+        of 0.0f will be similarly not drawn.
+
+        @see setStrokeThickness, setStrokeColour
+    */
+    void setStrokeOptions (const StrokeOptions& newStrokeOptions);
+
+    /** Returns the currently specified stroke attributes. A stroke with a width of 0.0f
+        is considered invisible, and will not be drawn.
+
+        @see setFill
+    */
+    const StrokeOptions& getStrokeOptions()                             { return strokeOptions; }
 
     /** Sets the font to use.
         Note that the font height and horizontal scale are set using setFontHeight() and
@@ -81,6 +96,8 @@ public:
     /** Sets the bounding box that contains the text. */
     void setBoundingBox (Parallelogram<float> newBounds);
 
+    bool hitTest (Point<float> p) const override;
+
     float getFontHeight() const noexcept                                { return fontHeight; }
     void setFontHeight (float newHeight);
 
@@ -88,8 +105,6 @@ public:
     void setFontHorizontalScale (float newScale);
 
     //==============================================================================
-    /** @internal */
-    void paint (Graphics&) override;
     /** @internal */
     std::unique_ptr<Drawable> createCopy() const override;
     /** @internal */
@@ -99,23 +114,36 @@ public:
     /** @internal */
     bool replaceColour (Colour originalColour, Colour replacementColour) override;
     /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
+    std::optional<String> getContainedText() const override;
 
 private:
+    template <typename Object, typename Member, typename Other>
+    void setMember (Member Object::* member, const Other& value);
+
+    Rectangle<float> getBoundingRectangle() const;
+
+    void update();
+
+    void paint (Graphics& g) const override;
+    AffineTransform getTransform() const override;
+
     //==============================================================================
-    Parallelogram<float> bounds;
-    float fontHeight{}, fontHScale{};
-    Font font { withDefaultMetrics (FontOptions{}) }, scaledFont { withDefaultMetrics (FontOptions{}) };
+    Parallelogram<float> bounds { { 0.0f, 0.0f, 50.0f, 20.0f } };
+    Font font { FontOptions (15.0f) };
+    Font scaledFont { FontOptions{} };
+    float fontHeight = font.getHeight();
+    float fontHScale = font.getHorizontalScale();
     String text;
     bool preserveWhitespace = false;
-    Colour colour;
-    Justification justification;
+    Colour colour { Colours::black };
+    FillType fill;
+    Justification justification { Justification::centredLeft };
+    StrokeOptions strokeOptions = StrokeOptions{}.withWidth (0.0f);
+    Path strokePath;
 
-    void refreshBounds();
-    Rectangle<int> getTextArea (float width, float height) const;
-    AffineTransform getTextTransform (float width, float height) const;
+    Rectangle<float> getTextArea() const;
+    AffineTransform getTextTransform() const;
 
-    DrawableText& operator= (const DrawableText&);
     JUCE_LEAK_DETECTOR (DrawableText)
 };
 

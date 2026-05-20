@@ -31,14 +31,18 @@ class JUCE_API  DrawableImage  : public Drawable
 {
 public:
     //==============================================================================
-    DrawableImage();
-    DrawableImage (const DrawableImage&);
+    DrawableImage() = default;
+    DrawableImage (const DrawableImage&) = default;
 
     /** Sets the image that this drawable will render. */
     explicit DrawableImage (const Image& imageToUse);
 
-    /** Destructor. */
-    ~DrawableImage() override;
+    /** Sets the image that this drawable will render. Only the part specified by sourceBounds will
+        be drawn in the area specified by destinationBounds.
+    */
+    DrawableImage (const Image& image,
+                   Rectangle<int> destinationBounds,
+                   Rectangle<int> sourceBounds);
 
     //==============================================================================
     /** Sets the image that this drawable will render. */
@@ -81,9 +85,7 @@ public:
 
     //==============================================================================
     /** @internal */
-    void paint (Graphics&) override;
-    /** @internal */
-    bool hitTest (int x, int y) override;
+    bool hitTest (Point<float>) const override;
     /** @internal */
     std::unique_ptr<Drawable> createCopy() const override;
     /** @internal */
@@ -91,19 +93,22 @@ public:
     /** @internal */
     Path getOutlineAsPath() const override;
     /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
+    bool isImage() const override;
 
 private:
+    void paint (Graphics& g) const override;
+
     //==============================================================================
     bool setImageInternal (const Image&);
 
     //==============================================================================
     Image image;
+    Rectangle<int> destinationBounds;
+    Rectangle<int> sourceBounds;
     float opacity = 1.0f;
     Colour overlayColour { 0 };
-    Parallelogram<float> bounds;
+    Parallelogram<float> bounds { { 0.0f, 0.0f, 1.0f, 1.0f } };
 
-    DrawableImage& operator= (const DrawableImage&);
     JUCE_LEAK_DETECTOR (DrawableImage)
 };
 

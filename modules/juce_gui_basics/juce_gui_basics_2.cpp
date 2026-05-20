@@ -43,6 +43,7 @@
 #include "positioning/juce_RelativePointPath.cpp"
 #include "positioning/juce_RelativeRectangle.cpp"
 
+#include "drawables/juce_StrokeOptions.cpp"
 #include "drawables/juce_Drawable.cpp"
 #include "drawables/juce_DrawableComposite.cpp"
 #include "drawables/juce_DrawableImage.cpp"

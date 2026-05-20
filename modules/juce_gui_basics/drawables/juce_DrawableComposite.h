@@ -37,13 +37,10 @@ class JUCE_API  DrawableComposite  : public Drawable
 public:
     //==============================================================================
     /** Creates a composite Drawable. */
-    DrawableComposite();
+    DrawableComposite() = default;
 
     /** Creates a copy of a DrawableComposite. */
     DrawableComposite (const DrawableComposite&);
-
-    /** Destructor. */
-    ~DrawableComposite() override;
 
     //==============================================================================
     /** Sets the parallelogram that defines the target position of the content rectangle when the drawable is rendered.
@@ -81,29 +78,83 @@ public:
     */
     void resetContentAreaAndBoundingBoxToFitChildren();
 
+    bool replaceColour (Colour originalColour, Colour replacementColour) override;
+
+    bool hitTest (Point<float> p) const override;
+
+    /** Adds a child Drawable to this one. */
+    void addChild (std::unique_ptr<Drawable> newChild);
+
+    /** Returns the number of child Drawables that this composite contains.
+    */
+    int getNumChildren() const
+    {
+        return static_cast<int> (children.size());
+    }
+
+    Drawable& getChild (int index)
+    {
+        jassert (isPositiveAndBelow (index, children.size()));
+        return *children[(size_t) index];
+    }
+
+    /** Returns a child Drawable by its index.
+    */
+    const Drawable& getChild (int index) const
+    {
+        jassert (isPositiveAndBelow (index, children.size()));
+        return *children[(size_t) index];
+    }
+
+    void addChildComponent (Drawable* newChild)
+    {
+        addChild (rawToUniquePtr (newChild));
+    }
+
+    void addAndMakeVisible (Drawable* newChild)
+    {
+        if (newChild == nullptr)
+            return;
+
+        addChild (rawToUniquePtr (newChild));
+    }
+
+    void setBlendMode (BlendMode newBlendMode)
+    {
+        blendMode = newBlendMode;
+    }
+
+    void setLuminanceMask (bool isMask)
+    {
+        luminanceMask = isMask;
+    }
+
+    void setOpacity (float newOpacity)
+    {
+        opacity = newOpacity;
+    }
+
     //==============================================================================
     /** @internal */
     std::unique_ptr<Drawable> createCopy() const override;
     /** @internal */
     Rectangle<float> getDrawableBounds() const override;
     /** @internal */
-    void childBoundsChanged (Component*) override;
-    /** @internal */
-    void childrenChanged() override;
-    /** @internal */
-    void parentHierarchyChanged() override;
-    /** @internal */
     Path getOutlineAsPath() const override;
 
 private:
+    void paint (Graphics& g) const override;
+
+    bool requiresBlendBuffer() const override;
+
     //==============================================================================
-    Parallelogram<float> bounds;
-    Rectangle<float> contentArea;
-    bool updateBoundsReentrant = false;
+    std::vector<std::unique_ptr<Drawable>> children;
+    Rectangle<float> contentArea { 0.0f, 0.0f, 100.0f, 100.0f };
+    Parallelogram<float> bounds { contentArea };
+    BlendMode blendMode;
+    bool luminanceMask = false;
+    float opacity = 1.0f;
 
-    void updateBoundsToFitChildren();
-
-    DrawableComposite& operator= (const DrawableComposite&);
     JUCE_LEAK_DETECTOR (DrawableComposite)
 };
 

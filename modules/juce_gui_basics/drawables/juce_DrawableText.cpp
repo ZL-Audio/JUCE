@@ -19,31 +19,6 @@
 namespace juce
 {
 
-DrawableText::DrawableText()
-    : colour (Colours::black),
-      justification (Justification::centredLeft)
-{
-    setBoundingBox (Parallelogram<float> ({ 0.0f, 0.0f, 50.0f, 20.0f }));
-    setFont (withDefaultMetrics (FontOptions (15.0f)), true);
-}
-
-DrawableText::DrawableText (const DrawableText& other)
-    : Drawable (other),
-      bounds (other.bounds),
-      fontHeight (other.fontHeight),
-      fontHScale (other.fontHScale),
-      font (other.font),
-      text (other.text),
-      colour (other.colour),
-      justification (other.justification)
-{
-    refreshBounds();
-}
-
-DrawableText::~DrawableText()
-{
-}
-
 std::unique_ptr<Drawable> DrawableText::createCopy() const
 {
     return std::make_unique<DrawableText> (*this);
@@ -52,26 +27,28 @@ std::unique_ptr<Drawable> DrawableText::createCopy() const
 //==============================================================================
 void DrawableText::setText (const String& newText)
 {
-    if (text != newText)
-    {
-        text = newText;
-        refreshBounds();
-    }
+    setMember (&DrawableText::text, newText);
 }
 
 void DrawableText::setPreserveWhitespace (bool shouldPreserveWhitespace)
 {
-    if (std::exchange (preserveWhitespace, shouldPreserveWhitespace) != shouldPreserveWhitespace)
-        refreshBounds();
+    setMember (&DrawableText::preserveWhitespace, shouldPreserveWhitespace);
 }
 
 void DrawableText::setColour (Colour newColour)
 {
-    if (colour != newColour)
-    {
-        colour = newColour;
-        repaint();
-    }
+    setFill (FillType { newColour });
+}
+
+void DrawableText::setFill (const FillType& newFill)
+{
+    setMember (&DrawableText::fill, newFill);
+}
+
+void DrawableText::setStrokeOptions (const StrokeOptions& newStrokeOptions)
+{
+    if (std::exchange (strokeOptions, newStrokeOptions) != newStrokeOptions)
+        update();
 }
 
 void DrawableText::setFont (const Font& newFont, bool applySizeAndScale)
@@ -86,23 +63,27 @@ void DrawableText::setFont (const Font& newFont, bool applySizeAndScale)
             fontHScale = font.getHorizontalScale();
         }
 
-        refreshBounds();
+        update();
     }
 }
 
 void DrawableText::setJustification (Justification newJustification)
 {
-    justification = newJustification;
-    repaint();
+    setMember (&DrawableText::justification, newJustification);
 }
 
 void DrawableText::setBoundingBox (Parallelogram<float> newBounds)
 {
-    if (bounds != newBounds)
-    {
-        bounds = newBounds;
-        refreshBounds();
-    }
+    setMember (&DrawableText::bounds, newBounds);
+}
+
+bool DrawableText::hitTest (Point<float> p) const
+{
+    const auto t = getDrawableTransform();
+    Path path;
+    path.addRectangle (bounds.getBoundingBox());
+    path.applyTransform (t);
+    return path.contains (p);
 }
 
 void DrawableText::setFontHeight (float newHeight)
@@ -110,7 +91,7 @@ void DrawableText::setFontHeight (float newHeight)
     if (! approximatelyEqual (fontHeight, newHeight))
     {
         fontHeight = newHeight;
-        refreshBounds();
+        update();
     }
 }
 
@@ -119,11 +100,11 @@ void DrawableText::setFontHorizontalScale (float newScale)
     if (! approximatelyEqual (fontHScale, newScale))
     {
         fontHScale = newScale;
-        refreshBounds();
+        update();
     }
 }
 
-void DrawableText::refreshBounds()
+void DrawableText::update()
 {
     auto w = bounds.getWidth();
     auto h = bounds.getHeight();
@@ -135,51 +116,85 @@ void DrawableText::refreshBounds()
     scaledFont.setHeight (height);
     scaledFont.setHorizontalScale (hscale);
 
-    setBoundsToEnclose (getDrawableBounds());
-    repaint();
+    if (strokeOptions.getWidth() > 0.0f)
+    {
+        const auto strokeType = strokeOptions.createStrokeType();
+        const auto path = getOutlineAsPath();
+        static constexpr float extraAccuracy = 4.0f;
+
+        if (strokeOptions.getDashArray().empty())
+        {
+            strokeType.createStrokedPath (strokePath, path, getTransform().inverted(), extraAccuracy);
+        }
+        else
+        {
+            strokeType.createDashedStroke (strokePath,
+                                           path,
+                                           strokeOptions.getDashArray().data(),
+                                           (int) strokeOptions.getDashArray().size(),
+                                           getTransform().inverted(),
+                                           extraAccuracy,
+                                           strokeOptions.getDashOffset());
+        }
+    }
+
+    callListeners();
 }
 
 //==============================================================================
-Rectangle<int> DrawableText::getTextArea (float w, float h) const
+Rectangle<float> DrawableText::getTextArea() const
 {
-    return Rectangle<float> (w, h).getSmallestIntegerContainer();
+    return { bounds.getWidth(), bounds.getHeight() };
 }
 
-AffineTransform DrawableText::getTextTransform (float w, float h) const
+AffineTransform DrawableText::getTextTransform() const
 {
-    return AffineTransform::fromTargetPoints (Point<float>(),       bounds.topLeft,
-                                              Point<float> (w, 0),  bounds.topRight,
-                                              Point<float> (0, h),  bounds.bottomLeft);
+    const auto transformBounds = bounds - bounds.getTopLeft();
+
+    return AffineTransform::fromTargetPoints (Point<float>(),       transformBounds.topLeft,
+                                              Point<float> (bounds.getWidth(), 0),  transformBounds.topRight,
+                                              Point<float> (0, bounds.getHeight()),  transformBounds.bottomLeft);
 }
 
-void DrawableText::paint (Graphics& g)
+void DrawableText::paint (Graphics& g) const
 {
-    transformContextToCorrectOrigin (g);
+    const Graphics::ScopedSaveState ss (g);
 
-    auto w = bounds.getWidth();
-    auto h = bounds.getHeight();
-
-    g.addTransform (getTextTransform (w, h));
     g.setFont (scaledFont);
-    g.setColour (colour);
+    g.setFillType (fill);
 
     if (preserveWhitespace)
-        g.drawText (text, getTextArea (w, h), justification, false);
+    {
+        g.drawText (text, getBoundingRectangle(), justification, false);
+    }
     else
-        g.drawFittedText (text, getTextArea (w, h), justification, 0x100000);
+    {
+        g.drawFittedText (text,
+                          getBoundingRectangle().toNearestInt(),
+                          justification,
+                          0x100000);
+    }
 
+    if (strokeOptions.getWidth() > 0.0f)
+    {
+        g.setColour (strokeOptions.getColour());
+        g.fillPath (strokePath);
+    }
+}
+
+AffineTransform DrawableText::getTransform() const
+{
+    return getTextTransform().followedBy (getDrawableTransform());
 }
 
 Rectangle<float> DrawableText::getDrawableBounds() const
 {
-    return bounds.getBoundingBox();
+    return bounds.getBoundingBox().transformedBy (getDrawableTransform());
 }
 
 Path DrawableText::getOutlineAsPath() const
 {
-    auto w = bounds.getWidth();
-    auto h = bounds.getHeight();
-    auto area = getTextArea (w, h).toFloat();
+    auto area = getBoundingRectangle();
 
     GlyphArrangement arr;
 
@@ -213,7 +228,7 @@ Path DrawableText::getOutlineAsPath() const
         pathOfAllGlyphs.addPath (gylphPath);
     }
 
-    pathOfAllGlyphs.applyTransform (getTextTransform (w, h).followedBy (drawableTransform));
+    pathOfAllGlyphs.applyTransform (getTransform());
 
     return pathOfAllGlyphs;
 }
@@ -227,25 +242,27 @@ bool DrawableText::replaceColour (Colour originalColour, Colour replacementColou
     return true;
 }
 
-//==============================================================================
-std::unique_ptr<AccessibilityHandler> DrawableText::createAccessibilityHandler()
+std::optional<String> DrawableText::getContainedText() const
 {
-    class DrawableTextAccessibilityHandler final : public AccessibilityHandler
-    {
-    public:
-        DrawableTextAccessibilityHandler (DrawableText& drawableTextToWrap)
-            : AccessibilityHandler (drawableTextToWrap, AccessibilityRole::staticText),
-              drawableText (drawableTextToWrap)
-        {
-        }
+    return getText();
+}
 
-        String getTitle() const override  { return drawableText.getText(); }
+template <typename Object, typename Member, typename Other>
+void DrawableText::setMember (Member Object::* member, const Other& value)
+{
+    if (std::exchange (this->*member, value) != value)
+        update();
+}
 
-    private:
-        DrawableText& drawableText;
-    };
+Rectangle<float> DrawableText::getBoundingRectangle() const
+{
+    const auto boundingRectangle = bounds.getBoundingBox();
 
-    return std::make_unique<DrawableTextAccessibilityHandler> (*this);
+    if (preserveWhitespace)
+        return boundingRectangle;
+
+    // Supporting legacy behaviour
+    return boundingRectangle.getSmallestIntegerContainer().toFloat();
 }
 
 } // namespace juce

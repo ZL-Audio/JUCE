@@ -446,10 +446,6 @@ private:
     {
         auto compID = xml->getStringAttribute ("id");
         d.setName (compID);
-        d.setComponentID (compID);
-
-        if (isNone (xml->getStringAttribute ("display")))
-            d.setVisible (false);
     }
 
     //==============================================================================
@@ -462,9 +458,6 @@ private:
             if (auto* drawable = parseSubElement (child))
             {
                 parentDrawable.addChildComponent (drawable);
-
-                if (! isNone (getStyleAttribute (child, "display")))
-                    drawable->setVisible (true);
 
                 if (shouldParseClip)
                     parseClipPath (child, *drawable);
@@ -776,7 +769,7 @@ private:
                 }
             }
 
-            dp.setDashLengths (dashLengths);
+            dp.setDashLengths (Span<const float> (dashLengths.data(), (size_t) dashLengths.size()));
         }
     }
 
@@ -806,7 +799,7 @@ private:
 
             parseSubElements (xmlPath, *drawableClipPath, false);
 
-            if (drawableClipPath->getNumChildComponents() > 0)
+            if (drawableClipPath->getNumChildren() > 0)
             {
                 setCommonAttributes (*drawableClipPath, xmlPath);
                 target.setClipPath (std::move (drawableClipPath));
@@ -1357,12 +1350,15 @@ private:
                 di->setImage (image.rescaled ((int) imageBounds.getWidth(),
                                               (int) imageBounds.getHeight()));
 
-                di->setTransformToFit (imageBounds, RectanglePlacement (parsePlacementFlags (xml->getStringAttribute ("preserveAspectRatio").trim())));
+                const auto placement = RectanglePlacement (parsePlacementFlags (xml->getStringAttribute ("preserveAspectRatio").trim()));
+
+                auto drawableTransform = placement.getTransformToFit (di->getDrawableBounds(), imageBounds)
+                                                  .followedBy (transform);
 
                 if (additionalTransform != nullptr)
-                    di->setTransform (di->getTransform().followedBy (transform).followedBy (*additionalTransform));
-                else
-                    di->setTransform (di->getTransform().followedBy (transform));
+                    drawableTransform = drawableTransform.followedBy (*additionalTransform);
+
+                di->setDrawableTransform (drawableTransform);
 
                 return di;
             }

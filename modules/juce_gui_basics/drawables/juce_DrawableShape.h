@@ -32,13 +32,10 @@ class JUCE_API  DrawableShape   : public Drawable
 {
 protected:
     //==============================================================================
-    DrawableShape();
-    DrawableShape (const DrawableShape&);
+    DrawableShape() = default;
+    DrawableShape (const DrawableShape&) = default;
 
 public:
-    /** Destructor. */
-    ~DrawableShape() override;
-
     //==============================================================================
     /** Sets a fill type for the path.
         This colour is used to fill the path - if you don't want the path to be
@@ -52,7 +49,7 @@ public:
     /** Returns the current fill type.
         @see setFill
     */
-    const FillType& getFill() const noexcept                        { return mainFill; }
+    const FillType& getFill() const noexcept                { return mainFill; }
 
     /** Sets the fill type with which the outline will be drawn.
         @see setFill
@@ -62,7 +59,7 @@ public:
     /** Returns the current stroke fill.
         @see setStrokeFill
     */
-    const FillType& getStrokeFill() const noexcept                  { return strokeFill; }
+    const FillType& getStrokeFill() const noexcept          { return strokeFill; }
 
     /** Changes the properties of the outline that will be drawn around the path.
         If the stroke has 0 thickness, no stroke will be drawn.
@@ -76,21 +73,23 @@ public:
     void setStrokeThickness (float newThickness);
 
     /** Returns the current outline style. */
-    const PathStrokeType& getStrokeType() const noexcept            { return strokeType; }
+    PathStrokeType getStrokeType() const noexcept           { return strokeOptions.createStrokeType(); }
 
     /** Provides a set of dash lengths to use for stroking the path. */
-    void setDashLengths (const Array<float>& newDashLengths);
+    void setDashLengths (Span<const float> newDashLengths);
+
+    /** Provides an offset on the rendering of the associated dash array. */
+    void setDashOffset (float dashOffset);
 
     /** Returns the set of dash lengths that the path is using. */
-    const Array<float>& getDashLengths() const noexcept             { return dashLengths; }
+    Span<const float> getDashLengths() const&               { return strokeOptions.getDashArray(); }
+    Span<const float> getDashLengths() const&& = delete;
 
     //==============================================================================
     /** @internal */
     Rectangle<float> getDrawableBounds() const override;
     /** @internal */
-    void paint (Graphics&) override;
-    /** @internal */
-    bool hitTest (int x, int y) override;
+    bool hitTest (Point<float>) const override;
     /** @internal */
     bool replaceColour (Colour originalColour, Colour replacementColour) override;
     /** @internal */
@@ -106,14 +105,13 @@ protected:
     bool isStrokeVisible() const noexcept;
 
     //==============================================================================
-    PathStrokeType strokeType;
-    Array<float> dashLengths;
+    StrokeOptions strokeOptions = StrokeOptions{}.withWidth (0.0f);
     Path path, strokePath;
 
 private:
-    FillType mainFill, strokeFill;
+    void paint (Graphics& g) const override;
 
-    DrawableShape& operator= (const DrawableShape&);
+    FillType mainFill, strokeFill;
 };
 
 } // namespace juce

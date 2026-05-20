@@ -19,17 +19,6 @@
 namespace juce
 {
 
-DrawableRectangle::DrawableRectangle() {}
-DrawableRectangle::~DrawableRectangle() {}
-
-DrawableRectangle::DrawableRectangle (const DrawableRectangle& other)
-    : DrawableShape (other),
-      bounds (other.bounds),
-      cornerSize (other.cornerSize)
-{
-    rebuildPath();
-}
-
 std::unique_ptr<Drawable> DrawableRectangle::createCopy() const
 {
     return std::make_unique<DrawableRectangle> (*this);
@@ -38,20 +27,14 @@ std::unique_ptr<Drawable> DrawableRectangle::createCopy() const
 //==============================================================================
 void DrawableRectangle::setRectangle (Parallelogram<float> newBounds)
 {
-    if (bounds != newBounds)
-    {
-        bounds = newBounds;
+    if (std::exchange (bounds, newBounds) != newBounds)
         rebuildPath();
-    }
 }
 
 void DrawableRectangle::setCornerSize (Point<float> newSize)
 {
-    if (cornerSize != newSize)
-    {
-        cornerSize = newSize;
+    if (std::exchange (cornerSize, newSize) != newSize)
         rebuildPath();
-    }
 }
 
 void DrawableRectangle::rebuildPath()
@@ -66,9 +49,12 @@ void DrawableRectangle::rebuildPath()
     else
         newPath.addRectangle (0, 0, w, h);
 
-    newPath.applyTransform (AffineTransform::fromTargetPoints (Point<float>(),       bounds.topLeft,
-                                                               Point<float> (w, 0),  bounds.topRight,
-                                                               Point<float> (0, h),  bounds.bottomLeft));
+    newPath.applyTransform (AffineTransform::fromTargetPoints (Point<float>(),
+                                                               bounds.topLeft,
+                                                               Point<float> (w, 0),
+                                                               bounds.topRight,
+                                                               Point<float> (0, h),
+                                                               bounds.bottomLeft));
 
     if (path != newPath)
     {

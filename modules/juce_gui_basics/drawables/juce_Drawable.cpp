@@ -19,56 +19,31 @@
 namespace juce
 {
 
-Drawable::Drawable()
-{
-    setInterceptsMouseClicks (false, false);
-    setPaintingIsUnclipped (true);
-    setAccessible (false);
-}
-
 Drawable::Drawable (const Drawable& other)
-    : Component (other.getName())
-{
-    setInterceptsMouseClicks (false, false);
-    setPaintingIsUnclipped (true);
-    setAccessible (false);
-
-    setComponentID (other.getComponentID());
-    setTransform (other.getTransform());
-
-    if (auto* clipPath = other.drawableClipPath.get())
-        setClipPath (clipPath->createCopy());
-}
-
-Drawable::~Drawable()
+    : transform (other.transform),
+      clipPath (other.clipPath != nullptr ? other.clipPath->createCopy() : nullptr),
+      name (other.name),
+      visible (other.visible)
 {
 }
 
-void Drawable::applyDrawableClipPath (Graphics& g)
+void Drawable::applyDrawableClipPath (Graphics& g) const
 {
-    if (drawableClipPath != nullptr)
+    if (auto* drawable = clipPath.get())
     {
-        auto clipPath = drawableClipPath->getOutlineAsPath();
+        auto path = drawable->getOutlineAsPath();
 
-        if (! clipPath.isEmpty())
-            g.getInternalContext().clipToPath (clipPath, {});
+        if (! path.isEmpty())
+            g.getInternalContext().clipToPath (path, {});
     }
 }
 
 //==============================================================================
-void Drawable::draw (Graphics& g, float opacity, const AffineTransform& transform) const
-{
-    const_cast<Drawable*> (this)->nonConstDraw (g, opacity, transform);
-}
-
-void Drawable::nonConstDraw (Graphics& g, float opacity, const AffineTransform& transform)
+void Drawable::draw (Graphics& g, float opacity, const AffineTransform& drawTransform) const
 {
     Graphics::ScopedSaveState ss (g);
 
-    g.addTransform (AffineTransform::translation ((float) -(originRelativeToComponent.x),
-                                                  (float) -(originRelativeToComponent.y))
-                        .followedBy (getTransform())
-                        .followedBy (transform));
+    g.addTransform (getTransform().followedBy (drawTransform));
 
     applyDrawableClipPath (g);
 
@@ -77,12 +52,12 @@ void Drawable::nonConstDraw (Graphics& g, float opacity, const AffineTransform& 
         if (opacity < 1.0f)
         {
             g.beginTransparencyLayer (opacity);
-            paintEntireComponent (g, true);
+            paint (g);
             g.endTransparencyLayer();
         }
         else
         {
-            paintEntireComponent (g, true);
+            paint (g);
         }
     }
 }
@@ -99,82 +74,30 @@ void Drawable::drawWithin (Graphics& g, Rectangle<float> destArea,
 }
 
 //==============================================================================
-DrawableComposite* Drawable::getParent() const
+void Drawable::setClipPath (std::unique_ptr<Drawable> clipPathIn)
 {
-    return dynamic_cast<DrawableComposite*> (getParentComponent());
-}
-
-void Drawable::setClipPath (std::unique_ptr<Drawable> clipPath)
-{
-    if (drawableClipPath != clipPath)
-    {
-        drawableClipPath = std::move (clipPath);
-        repaint();
-    }
-}
-
-void Drawable::transformContextToCorrectOrigin (Graphics& g)
-{
-    g.setOrigin (originRelativeToComponent);
-}
-
-void Drawable::parentHierarchyChanged()
-{
-    setBoundsToEnclose (getDrawableBounds());
-}
-
-void Drawable::setBoundsToEnclose (Rectangle<float> area)
-{
-    Point<int> parentOrigin;
-
-    if (auto* parent = getParent())
-        parentOrigin = parent->originRelativeToComponent;
-
-    const auto smallestIntegerContainer = area.getSmallestIntegerContainer();
-    auto newBounds = smallestIntegerContainer + parentOrigin;
-    originRelativeToComponent = -smallestIntegerContainer.getPosition();
-    setBounds (newBounds);
+    clipPath = std::move (clipPathIn);
 }
 
 //==============================================================================
-bool Drawable::replaceColour (Colour original, Colour replacement)
+bool Drawable::replaceColour (Colour, Colour)
 {
-    bool changed = false;
-
-    for (auto* c : getChildren())
-        if (auto* d = dynamic_cast<Drawable*> (c))
-            changed = d->replaceColour (original, replacement) || changed;
-
-    return changed;
+    return false;
 }
 
-void Drawable::setDrawableTransform (const AffineTransform& transform)
+void Drawable::setDrawableTransform (const AffineTransform& newTransform)
 {
-    drawableTransform = transform;
-    updateTransform();
+    transform = newTransform;
 }
 
-void Drawable::updateTransform()
+AffineTransform Drawable::getDrawableTransform() const
 {
-    if (drawableTransform.isIdentity())
-        return;
-
-    const auto transformationOrigin = originRelativeToComponent + getPosition();
-    setTransform (AffineTransform::translation (transformationOrigin * (-1))
-                      .followedBy (drawableTransform)
-                      .followedBy (AffineTransform::translation (transformationOrigin)));
+    return transform;
 }
 
-//==============================================================================
-void Drawable::setOriginWithOriginalSize (Point<float> originWithinParent)
+AffineTransform Drawable::getTransform() const
 {
-    setTransform (AffineTransform::translation (originWithinParent.x, originWithinParent.y));
-}
-
-void Drawable::setTransformToFit (const Rectangle<float>& area, RectanglePlacement placement)
-{
-    if (! area.isEmpty())
-        setTransform (placement.getTransformToFit (getDrawableBounds(), area));
+    return transform;
 }
 
 //==============================================================================

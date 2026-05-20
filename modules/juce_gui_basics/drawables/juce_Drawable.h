@@ -19,32 +19,7 @@
 namespace juce
 {
 
-/** @cond */
-namespace detail
-{
-class BoundsChangeListener final : private ComponentListener
-{
-public:
-    BoundsChangeListener (Component& c, std::function<void()> cb)
-        : callback (std::move (cb)),
-          componentListenerGuard { [comp = &c, this] { comp->removeComponentListener (this); } }
-    {
-        jassert (callback != nullptr);
-
-        c.addComponentListener (this);
-    }
-
-private:
-    void componentMovedOrResized (Component&, bool, bool) override
-    {
-        callback();
-    }
-
-    std::function<void()> callback;
-    ErasedScopeGuard componentListenerGuard;
-};
-} // namespace detail
-/** @endcond */
+class DrawableComposite;
 
 //==============================================================================
 /**
@@ -54,19 +29,25 @@ private:
 
     @tags{GUI}
 */
-class JUCE_API  Drawable  : public Component
+class JUCE_API  Drawable
 {
-protected:
-    //==============================================================================
-    /** The base class can't be instantiated directly.
-
-        @see DrawableComposite, DrawableImage, DrawablePath, DrawableText
-    */
-    Drawable();
-
 public:
-    /** Destructor. */
-    ~Drawable() override;
+    /** @internal */
+    class JUCE_API Listener
+    {
+    public:
+        virtual ~Listener()                            = default;
+        virtual void drawableBoundsChanged (Drawable*) = 0;
+    };
+
+    /** Constructor. */
+    Drawable() = default;
+
+    /** Copy constructor. */
+    Drawable (const Drawable& other);
+
+     /** Destructor. */
+    virtual ~Drawable() = default;
 
     //==============================================================================
     /** Creates a deep copy of this Drawable object.
@@ -80,10 +61,6 @@ public:
 
     //==============================================================================
     /** Renders this Drawable object.
-
-        Note that the preferred way to render a drawable in future is by using it
-        as a component and adding it to a parent, so you might want to consider that
-        before using this method.
 
         @see drawWithin
     */
@@ -128,23 +105,13 @@ public:
 
 
     //==============================================================================
-    /** Resets any transformations on this drawable, and positions its origin within
-        its parent component.
-    */
-    void setOriginWithOriginalSize (Point<float> originWithinParent);
-
-    /** Sets a transform for this drawable that will position it within the specified
-        area of its parent component.
-    */
-    void setTransformToFit (const Rectangle<float>& areaInParent, RectanglePlacement placement);
-
-    /** Returns the DrawableComposite that contains this object, if there is one. */
-    DrawableComposite* getParent() const;
-
     /** Sets a the clipping region of this drawable using another drawable.
         The drawable passed in will be deleted when no longer needed.
     */
     void setClipPath (std::unique_ptr<Drawable> drawableClipPath);
+
+    /** Tests whether a given point is inside the Drawable. */
+    virtual bool hitTest (Point<float>) const = 0;
 
     //==============================================================================
     /** Tries to turn some kind of image file into a drawable.
@@ -191,15 +158,36 @@ public:
     */
     static std::unique_ptr<Drawable> createFromSVGFile (const File& svgFile);
 
+    /** Attempts to parse an SVG (Scalable Vector Graphics) document from a string,
+        and to turn this into a Drawable tree.
+    */
+    static std::unique_ptr<DrawableComposite> createFromSVGString (const String& svgString);
+
     /** Parses an SVG path string and returns it. */
     static Path parseSVGPath (const String& svgPath);
 
     //==============================================================================
     /** Returns the area that this drawable covers.
-        The result is expressed in this drawable's own coordinate space, and does not take
-        into account any transforms that may be applied to the component.
     */
     virtual Rectangle<float> getDrawableBounds() const = 0;
+
+    /** Returns the width of the drawable bounds rounded up to the nearest integer.
+
+        @see getDrawableBounds
+    */
+    int getWidth() const
+    {
+        return getDrawableBounds().toNearestInt().getWidth();
+    }
+
+    /** Returns the height of the drawable bounds rounded up to the nearest integer.
+
+        @see getDrawableBounds
+    */
+    int getHeight() const
+    {
+        return getDrawableBounds().toNearestInt().getHeight();
+    }
 
     /** Recursively replaces a colour that might be used for filling or stroking.
         return true if any instances of this colour were found.
@@ -221,35 +209,77 @@ public:
     */
     void setDrawableTransform (const AffineTransform& transform);
 
+    /** Returns the transform that is currently being applied to this drawable.
+
+        @see setTransform
+    */
+    AffineTransform getDrawableTransform() const;
+
+    /** Returns the name of this Drawable object.
+
+        The SVG parser attempts to set this value to the id attribute of the corresponding SVG
+        element. However, since it's possible to reference and draw a single SVG element multiple
+        times, this value is not guaranteed to be unique.
+
+        @see setName
+    */
+    const String& getName() const
+    {
+        return name;
+    }
+
+    /** Sets the name of this drawable object.
+
+        @see getName
+    */
+    void setName (const String& newName)
+    {
+        name = newName;
+    }
+
+    /** Adds a listener. */
+    void addListener (Listener* newListener)
+    {
+        listeners.add (newListener);
+    }
+
+    /** Removes a listener. */
+    void removeListener (Listener* listenerToRemove)
+    {
+        listeners.remove (listenerToRemove);
+    }
+
+    /** @internal */
+    virtual bool isImage() const                           { return false; }
+
+    /** @internal */
+    virtual std::optional<String> getContainedText() const { return std::nullopt; }
+
+    /** @internal */
+    virtual bool requiresBlendBuffer() const { return false; }
+
 protected:
     //==============================================================================
-    friend class DrawableComposite;
-    friend class DrawableShape;
+    virtual void paint (Graphics& g) const = 0;
 
-    /** @internal */
-    void transformContextToCorrectOrigin (Graphics&);
-    /** @internal */
-    void parentHierarchyChanged() override;
-    /** @internal */
-    void setBoundsToEnclose (Rectangle<float>);
-    /** @internal */
-    void applyDrawableClipPath (Graphics&);
+    // Overridden only by DrawableText to support setBoundingBox(). No easy workaround.
+    virtual AffineTransform getTransform() const;
 
-    Point<int> originRelativeToComponent;
-    std::unique_ptr<Drawable> drawableClipPath;
-    AffineTransform drawableTransform;
-
-    void nonConstDraw (Graphics&, float opacity, const AffineTransform&);
-
-    Drawable (const Drawable&);
-    Drawable& operator= (const Drawable&);
-    JUCE_LEAK_DETECTOR (Drawable)
-
+    void callListeners()
+    {
+        listeners.call (&Listener::drawableBoundsChanged, this);
+    }
 
 private:
-    void updateTransform();
+    void applyDrawableClipPath (Graphics&) const;
 
-    detail::BoundsChangeListener boundsChangeListener { *this, [this] { updateTransform(); } };
+    AffineTransform transform;
+    std::unique_ptr<Drawable> clipPath;
+    String name;
+    bool visible = true;
+    ListenerList<Listener> listeners;
+
+    JUCE_LEAK_DETECTOR (Drawable)
 };
 
 } // namespace juce

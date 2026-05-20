@@ -23,8 +23,8 @@ ToolbarButton::ToolbarButton (const int iid, const String& buttonText,
                               std::unique_ptr<Drawable> normalIm,
                               std::unique_ptr<Drawable> toggledOnIm)
    : ToolbarItemComponent (iid, buttonText, true),
-     normalImage (std::move (normalIm)),
-     toggledOnImage (std::move (toggledOnIm))
+     normalImage (detail::OwningDrawableComponent::create (std::move (normalIm))),
+     toggledOnImage (detail::OwningDrawableComponent::create (std::move (toggledOnIm)))
 {
     jassert (normalImage != nullptr);
 }
@@ -49,7 +49,7 @@ void ToolbarButton::contentAreaChanged (const Rectangle<int>&)
     buttonStateChanged();
 }
 
-void ToolbarButton::setCurrentImage (Drawable* const newImage)
+void ToolbarButton::setCurrentImage (DrawableComponent* const newImage)
 {
     if (newImage != currentImage)
     {
@@ -87,7 +87,7 @@ void ToolbarButton::enablementChanged()
     updateDrawable();
 }
 
-Drawable* ToolbarButton::getImageToUse() const
+DrawableComponent* ToolbarButton::getImageToUse() const
 {
     if (getStyle() == Toolbar::textOnly)
         return nullptr;

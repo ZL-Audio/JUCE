@@ -74,3 +74,4 @@
 
 #include "misc/juce_BubbleComponent.cpp"
 #include "misc/juce_FocusOutline.cpp"
+#include "misc/juce_DrawableComponent.cpp"

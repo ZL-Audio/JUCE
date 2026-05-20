@@ -78,12 +78,12 @@ public:
 
 private:
     //==============================================================================
-    std::unique_ptr<Drawable> normalImage, toggledOnImage;
-    Drawable* currentImage = nullptr;
+    std::unique_ptr<DrawableComponent> normalImage, toggledOnImage;
+    DrawableComponent* currentImage = nullptr;
 
     void updateDrawable();
-    Drawable* getImageToUse() const;
-    void setCurrentImage (Drawable*);
+    DrawableComponent* getImageToUse() const;
+    void setCurrentImage (DrawableComponent*);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ToolbarButton)
 };
