@@ -12,6 +12,7 @@
 		08D8FA18C031543DEAA7C97A /* MetalKit.framework */ = {isa = PBXBuildFile; fileRef = DF40404150A5A3D6F5AAC856; settings = { ATTRIBUTES = (Weak, ); }; };
 		09C4EDDF7F8B6E75EA3CE3A9 /* jucer_DocumentEditorComponent.cpp */ = {isa = PBXBuildFile; fileRef = BC3B310D42C489E8B8D93327; };
 		0A89E8E0E99C3B5B2B38F2E6 /* jucer_NewProjectWizard.cpp */ = {isa = PBXBuildFile; fileRef = C2835F16963B34839FC36220; };
+		0ACE2CDAEFDF2D89F8A44062 /* include_juce_gui_basics_lunasvg.c */ = {isa = PBXBuildFile; fileRef = C257BCB53954140AAEA397FD; };
 		0E783907C6214ADD59EC95DC /* jucer_Modules.cpp */ = {isa = PBXBuildFile; fileRef = F58B23995765C9FDBE28F871; };
 		10E26DA28CF28BBFDC64E796 /* include_juce_core_CompilationTime.cpp */ = {isa = PBXBuildFile; fileRef = 5F0374A45E6B5EC8E47D688F; };
 		11D42F7EC6E6539D79A7F4B1 /* QuartzCore.framework */ = {isa = PBXBuildFile; fileRef = E5D6C36496F5BC84D7213BE8; };
@@ -207,6 +208,7 @@
 		BF006EF584FB274FF0319E08 /* Foundation.framework */ /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		BF3CEF080FA013E2778DCE90 /* jucer_Project.h */ /* jucer_Project.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jucer_Project.h; path = ../../Source/Project/jucer_Project.h; sourceTree = SOURCE_ROOT; };
 		C16F9F479A3A5F6DAD7647A2 /* jucer_VersionInfo.h */ /* jucer_VersionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jucer_VersionInfo.h; path = ../../Source/Utility/Helpers/jucer_VersionInfo.h; sourceTree = SOURCE_ROOT; };
+		C257BCB53954140AAEA397FD /* include_juce_gui_basics_lunasvg.c */ /* include_juce_gui_basics_lunasvg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_gui_basics_lunasvg.c; path = ../../JuceLibraryCode/include_juce_gui_basics_lunasvg.c; sourceTree = SOURCE_ROOT; };
 		C2835F16963B34839FC36220 /* jucer_NewProjectWizard.cpp */ /* jucer_NewProjectWizard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jucer_NewProjectWizard.cpp; path = ../../Source/Application/StartPage/jucer_NewProjectWizard.cpp; sourceTree = SOURCE_ROOT; };
 		C3BB9F92B02B06D04A73794C /* jucer_ProjectExporter.cpp */ /* jucer_ProjectExporter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jucer_ProjectExporter.cpp; path = ../../Source/ProjectSaving/jucer_ProjectExporter.cpp; sourceTree = SOURCE_ROOT; };
 		C3E04CD5A93A45154894E624 /* jucer_Colours.h */ /* jucer_Colours.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jucer_Colours.h; path = ../../Source/Utility/Helpers/jucer_Colours.h; sourceTree = SOURCE_ROOT; };
@@ -362,6 +364,7 @@
 				BDBEAFE6B7499EFB920FF105,
 				34B30AB4C55FAD8CC770BBCF,
 				E69BC77F1469FAEBB63D0BC8,
+				C257BCB53954140AAEA397FD,
 				AECE3914F5119A3D586A5635,
 				364D1A9B113320407A7E57B9,
 			);
@@ -878,6 +881,7 @@
 				F4719C767DE9D1B4FE2F33D3,
 				7A055FDAFC2A6215D12AD97C,
 				B6DCEB2D40305DF0BBD72C8E,
+				0ACE2CDAEFDF2D89F8A44062,
 				B18248959DDC44EF4E85320A,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

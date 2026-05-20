@@ -51,4 +51,51 @@
 #include "drawables/juce_DrawableRectangle.cpp"
 #include "drawables/juce_DrawableShape.cpp"
 #include "drawables/juce_DrawableText.cpp"
+
+// A project may be linking against lunasvg in which case this may already be defined on the command-line
+#ifndef LUNASVG_BUILD
+ #define LUNASVG_BUILD
+#endif
+#ifndef LUNASVG_BUILD_STATIC
+ #define LUNASVG_BUILD_STATIC
+#endif
+#define JUCE_PLUTOVG_BUILD
+#define JUCE_PLUTOVG_BUILD_STATIC
+
+JUCE_BEGIN_IGNORE_WARNINGS_MSVC (4100 4244 4267 6323)
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wfloat-conversion",
+                                     "-Wfloat-equal",
+                                     "-Wmissing-field-initializers",
+                                     "-Wshadow-field-in-constructor",
+                                     "-Wshadow-uncaptured-local",
+                                     "-Wshorten-64-to-32",
+                                     "-Wsign-conversion",
+                                     "-Wswitch-enum",
+                                     "-Wunused-parameter",
+                                     "-Wimplicit-int-float-conversion",
+                                     "-Wshadow",
+                                     "-Wunused-function")
+
+#include "drawables/lunasvg/include/lunasvg.h"
+#include "drawables/lunasvg/source/graphics.h"
+
+#include <juce_gui_basics/drawables/lunasvg/source/graphics.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/lunasvg.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svgelement.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svggeometryelement.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svglayoutstate.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svgpaintelement.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svgparser.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svgproperty.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svgrenderstate.cpp>
+#include <juce_gui_basics/drawables/lunasvg/source/svgtextelement.cpp>
+
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+JUCE_END_IGNORE_WARNINGS_MSVC
+
+#undef JUCE_PLUTOVG_BUILD_STATIC
+#undef JUCE_PLUTOVG_BUILD
+#undef LUNASVG_BUILD_STATIC
+#undef LUNASVG_BUILD
+
 #include "drawables/juce_SVGParser.cpp"

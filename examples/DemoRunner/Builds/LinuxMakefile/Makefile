@@ -103,6 +103,7 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/include_juce_gui_basics_3_154ab539.o \
   $(JUCE_OBJDIR)/include_juce_gui_basics_4_1558ccba.o \
   $(JUCE_OBJDIR)/include_juce_gui_basics_5_1566e43b.o \
+  $(JUCE_OBJDIR)/include_juce_gui_basics_lunasvg_5968e72e.o \
   $(JUCE_OBJDIR)/include_juce_gui_extra_6dee1c1a.o \
   $(JUCE_OBJDIR)/include_juce_javascript_84e88969.o \
   $(JUCE_OBJDIR)/include_juce_midi_ci_1fda4092.o \
@@ -278,6 +279,11 @@ $(JUCE_OBJDIR)/include_juce_gui_basics_5_1566e43b.o: ../../JuceLibraryCode/inclu
 	-$(V_AT)mkdir -p $(@D)
 	@echo "Compiling include_juce_gui_basics_5.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/include_juce_gui_basics_lunasvg_5968e72e.o: ../../JuceLibraryCode/include_juce_gui_basics_lunasvg.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_gui_basics_lunasvg.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/include_juce_gui_extra_6dee1c1a.o: ../../JuceLibraryCode/include_juce_gui_extra.cpp
 	-$(V_AT)mkdir -p $(@D)

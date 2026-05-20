@@ -25,6 +25,7 @@
 		2C3D221D2AA87F07B3F1044D /* include_juce_gui_basics.mm */ = {isa = PBXBuildFile; fileRef = 8FE7B37CDE0818DB27BDDEBD; };
 		3154B78F0813DBD8A2C9234D /* include_juce_audio_processors_headless.mm */ = {isa = PBXBuildFile; fileRef = DAB71FA843B80756B5521A4E; };
 		3E1689E23B9C85F03209DCEF /* GraphEditorPanel.cpp */ = {isa = PBXBuildFile; fileRef = 3D78A731234A833CA112AE45; };
+		3FE3D15BC2510AACDA409D02 /* include_juce_gui_basics_lunasvg.c */ = {isa = PBXBuildFile; fileRef = FA7B36B058C83957E4015431; };
 		475B54B38D469C3D22FB5AFE /* include_juce_gui_basics_3.cpp */ = {isa = PBXBuildFile; fileRef = 9E04C44549455D4CB4C999B2; };
 		4DB15177DDC357F4503F88CF /* WebKit.framework */ = {isa = PBXBuildFile; fileRef = B457EE687507BF1DEEA7581F; };
 		50AFD116DCA6EC228EFB322D /* UIKit.framework */ = {isa = PBXBuildFile; fileRef = F9EDC54DFBCF3A63E0AA5D73; };
@@ -159,6 +160,7 @@
 		F9AC862E9A3583B6C1488EE0 /* juce_audio_formats */ /* juce_audio_formats */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_formats; path = ../../../../modules/juce_audio_formats; sourceTree = SOURCE_ROOT; };
 		F9EDC54DFBCF3A63E0AA5D73 /* UIKit.framework */ /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		FA21631C5536EA3DF55C7FA6 /* juce_cryptography */ /* juce_cryptography */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_cryptography; path = ../../../../modules/juce_cryptography; sourceTree = SOURCE_ROOT; };
+		FA7B36B058C83957E4015431 /* include_juce_gui_basics_lunasvg.c */ /* include_juce_gui_basics_lunasvg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_gui_basics_lunasvg.c; path = ../../JuceLibraryCode/include_juce_gui_basics_lunasvg.c; sourceTree = SOURCE_ROOT; };
 		FAF867E9E731D0880D40511F /* juce_audio_processors */ /* juce_audio_processors */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_processors; path = ../../../../modules/juce_audio_processors; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -254,6 +256,7 @@
 				9E04C44549455D4CB4C999B2,
 				22355EA094C78612BFE2BE22,
 				05F7F829D28745D534C109F6,
+				FA7B36B058C83957E4015431,
 				2BE6C2DFD6EBB9A89109AEB5,
 				37E4D5C341406B7072120006,
 				A5E7CA8A71D049BE2BD33861,
@@ -507,6 +510,7 @@
 				475B54B38D469C3D22FB5AFE,
 				5CF40AE288CBD1593B265BB7,
 				FCF9F315FF53030F33B4DF82,
+				3FE3D15BC2510AACDA409D02,
 				C38D14DC58F1941DD5E4BF60,
 				2727A191DB1BAAC9C04B9081,
 			);

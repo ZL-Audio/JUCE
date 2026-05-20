@@ -2510,6 +2510,69 @@
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\detail\juce_ComponentPeerHelpers.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-blend.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-canvas.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-font.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-math.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-raster.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-stroker.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-matrix.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-paint.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-path.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-rasterize.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-surface.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\graphics.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\lunasvg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgelement.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svggeometryelement.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svglayoutstate.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgpaintelement.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgparser.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgproperty.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgrenderstate.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgtextelement.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_Drawable.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2936,6 +2999,9 @@
     <ClCompile Include="..\..\..\..\modules\juce_gui_basics\juce_gui_basics_5.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\modules\juce_gui_basics\juce_gui_basics_lunasvg.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\modules\juce_gui_extra\code_editor\juce_CodeDocument.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -3101,6 +3167,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_basics_3.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_basics_4.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_basics_5.cpp"/>
+    <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_basics_lunasvg.c"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_opengl.cpp"/>
   </ItemGroup>
@@ -4322,6 +4389,26 @@
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_TopLevelWindowManager.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_ViewportHelpers.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_WindowingHelpers.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\include\lunasvg.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\include\plutovg.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-math.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-raster.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-stroker.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-ft-types.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-private.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-stb-image-write.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-stb-image.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-stb-truetype.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\plutovg-utils.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\graphics.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgelement.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svggeometryelement.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svglayoutstate.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgpaintelement.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgparserutils.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgproperty.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgrenderstate.h"/>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\source\svgtextelement.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_Drawable.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableComposite.h"/>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\drawables\juce_DrawableImage.h"/>
@@ -4570,6 +4657,7 @@
     <None Include="..\..\..\..\modules\juce_graphics\image_formats\jpglib\changes to libjpeg for JUCE.txt"/>
     <None Include="..\..\..\..\modules\juce_graphics\image_formats\pnglib\libpng_readme.txt"/>
     <None Include="..\..\..\..\modules\juce_graphics\unicode\sheenbidi\JUCE_CHANGES.txt"/>
+    <None Include="..\..\..\..\modules\juce_gui_basics\drawables\lunasvg\plutovg\source\FTL.TXT"/>
     <None Include=".\icon.ico"/>
   </ItemGroup>
   <ItemGroup>
