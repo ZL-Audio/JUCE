@@ -484,7 +484,9 @@ void SVGElement::renderChildren(SVGRenderState& state) const
 {
     for(const auto& child : m_children) {
         if(auto element = toSVGElement(child)) {
+            const auto prev = document()->setElementIdBeingRendered (element->getAttribute (PropertyID::Id));
             element->render(state);
+            document()->setElementIdBeingRendered (prev);
         }
     }
 }
@@ -653,6 +655,8 @@ Transform SVGSVGElement::localTransform() const
 
 void SVGSVGElement::render(SVGRenderState& state) const
 {
+    const auto prev = document()->setElementIdBeingRendered (getAttribute (PropertyID::Id));
+
     if(isDisplayNone())
         return;
     LengthContext lengthContext(this);
@@ -670,6 +674,8 @@ void SVGSVGElement::render(SVGRenderState& state) const
         newState->clipRect(getClipRect(viewportSize), FillRule::NonZero, newState.currentTransform());
     renderChildren(newState);
     newState.endGroup(blendInfo);
+
+    document()->setElementIdBeingRendered (prev);
 }
 
 SVGRootElement::SVGRootElement(Document* document)

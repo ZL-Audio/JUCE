@@ -775,6 +775,16 @@ public:
      */
     Element documentElement() const;
 
+    const std::string& getElementIdBeingRendered() const
+    {
+        return elementIdBeingRendered;
+    }
+
+    std::string setElementIdBeingRendered (const std::string& eId)
+    {
+        return std::exchange (elementIdBeingRendered, eId);
+    }
+
     Document(Document&&);
     Document& operator=(Document&&);
     ~Document();
@@ -788,6 +798,8 @@ private:
     std::unique_ptr<SVGRootElement> m_rootElement;
     friend class SVGURIReference;
     friend class SVGNode;
+
+    std::string elementIdBeingRendered;
 };
 
 } // namespace lunasvg
