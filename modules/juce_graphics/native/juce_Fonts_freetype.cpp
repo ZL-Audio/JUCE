@@ -538,13 +538,14 @@ private:
     }
    #endif
 
-    static TypefaceAscentDescent getNativeMetrics (FTFaceWrapper::Ptr ftFace)
+    static TypefaceVerticalMetrics getNativeMetrics (FTFaceWrapper::Ptr ftFace)
     {
         const auto upem = (float) ftFace->face->units_per_EM;
         const auto ascent = (float) std::abs (ftFace->face->ascender) / upem;
         const auto descent = (float) std::abs (ftFace->face->descender) / upem;
+        const auto lineGap = (float) std::abs (ftFace->face->height) / upem - (ascent + descent);
 
-        return { ascent, descent };
+        return { ascent, descent, lineGap };
     }
 
     FreeTypeTypeface (DoCache cache,

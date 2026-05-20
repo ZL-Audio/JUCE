@@ -322,6 +322,11 @@ public:
     */
     float getDescentInPoints() const;
 
+    /** Returns a distance in points that should be used in addition to the
+        ascent and descent between the baselines of successive lines of text.
+    */
+    float getLineGapInPoints() const;
+
     //==============================================================================
     /** Returns the font's style flags.
         This will return a bitwise-or'ed combination of values from the FontStyleFlags

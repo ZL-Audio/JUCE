@@ -95,6 +95,12 @@ struct TypefaceMetrics
         May be inf if the font ascent and descent overrides have both been set to 0!
     */
     float heightToPoints{};
+
+    /** This value reflects the font designer's intent when laying out multiple lines of text. It is
+        a proportion of the typeface's height that should be used in addition to the ascent and
+        descent between successive lines.
+    */
+    float lineGap{};
 };
 
 //==============================================================================

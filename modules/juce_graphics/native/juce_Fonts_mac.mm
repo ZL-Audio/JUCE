@@ -301,15 +301,16 @@ public:
     }
 
 private:
-    static TypefaceAscentDescent getNativeMetrics (CTFontRef ctFont)
+    static TypefaceVerticalMetrics getNativeMetrics (CTFontRef ctFont)
     {
         const CFUniquePtr<CGFontRef> cgFont { CTFontCopyGraphicsFont (ctFont, nullptr) };
 
         const auto upem = (float) CGFontGetUnitsPerEm (cgFont.get());
         const auto ascent  = std::abs ((float) CGFontGetAscent  (cgFont.get()) / upem);
         const auto descent = std::abs ((float) CGFontGetDescent (cgFont.get()) / upem);
+        const auto leading = std::abs ((float) CGFontGetLeading (cgFont.get()) / upem);
 
-        return { ascent, descent };
+        return { ascent, descent, leading };
     }
 
     CoreTextTypeface (CFUniquePtr<CTFontRef> nativeFont,

@@ -124,20 +124,31 @@ using HbDrawFuncs = JUCE_HB_PTR_TYPE (draw_funcs);
 
 #undef JUCE_HB_PTR_TYPE
 
-struct TypefaceAscentDescent
+struct TypefaceVerticalMetrics
 {
+    TypefaceVerticalMetrics() = default;
+
+    TypefaceVerticalMetrics (float ascentIn, float descentIn, float lineGapIn)
+        : ascent (ascentIn),
+          descent (descentIn),
+          lineGap (lineGapIn)
+    {
+    }
+
     float ascent{};  // in em units
     float descent{}; // in em units
+    float lineGap{}; // in em units
 
     float getScaledAscent()  const { return ascent  * getHeightToPointsFactor(); }
     float getScaledDescent() const { return descent * getHeightToPointsFactor(); }
+    float getScaledLineGap() const { return lineGap * getHeightToPointsFactor(); }
 
     float getPointsToHeightFactor() const { return ascent + descent; }
     float getHeightToPointsFactor() const { return 1.0f / getPointsToHeightFactor(); }
 
     TypefaceMetrics getTypefaceMetrics() const
     {
-        return { getScaledAscent(), getHeightToPointsFactor() };
+        return { getScaledAscent(), getHeightToPointsFactor(), getScaledLineGap() };
     }
 };
 
@@ -150,7 +161,7 @@ struct TypefaceFallbackColourGlyphSupport
 struct TypefaceNativeOptions
 {
     HbFont font;
-    TypefaceAscentDescent metrics;
+    TypefaceVerticalMetrics metrics;
     TypefaceFallbackColourGlyphSupport* colourGlyphSupport{};
 };
 
@@ -270,7 +281,7 @@ public:
     // Returns the backing HarfBuzz font with a size of 1 pt (i.e. 1 pt per em).
     hb_font_t* getFont() const { return font.get(); }
 
-    TypefaceAscentDescent getAscentDescent (TypefaceMetricsKind kind) const
+    TypefaceVerticalMetrics getAscentDescent (TypefaceMetricsKind kind) const
     {
         switch (kind)
         {
@@ -326,8 +337,8 @@ public:
 
 private:
     HbFont font;
-    TypefaceAscentDescent nonPortable;
-    TypefaceAscentDescent portable = std::invoke ([&]
+    TypefaceVerticalMetrics nonPortable;
+    TypefaceVerticalMetrics portable = std::invoke ([&]
     {
         hb_font_extents_t extents{};
 
@@ -336,12 +347,10 @@ private:
 
         const auto ascent  = std::abs ((float) extents.ascender);
         const auto descent = std::abs ((float) extents.descender);
+        const auto lineGap = std::abs ((float) extents.line_gap);
         const auto upem    = (float) hb_face_get_upem (hb_font_get_face (font.get()));
 
-        TypefaceAscentDescent result;
-        result.ascent  = ascent  / upem;
-        result.descent = descent / upem;
-        return result;
+        return TypefaceVerticalMetrics { ascent / upem, descent / upem, lineGap / upem };
     });
     TypefaceFallbackColourGlyphSupport* colourGlyphSupport;
     mutable LruCache<std::tuple<float, float>, HbFont> subFontCache;

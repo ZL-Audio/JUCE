@@ -79,7 +79,7 @@ struct AndroidCachedTypeface
 {
     HbFont font;
     GlobalRef javaFont;
-    TypefaceAscentDescent metrics;
+    TypefaceVerticalMetrics metrics;
 };
 
 //==============================================================================
@@ -449,7 +449,7 @@ private:
 
     AndroidTypeface (DoCache cache,
                      HbFont fontIn,
-                     TypefaceAscentDescent nonPortableMetricsIn,
+                     TypefaceVerticalMetrics nonPortableMetricsIn,
                      const String& name,
                      const String& style,
                      GlobalRef javaFontIn)
@@ -463,7 +463,7 @@ private:
                 c->add ({ name, style }, { fontIn, javaFont, nonPortableMetricsIn });
     }
 
-    static std::tuple<MemoryBlock, TypefaceAscentDescent> getBlobForFont (const Font& font)
+    static std::tuple<MemoryBlock, TypefaceVerticalMetrics> getBlobForFont (const Font& font)
     {
         auto memory = loadFontAsset (font.getTypefaceName());
 
@@ -591,7 +591,7 @@ private:
         return mapEntry;
     }
 
-    static TypefaceAscentDescent findNonPortableMetricsForFile (const File& file)
+    static TypefaceVerticalMetrics findNonPortableMetricsForFile (const File& file)
     {
         auto* env = getEnv();
         const LocalRef typeface { env->CallStaticObjectMethod (TypefaceClass,
@@ -600,13 +600,13 @@ private:
         return findNonPortableMetricsForTypeface (typeface);
     }
 
-    static TypefaceAscentDescent findNonPortableMetricsForData (Span<const std::byte> bytes)
+    static TypefaceVerticalMetrics findNonPortableMetricsForData (Span<const std::byte> bytes)
     {
         const auto file = getCacheFileForData (bytes);
         return findNonPortableMetricsForFile (file);
     }
 
-    static TypefaceAscentDescent findNonPortableMetricsForAsset (const String& name)
+    static TypefaceVerticalMetrics findNonPortableMetricsForAsset (const String& name)
     {
         auto* env = getEnv();
 
@@ -618,7 +618,7 @@ private:
         return findNonPortableMetricsForTypeface (typeface);
     }
 
-    static TypefaceAscentDescent findNonPortableMetricsForTypeface (const LocalRef<jobject>& typeface)
+    static TypefaceVerticalMetrics findNonPortableMetricsForTypeface (const LocalRef<jobject>& typeface)
     {
         constexpr auto referenceFontSize = 256.0f;
 
@@ -637,8 +637,9 @@ private:
         const auto fullAscent  = std::abs (env->CallFloatMethod (paint, AndroidPaint.ascent));
         const auto fullDescent = std::abs (env->CallFloatMethod (paint, AndroidPaint.descent));
 
-        return TypefaceAscentDescent { fullAscent  / referenceFontSize,
-                                       fullDescent / referenceFontSize };
+        return TypefaceVerticalMetrics { fullAscent  / referenceFontSize,
+                                         fullDescent / referenceFontSize,
+                                         0.0f };
     }
 
     std::vector<GlyphLayer> getFallbackColourGlyphLayers (int glyph,

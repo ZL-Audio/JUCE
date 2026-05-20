@@ -199,7 +199,7 @@ public:
         return {};
     }
 
-    TypefaceAscentDescent getAscentDescent (const Font& f)
+    TypefaceVerticalMetrics getAscentDescent (const Font& f)
     {
         const ScopedLock lock (mutex);
 
@@ -810,6 +810,7 @@ float Font::getHeightInPoints() const
 
 float Font::getAscentInPoints() const       { return font->getAscentDescent (*this).ascent  * getHeightInPoints(); }
 float Font::getDescentInPoints() const      { return font->getAscentDescent (*this).descent * getHeightInPoints(); }
+float Font::getLineGapInPoints() const      { return font->getAscentDescent (*this).lineGap * getHeightInPoints(); }
 
 void Font::findFonts (Array<Font>& destArray)
 {

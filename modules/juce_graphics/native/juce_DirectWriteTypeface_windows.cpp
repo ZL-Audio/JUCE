@@ -271,7 +271,7 @@ private:
                                 ComSmartPtr<IDWriteFont> font,
                                 ComSmartPtr<IDWriteFontFace> face,
                                 HbFont hbFontIn,
-                                TypefaceAscentDescent metrics,
+                                TypefaceVerticalMetrics metrics,
                                 ComSmartPtr<IDWriteFontCollection> collectionIn = nullptr)
         : Typeface (name, style),
           collection (std::move (collectionIn)),
@@ -283,24 +283,30 @@ private:
             factories->getFonts().addCollection (collection);
     }
 
-    static TypefaceAscentDescent getDwriteMetrics (IDWriteFontFace& face)
+    static TypefaceVerticalMetrics getDwriteMetrics (IDWriteFontFace& face)
     {
         DWRITE_FONT_METRICS dwriteFontMetrics{};
         face.GetMetrics (&dwriteFontMetrics);
-        return TypefaceAscentDescent { (float) dwriteFontMetrics.ascent  / (float) dwriteFontMetrics.designUnitsPerEm,
-                                       (float) dwriteFontMetrics.descent / (float) dwriteFontMetrics.designUnitsPerEm };
+        return TypefaceVerticalMetrics { (float) dwriteFontMetrics.ascent  / (float) dwriteFontMetrics.designUnitsPerEm,
+                                         (float) dwriteFontMetrics.descent / (float) dwriteFontMetrics.designUnitsPerEm,
+                                         (float) dwriteFontMetrics.lineGap / (float) dwriteFontMetrics.designUnitsPerEm };
     }
 
-    static std::optional<TypefaceAscentDescent> getGdiMetrics (hb_font_t* font)
+    static std::optional<TypefaceVerticalMetrics> getGdiMetrics (hb_font_t* font)
     {
-        hb_position_t ascent{}, descent{};
+        hb_position_t ascent{}, descent{}, lineGap{};
 
         if (! hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_ASCENT,  &ascent) ||
             ! hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_DESCENT, &descent))
             return {};
 
+        hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_VERTICAL_LINE_GAP, &lineGap);
+
         const auto upem = (float) hb_face_get_upem (hb_font_get_face (font));
-        return TypefaceAscentDescent { (float) std::abs (ascent) / upem, (float) std::abs (descent) / upem };
+
+        return TypefaceVerticalMetrics { (float) std::abs (ascent) / upem,
+                                         (float) std::abs (descent) / upem,
+                                         (float) lineGap / upem };
     }
 
     enum class MetricsMechanism
