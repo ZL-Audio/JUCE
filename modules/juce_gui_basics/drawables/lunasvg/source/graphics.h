@@ -509,48 +509,86 @@ class Bitmap;
 
 class Canvas {
 public:
+    virtual void setColor(const Color& color) = 0;
+    virtual void setColor(float r, float g, float b, float a) = 0;
+    virtual void setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform) = 0;
+    virtual void setRadialGradient(float cx, float cy, float r, float fx, float fy, SpreadMethod spread, const GradientStops& stops, const Transform& transform) = 0;
+    virtual void setTexture(const Canvas& source, TextureType type, float opacity, const Transform& transform) = 0;
+
+    virtual void fillPath(const Path& path, FillRule fillRule, const Transform& transform) = 0;
+    virtual void strokePath(const Path& path, const StrokeData& strokeData, const Transform& transform) = 0;
+
+    virtual void fillText(const std::u32string_view& text, const Font& font, const Point& origin, const Transform& transform) = 0;
+    virtual void strokeText(const std::u32string_view& text, float strokeWidth, const Font& font, const Point& origin, const Transform& transform) = 0;
+
+    virtual void clipPath(const Path& path, FillRule clipRule, const Transform& transform) = 0;
+    virtual void clipRect(const Rect& rect, FillRule clipRule, const Transform& transform) = 0;
+
+    virtual void drawImage(const Bitmap& image, const Rect& dstRect, const Rect& srcRect, const Transform& transform) = 0;
+    virtual void blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacity) = 0;
+
+    virtual void save() = 0;
+    virtual void restore() = 0;
+
+    virtual void convertToLuminanceMask() = 0;
+
+    virtual int x() const = 0;
+    virtual int y() const = 0;
+    virtual int width() const = 0;
+    virtual int height() const = 0;
+
+    virtual Rect extents() const = 0;
+
+    virtual juce_plutovg_surface_t* surface() const = 0;
+    virtual juce_plutovg_canvas_t* canvas() const = 0;
+
+    virtual ~Canvas() = default;
+};
+
+class CanvasImpl : public Canvas {
+public:
     static std::shared_ptr<Canvas> create(const Bitmap& bitmap);
     static std::shared_ptr<Canvas> create(float x, float y, float width, float height);
     static std::shared_ptr<Canvas> create(const Rect& extents);
 
-    void setColor(const Color& color);
-    void setColor(float r, float g, float b, float a);
-    void setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform);
-    void setRadialGradient(float cx, float cy, float r, float fx, float fy, SpreadMethod spread, const GradientStops& stops, const Transform& transform);
-    void setTexture(const Canvas& source, TextureType type, float opacity, const Transform& transform);
+    void setColor(const Color& color) override;
+    void setColor(float r, float g, float b, float a) override;
+    void setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform) override;
+    void setRadialGradient(float cx, float cy, float r, float fx, float fy, SpreadMethod spread, const GradientStops& stops, const Transform& transform) override;
+    void setTexture(const Canvas& source, TextureType type, float opacity, const Transform& transform) override;
 
-    void fillPath(const Path& path, FillRule fillRule, const Transform& transform);
-    void strokePath(const Path& path, const StrokeData& strokeData, const Transform& transform);
+    void fillPath(const Path& path, FillRule fillRule, const Transform& transform) override;
+    void strokePath(const Path& path, const StrokeData& strokeData, const Transform& transform) override;
 
-    void fillText(const std::u32string_view& text, const Font& font, const Point& origin, const Transform& transform);
-    void strokeText(const std::u32string_view& text, float strokeWidth, const Font& font, const Point& origin, const Transform& transform);
+    void fillText(const std::u32string_view& text, const Font& font, const Point& origin, const Transform& transform) override;
+    void strokeText(const std::u32string_view& text, float strokeWidth, const Font& font, const Point& origin, const Transform& transform) override;
 
-    void clipPath(const Path& path, FillRule clipRule, const Transform& transform);
-    void clipRect(const Rect& rect, FillRule clipRule, const Transform& transform);
+    void clipPath(const Path& path, FillRule clipRule, const Transform& transform) override;
+    void clipRect(const Rect& rect, FillRule clipRule, const Transform& transform) override;
 
-    void drawImage(const Bitmap& image, const Rect& dstRect, const Rect& srcRect, const Transform& transform);
-    void blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacity);
+    void drawImage(const Bitmap& image, const Rect& dstRect, const Rect& srcRect, const Transform& transform) override;
+    void blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacity) override;
 
-    void save();
-    void restore();
+    void save() override;
+    void restore() override;
 
-    void convertToLuminanceMask();
+    void convertToLuminanceMask() override;
 
-    int x() const { return m_x; }
-    int y() const { return m_y; }
-    int width() const;
-    int height() const;
+    int x() const override { return m_x; }
+    int y() const override { return m_y; }
+    int width() const override;
+    int height() const override;
 
-    Rect extents() const { return Rect(m_x, m_y, width(), height()); }
+    Rect extents() const override { return Rect(m_x, m_y, width(), height()); }
 
-    juce_plutovg_surface_t* surface() const { return m_surface; }
-    juce_plutovg_canvas_t* canvas() const { return m_canvas; }
+    juce_plutovg_surface_t* surface() const override { return m_surface; }
+    juce_plutovg_canvas_t* canvas() const override { return m_canvas; }
 
-    ~Canvas();
+    ~CanvasImpl() override;
 
 private:
-    Canvas(const Bitmap& bitmap);
-    Canvas(int x, int y, int width, int height);
+    CanvasImpl(const Bitmap& bitmap);
+    CanvasImpl(int x, int y, int width, int height);
     juce_plutovg_surface_t* m_surface;
     juce_plutovg_canvas_t* m_canvas;
     juce_plutovg_matrix_t m_translation;

@@ -489,54 +489,54 @@ float Font::measureText(const std::u32string_view& text) const
     return 0;
 }
 
-std::shared_ptr<Canvas> Canvas::create(const Bitmap& bitmap)
+std::shared_ptr<Canvas> CanvasImpl::create(const Bitmap& bitmap)
 {
-    return std::shared_ptr<Canvas>(new Canvas(bitmap));
+    return std::shared_ptr<Canvas>(new CanvasImpl(bitmap));
 }
 
-std::shared_ptr<Canvas> Canvas::create(float x, float y, float width, float height)
+std::shared_ptr<Canvas> CanvasImpl::create(float x, float y, float width, float height)
 {
     constexpr int kMaxSize = 1 << 15;
     if(width <= 0 || height <= 0 || width >= kMaxSize || height >= kMaxSize)
-        return std::shared_ptr<Canvas>(new Canvas(0, 0, 1, 1));
+        return std::shared_ptr<Canvas>(new CanvasImpl(0, 0, 1, 1));
     auto l = static_cast<int>(std::floor(x));
     auto t = static_cast<int>(std::floor(y));
     auto r = static_cast<int>(std::ceil(x + width));
     auto b = static_cast<int>(std::ceil(y + height));
-    return std::shared_ptr<Canvas>(new Canvas(l, t, r - l, b - t));
+    return std::shared_ptr<Canvas>(new CanvasImpl(l, t, r - l, b - t));
 }
 
-std::shared_ptr<Canvas> Canvas::create(const Rect& extents)
+std::shared_ptr<Canvas> CanvasImpl::create(const Rect& extents)
 {
     return create(extents.x, extents.y, extents.w, extents.h);
 }
 
-void Canvas::setColor(const Color& color)
+void CanvasImpl::setColor(const Color& color)
 {
     setColor(color.redF(), color.greenF(), color.blueF(), color.alphaF());
 }
 
-void Canvas::setColor(float r, float g, float b, float a)
+void CanvasImpl::setColor(float r, float g, float b, float a)
 {
     juce_plutovg_canvas_set_rgba(m_canvas, r, g, b, a);
 }
 
-void Canvas::setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform)
+void CanvasImpl::setLinearGradient(float x1, float y1, float x2, float y2, SpreadMethod spread, const GradientStops& stops, const Transform& transform)
 {
     juce_plutovg_canvas_set_linear_gradient(m_canvas, x1, y1, x2, y2, static_cast<juce_plutovg_spread_method_t>(spread), stops.data(), stops.size(), &transform.matrix());
 }
 
-void Canvas::setRadialGradient(float cx, float cy, float r, float fx, float fy, SpreadMethod spread, const GradientStops& stops, const Transform& transform)
+void CanvasImpl::setRadialGradient(float cx, float cy, float r, float fx, float fy, SpreadMethod spread, const GradientStops& stops, const Transform& transform)
 {
     juce_plutovg_canvas_set_radial_gradient(m_canvas, cx, cy, r, fx, fy, 0.f, static_cast<juce_plutovg_spread_method_t>(spread), stops.data(), stops.size(), &transform.matrix());
 }
 
-void Canvas::setTexture(const Canvas& source, TextureType type, float opacity, const Transform& transform)
+void CanvasImpl::setTexture(const Canvas& source, TextureType type, float opacity, const Transform& transform)
 {
     juce_plutovg_canvas_set_texture(m_canvas, source.surface(), static_cast<juce_plutovg_texture_type_t>(type), opacity, &transform.matrix());
 }
 
-void Canvas::fillPath(const Path& path, FillRule fillRule, const Transform& transform)
+void CanvasImpl::fillPath(const Path& path, FillRule fillRule, const Transform& transform)
 {
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
@@ -545,7 +545,7 @@ void Canvas::fillPath(const Path& path, FillRule fillRule, const Transform& tran
     juce_plutovg_canvas_fill_path(m_canvas, path.data());
 }
 
-void Canvas::strokePath(const Path& path, const StrokeData& strokeData, const Transform& transform)
+void CanvasImpl::strokePath(const Path& path, const StrokeData& strokeData, const Transform& transform)
 {
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
@@ -559,7 +559,7 @@ void Canvas::strokePath(const Path& path, const StrokeData& strokeData, const Tr
     juce_plutovg_canvas_stroke_path(m_canvas, path.data());
 }
 
-void Canvas::fillText(const std::u32string_view& text, const Font& font, const Point& origin, const Transform& transform)
+void CanvasImpl::fillText(const std::u32string_view& text, const Font& font, const Point& origin, const Transform& transform)
 {
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
@@ -569,7 +569,7 @@ void Canvas::fillText(const std::u32string_view& text, const Font& font, const P
     juce_plutovg_canvas_fill_text(m_canvas, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
 }
 
-void Canvas::strokeText(const std::u32string_view& text, float strokeWidth, const Font& font, const Point& origin, const Transform& transform)
+void CanvasImpl::strokeText(const std::u32string_view& text, float strokeWidth, const Font& font, const Point& origin, const Transform& transform)
 {
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
@@ -584,7 +584,7 @@ void Canvas::strokeText(const std::u32string_view& text, float strokeWidth, cons
     juce_plutovg_canvas_stroke_text(m_canvas, text.data(), text.length(), JUCE_PLUTOVG_TEXT_ENCODING_UTF32, origin.x, origin.y);
 }
 
-void Canvas::clipPath(const Path& path, FillRule clipRule, const Transform& transform)
+void CanvasImpl::clipPath(const Path& path, FillRule clipRule, const Transform& transform)
 {
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
@@ -592,7 +592,7 @@ void Canvas::clipPath(const Path& path, FillRule clipRule, const Transform& tran
     juce_plutovg_canvas_clip_path(m_canvas, path.data());
 }
 
-void Canvas::clipRect(const Rect& rect, FillRule clipRule, const Transform& transform)
+void CanvasImpl::clipRect(const Rect& rect, FillRule clipRule, const Transform& transform)
 {
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
     juce_plutovg_canvas_transform(m_canvas, &transform.matrix());
@@ -600,7 +600,7 @@ void Canvas::clipRect(const Rect& rect, FillRule clipRule, const Transform& tran
     juce_plutovg_canvas_clip_rect(m_canvas, rect.x, rect.y, rect.w, rect.h);
 }
 
-void Canvas::drawImage(const Bitmap& image, const Rect& dstRect, const Rect& srcRect, const Transform& transform)
+void CanvasImpl::drawImage(const Bitmap& image, const Rect& dstRect, const Rect& srcRect, const Transform& transform)
 {
     auto xScale = dstRect.w / srcRect.w;
     auto yScale = dstRect.h / srcRect.h;
@@ -614,7 +614,7 @@ void Canvas::drawImage(const Bitmap& image, const Rect& dstRect, const Rect& src
     juce_plutovg_canvas_fill_rect(m_canvas, 0, 0, dstRect.w, dstRect.h);
 }
 
-void Canvas::blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacity)
+void CanvasImpl::blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacity)
 {
     juce_plutovg_matrix_t matrix = { 1, 0, 0, 1, static_cast<float>(canvas.x()), static_cast<float>(canvas.y()) };
     juce_plutovg_canvas_set_matrix(m_canvas, &m_translation);
@@ -623,27 +623,27 @@ void Canvas::blendCanvas(const Canvas& canvas, BlendMode blendMode, float opacit
     juce_plutovg_canvas_paint(m_canvas);
 }
 
-void Canvas::save()
+void CanvasImpl::save()
 {
     juce_plutovg_canvas_save(m_canvas);
 }
 
-void Canvas::restore()
+void CanvasImpl::restore()
 {
     juce_plutovg_canvas_restore(m_canvas);
 }
 
-int Canvas::width() const
+int CanvasImpl::width() const
 {
     return juce_plutovg_surface_get_width(m_surface);
 }
 
-int Canvas::height() const
+int CanvasImpl::height() const
 {
     return juce_plutovg_surface_get_height(m_surface);
 }
 
-void Canvas::convertToLuminanceMask()
+void CanvasImpl::convertToLuminanceMask()
 {
     auto width = juce_plutovg_surface_get_width(m_surface);
     auto height = juce_plutovg_surface_get_height(m_surface);
@@ -669,13 +669,13 @@ void Canvas::convertToLuminanceMask()
     }
 }
 
-Canvas::~Canvas()
+CanvasImpl::~CanvasImpl()
 {
     juce_plutovg_canvas_destroy(m_canvas);
     juce_plutovg_surface_destroy(m_surface);
 }
 
-Canvas::Canvas(const Bitmap& bitmap)
+CanvasImpl::CanvasImpl(const Bitmap& bitmap)
     : m_surface(juce_plutovg_surface_reference(bitmap.surface()))
     , m_canvas(juce_plutovg_canvas_create(m_surface))
     , m_translation({1, 0, 0, 1, 0, 0})
@@ -683,7 +683,7 @@ Canvas::Canvas(const Bitmap& bitmap)
 {
 }
 
-Canvas::Canvas(int x, int y, int width, int height)
+CanvasImpl::CanvasImpl(int x, int y, int width, int height)
     : m_surface(juce_plutovg_surface_create(width, height))
     , m_canvas(juce_plutovg_canvas_create(m_surface))
     , m_translation({1, 0, 0, 1, -static_cast<float>(x), -static_cast<float>(y)})

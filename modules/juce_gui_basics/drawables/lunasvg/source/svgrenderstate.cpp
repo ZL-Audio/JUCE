@@ -32,7 +32,7 @@ void SVGRenderState::beginGroup(const SVGBlendInfo& blendInfo)
     if(requiresCompositing) {
         auto boundingBox = m_currentTransform.mapRect(m_element->paintBoundingBox());
         boundingBox.intersect(m_canvas->extents());
-        m_canvas = Canvas::create(boundingBox);
+        m_canvas = CanvasImpl::create(boundingBox);
     } else {
         m_canvas->save();
     }
