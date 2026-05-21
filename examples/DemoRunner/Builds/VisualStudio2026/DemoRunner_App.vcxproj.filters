@@ -9260,6 +9260,9 @@
     <None Include="..\..\..\..\modules\juce_graphics\drawables\lunasvg\plutovg\source\FTL.TXT">
       <Filter>JUCE Modules\juce_graphics\drawables\lunasvg\plutovg\source</Filter>
     </None>
+    <None Include="..\..\..\..\modules\juce_graphics\drawables\lunasvg\JUCE_CHANGES.txt">
+      <Filter>JUCE Modules\juce_graphics\drawables\lunasvg</Filter>
+    </None>
     <None Include="..\..\..\..\modules\juce_graphics\image_formats\jpglib\changes to libjpeg for JUCE.txt">
       <Filter>JUCE Modules\juce_graphics\image_formats\jpglib</Filter>
     </None>
