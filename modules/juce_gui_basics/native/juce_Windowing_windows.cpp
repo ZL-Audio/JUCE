@@ -2893,11 +2893,14 @@ private:
             const auto orientation = touchInfo.touchMask & TOUCH_MASK_ORIENTATION ? degreesToRadians (static_cast<float> (touchInfo.orientation))
                                                                                   : MouseInputSource::defaultOrientation;
 
-            if (! handleTouchInput (emulateTouchEventFromPointer (touchInfo.pointerInfo.ptPixelLocationRaw, wParam),
-                                    isDown, isUp, pressure, orientation))
-                return false;
+            return handleTouchInput (emulateTouchEventFromPointer (touchInfo.pointerInfo.ptPixelLocationRaw, wParam),
+                                     isDown,
+                                     isUp,
+                                     pressure,
+                                     orientation);
         }
-        else if (pointerType == MouseInputSource::InputSourceType::pen)
+
+        if (pointerType == MouseInputSource::InputSourceType::pen)
         {
             POINTER_PEN_INFO penInfo;
 
@@ -2910,15 +2913,10 @@ private:
             const auto physical = D2DUtilities::toPoint (getPOINTFromLParam (lParam)).toFloat();
             const auto logical = SH::convertPhysicalScreenPointToLogical (physical);
 
-            if (! handlePenInput (penInfo, globalToLocal (logical), pressure, isDown, isUp))
-                return false;
-        }
-        else
-        {
-            return false;
+            return handlePenInput (penInfo, globalToLocal (logical), pressure, isDown, isUp);
         }
 
-        return true;
+        return false;
     }
 
     TOUCHINPUT emulateTouchEventFromPointer (POINT p, WPARAM wParam)
@@ -3873,7 +3871,7 @@ private:
 
                 break;
 
-            case 0x119: /* WM_GESTURE */
+            case WM_GESTURE:
                 if (doGestureEvent (lParam))
                     return 0;
 
