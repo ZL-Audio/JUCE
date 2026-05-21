@@ -775,6 +775,9 @@ static void juce_plutovg_unmap(void* data, long length)
 
 #endif // _WIN32
 
+#ifdef _MSC_VER
+#pragma optimize("", off)
+#endif
 int juce_plutovg_font_face_cache_load_file(juce_plutovg_font_face_cache_t* cache, const char* filename)
 {
     long length;
@@ -942,6 +945,9 @@ int juce_plutovg_font_face_cache_load_file(juce_plutovg_font_face_cache_t* cache
     juce_plutovg_unmap(data, length);
     return num_faces;
 }
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
 
 static bool juce_plutovg_font_face_supports_file(const char* filename)
 {
