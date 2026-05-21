@@ -525,7 +525,11 @@ namespace AAXClasses
                #endif
                 {
                     component->setVisible (true);
-                    component->addToDesktop (detail::PluginUtilities::getDesktopFlags (component->pluginEditor.get()), nativeViewToAttachTo);
+                    const auto [flags, usesMultiTouch] = detail::PluginUtilities::getDesktopFlagsAndWindowsMultiTouchMode (component->pluginEditor.get());
+                    component->addToDesktop (flags, nativeViewToAttachTo);
+
+                    if (auto* peer = component->getPeer())
+                        peer->setWindowsCanUseMultiTouch (usesMultiTouch);
 
                     if (ModifierKeyReceiver* modReceiver = dynamic_cast<ModifierKeyReceiver*> (component->getPeer()))
                         modReceiver->setModifierKeyProvider (this);

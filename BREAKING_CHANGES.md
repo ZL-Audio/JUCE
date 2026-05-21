@@ -4,6 +4,31 @@
 
 ## Change
 
+Multi-touch is now disabled on Windows by default.
+
+**Possible Issues**
+
+Applications that rely on multi-touch input on Windows will no longer receive
+multi-touch events.
+
+**Workaround**
+
+To explicitly enable multi-touch support on Windows, call
+`TopLevelWindow::setUsingWindowsMultiTouch (true)` in desktop applications, or
+override `PluginEditor::usesWindowsMultiTouch()` in plugins and return `true`.
+
+**Rationale**
+
+Enabling multi-touch on Windows means the app cannot respond to built-in
+gestures, such as pinch-to-zoom. This is likely to be an unwanted default. The
+reason is that if `registerTouchWindow()` is called for an HWND its
+`DefWindowProc` will no longer emit gesture events. This means that `WM_GESTURE`
+messages aren't sent, and no callbacks will be made to
+e.g. `Component::mouseMagnify()`.
+
+
+## Change
+
 The function Drawable::createFromSVG (const XmlElement& svgDocument) has been
 removed.
 

@@ -241,4 +241,9 @@ bool AudioProcessorEditor::wantsLayerBackedView() const
    #endif
 }
 
+bool AudioProcessorEditor::usesWindowsMultiTouch() const
+{
+    return false;
+}
+
 } // namespace juce

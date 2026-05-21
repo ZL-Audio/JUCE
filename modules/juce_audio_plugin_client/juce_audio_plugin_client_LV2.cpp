@@ -1550,7 +1550,12 @@ public:
         setOpaque (true);
         setVisible (false);
         removeFromDesktop();
-        addToDesktop (detail::PluginUtilities::getDesktopFlags (editor.get()), parent);
+
+        const auto [desktopFlags, windowsUsesMultiTouch] = detail::PluginUtilities::getDesktopFlagsAndWindowsMultiTouchMode (editor.get());
+        addToDesktop (desktopFlags, parent);
+
+        if (auto* peer = getPeer())
+            peer->setWindowsCanUseMultiTouch (windowsUsesMultiTouch);
 
         *widget = getWindowHandle();
 

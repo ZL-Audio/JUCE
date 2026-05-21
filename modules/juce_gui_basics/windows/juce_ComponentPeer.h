@@ -659,6 +659,12 @@ public:
     /** @internal */
     auto getMultimonitorPositionOverride() const { return multimonitorPositionOverride; }
 
+    /** @internal */
+    virtual void setWindowsCanUseMultiTouch (bool) {}
+
+    /** @internal */
+    virtual bool canWindowsUseMultiTouch() const noexcept { return false; }
+
 protected:
     //==============================================================================
     static void forceDisplayUpdate();

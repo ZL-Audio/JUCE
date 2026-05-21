@@ -1979,11 +1979,15 @@ private:
 
             createContentWrapperComponentIfNeeded();
 
-            const auto desktopFlags = detail::PluginUtilities::getDesktopFlags (component->pluginEditor.get());
+            const auto [desktopFlags, windowsMultiTouch] = detail::PluginUtilities::getDesktopFlagsAndWindowsMultiTouchMode (component->pluginEditor.get());
 
            #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
             component->setOpaque (true);
             component->addToDesktop (desktopFlags, systemWindow);
+
+            if (auto* peer = component->getPeer())
+                peer->setWindowsCanUseMultiTouch (windowsMultiTouch);
+
             component->setVisible (true);
            #else
             macHostWindow = detail::VSTWindowUtilities::attachComponentToWindowRefVST (component.get(), desktopFlags, parent);

@@ -352,7 +352,7 @@ public:
         setPointerState (pointerState, time, false);
         triggerFakeMove();
 
-        return getComponentUnderMouse();
+        return peer.getComponent().getComponentAt (positionWithinPeer);
     }
 
     void handleWheel (ComponentPeer& peer, Point<float> positionWithinPeer,

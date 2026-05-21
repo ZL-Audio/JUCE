@@ -952,10 +952,14 @@ public:
         {
             setVisible (false);
 
-            const auto desktopFlags = detail::PluginUtilities::getDesktopFlags (getEditorComp());
+            const auto [desktopFlags, windowsUsesMultiTouch] = detail::PluginUtilities::getDesktopFlagsAndWindowsMultiTouchMode (getEditorComp());
 
            #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
             addToDesktop (desktopFlags, args.ptr);
+
+            if (auto* peer = getPeer())
+                peer->setWindowsCanUseMultiTouch (windowsUsesMultiTouch);
+
             hostWindow = (HostWindowType) args.ptr;
 
             #if JUCE_LINUX || JUCE_BSD

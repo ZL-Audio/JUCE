@@ -72,6 +72,11 @@ bool TopLevelWindow::isUsingNativeTitleBar() const noexcept
     return useNativeTitleBar && (isOnDesktop() || ! isShowing());
 }
 
+bool TopLevelWindow::isUsingWindowsMultiTouch() const noexcept
+{
+    return canUseWindowsMultiTouch && (isOnDesktop() || ! isShowing());
+}
+
 void TopLevelWindow::visibilityChanged()
 {
     if (isShowing())
@@ -135,11 +140,23 @@ void TopLevelWindow::setUsingNativeTitleBar (const bool shouldUseNativeTitleBar)
     }
 }
 
+void TopLevelWindow::setUsingWindowsMultiTouch (bool shouldUseMultiTouch)
+{
+    canUseWindowsMultiTouch = shouldUseMultiTouch;
+
+    if (auto* peer = getPeer())
+        peer->setWindowsCanUseMultiTouch (canUseWindowsMultiTouch);
+}
+
 void TopLevelWindow::recreateDesktopWindow()
 {
     if (isOnDesktop())
     {
         Component::addToDesktop (getDesktopWindowStyleFlags());
+
+        if (auto* peer = getPeer())
+            peer->setWindowsCanUseMultiTouch (canUseWindowsMultiTouch);
+
         toFront (true);
     }
 }
@@ -148,6 +165,10 @@ void TopLevelWindow::addToDesktop()
 {
     shadower = nullptr;
     Component::addToDesktop (getDesktopWindowStyleFlags());
+
+    if (auto* peer = getPeer())
+        peer->setWindowsCanUseMultiTouch (canUseWindowsMultiTouch);
+
     setDropShadowEnabled (isDropShadowEnabled()); // force an update to clear away any fake shadows if necessary
 }
 

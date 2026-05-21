@@ -368,9 +368,21 @@ struct MenuWindow final : public Component
             if (shouldDisableAccessibility)
                 setAccessible (false);
 
+            const auto windowsMultiTouchFlag = std::invoke ([&]
+            {
+                if (auto* topComponent = options.getTopLevelTargetComponent())
+                    if (auto* topPeer = topComponent->getPeer())
+                        return topPeer->canWindowsUseMultiTouch();
+
+                return false;
+            });
+
             addToDesktop (ComponentPeer::windowIsTemporary
                           | ComponentPeer::windowIgnoresKeyPresses
                           | lf.getMenuWindowFlags());
+
+            if (auto* peer = getPeer())
+                peer->setWindowsCanUseMultiTouch (windowsMultiTouchFlag);
         }
 
         // Using a global mouse listener means that we get notifications about all mouse events.

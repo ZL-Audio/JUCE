@@ -231,6 +231,15 @@ public:
     */
     virtual bool wantsLayerBackedView() const;
 
+    /** The plugin wrapper will call this function to decide whether the editor is capable of
+        handling multi-touch events on Windows. This is disabled by default.
+
+        Editors and Windows that opt in to handling multi-touch events will have the built-in
+        Windows gesture recognition features disabled, and will not receive callbacks to
+        Component::mouseMagnify().
+    */
+    virtual bool usesWindowsMultiTouch() const;
+
 private:
     //==============================================================================
     struct AudioProcessorEditorListener : public ComponentListener

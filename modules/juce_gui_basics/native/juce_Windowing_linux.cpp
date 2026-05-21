@@ -222,7 +222,7 @@ public:
 
         if (fullScreen != shouldBeFullScreen)
         {
-            const auto usingNativeTitleBar = ((styleFlags & windowHasTitleBar) != 0);
+            const auto usingNativeTitleBar = ((getStyleFlags() & windowHasTitleBar) != 0);
 
             if (usingNativeTitleBar)
                 XWindowSystem::getInstance()->setMaximised (windowH, shouldBeFullScreen);
@@ -288,7 +288,7 @@ public:
     {
         if (auto* otherPeer = dynamic_cast<LinuxComponentPeer*> (other))
         {
-            if (otherPeer->styleFlags & windowIsTemporary)
+            if (otherPeer->getStyleFlags() & windowIsTemporary)
                 return;
 
             setMinimised (false);
@@ -382,7 +382,7 @@ public:
     bool isConstrainedNativeWindow() const
     {
         return constrainer != nullptr
-            && (styleFlags & (windowHasTitleBar | windowIsResizable)) == (windowHasTitleBar | windowIsResizable)
+            && (getStyleFlags() & (windowHasTitleBar | windowIsResizable)) == (windowHasTitleBar | windowIsResizable)
             && ! isKioskMode();
     }
 
@@ -405,7 +405,7 @@ public:
 
     void updateBorderSize()
     {
-        if ((styleFlags & windowHasTitleBar) == 0)
+        if ((getStyleFlags() & windowHasTitleBar) == 0)
         {
             windowBorder = OptionalBorderSize { BorderSize<int>() };
         }

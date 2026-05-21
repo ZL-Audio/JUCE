@@ -135,6 +135,11 @@ public:
                 return wrapped->wantsLayerBackedView();
             }
 
+            bool usesWindowsMultiTouch() const override
+            {
+                return wrapped->usesWindowsMultiTouch();
+            }
+
         private:
             InternalPlugin& self;
             std::unique_ptr<AudioProcessorEditor> wrapped { self.inner->createEditorAndMakeActive() };

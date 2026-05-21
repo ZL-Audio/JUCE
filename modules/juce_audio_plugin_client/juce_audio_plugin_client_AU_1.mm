@@ -1730,7 +1730,9 @@ public:
                                                        object: nil];
             activeUIs.add (view);
 
-            editorCompHolder->addToDesktop (detail::PluginUtilities::getDesktopFlags (editor), view);
+            const auto flagsAndMultiTouch = detail::PluginUtilities::getDesktopFlagsAndWindowsMultiTouchMode (editor);
+
+            editorCompHolder->addToDesktop (flagsAndMultiTouch.desktopFlags, view);
             editorCompHolder->setVisible (true);
 
             return view;

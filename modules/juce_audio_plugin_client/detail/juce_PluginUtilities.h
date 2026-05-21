@@ -28,21 +28,40 @@ struct PluginUtilities
 {
     PluginUtilities() = delete;
 
-    static int getDesktopFlags (const AudioProcessorEditor& editor)
+    struct FlagsAndWindowsMultiTouch
     {
-        return editor.wantsLayerBackedView()
-             ? 0
-             : ComponentPeer::windowRequiresSynchronousCoreGraphicsRendering;
+        FlagsAndWindowsMultiTouch (int d, bool w)
+            : desktopFlags (d),
+              windowsUsesMultiTouch (w)
+        {
+        }
+
+        int desktopFlags{};
+        bool windowsUsesMultiTouch{};
+    };
+
+    static FlagsAndWindowsMultiTouch getDesktopFlagsAndWindowsMultiTouchMode (const AudioProcessorEditor& editor)
+    {
+        auto flags = editor.wantsLayerBackedView()
+                   ? 0
+                   : ComponentPeer::windowRequiresSynchronousCoreGraphicsRendering;
+
+        return { flags, editor.usesWindowsMultiTouch() };
     }
 
-    static int getDesktopFlags (const AudioProcessorEditor* editor)
+    static FlagsAndWindowsMultiTouch getDesktopFlagsAndWindowsMultiTouchMode (const AudioProcessorEditor* editor)
     {
-        return editor != nullptr ? getDesktopFlags (*editor) : 0;
+        return editor != nullptr ? getDesktopFlagsAndWindowsMultiTouchMode (*editor)
+                                 : FlagsAndWindowsMultiTouch { 0, false };
     }
 
     static void addToDesktop (AudioProcessorEditor& editor, void* parent)
     {
-        editor.addToDesktop (getDesktopFlags (editor), parent);
+        const auto [flags, usesWindowsMultiTouch] = getDesktopFlagsAndWindowsMultiTouchMode (editor);
+        editor.addToDesktop (flags, parent);
+
+        if (auto* peer = editor.getPeer())
+            peer->setWindowsCanUseMultiTouch (usesWindowsMultiTouch);
     }
 
     static const PluginHostType& getHostType()
