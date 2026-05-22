@@ -65,6 +65,12 @@ private:
     ScopedWindowAssociation association;
 };
 
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wzero-as-null-pointer-constant")
+static constexpr EGLContext nullContext = EGL_NO_CONTEXT;
+static constexpr EGLDisplay nullDisplay = EGL_NO_DISPLAY;
+static constexpr EGLSurface nullSurface = EGL_NO_SURFACE;
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+
 //==============================================================================
 class OpenGLContext::NativeContext
 {
@@ -98,7 +104,7 @@ private:
 
         ScopedEGLObject (ScopedEGLObject&& other) noexcept
             : object  (std::exchange (other.object, Type{})),
-              display (std::exchange (other.display, EGL_NO_DISPLAY)) {}
+              display (std::exchange (other.display, nullDisplay)) {}
 
         ScopedEGLObject& operator= (ScopedEGLObject&& other) noexcept
         {
@@ -138,7 +144,7 @@ private:
 
     private:
         Type object{};
-        EGLDisplay display = EGL_NO_DISPLAY;
+        EGLDisplay display = nullDisplay;
     };
 
     struct TraitsEGLContext
@@ -180,7 +186,7 @@ public:
 
         eglDisplay = eglGetDisplay (display);
 
-        if (eglDisplay == EGL_NO_DISPLAY)
+        if (eglDisplay == nullDisplay)
             return;
 
         {
@@ -262,7 +268,7 @@ public:
         eglSurface.reset();
         renderContext.reset();
 
-        if (eglDisplay != EGL_NO_DISPLAY)
+        if (eglDisplay != nullDisplay)
             eglTerminate (eglDisplay);
 
         if (auto* peer = component.getPeer())
@@ -372,8 +378,8 @@ public:
     {
         const auto currentDisplay = eglGetCurrentDisplay();
 
-        if (currentDisplay != EGL_NO_DISPLAY)
-            eglMakeCurrent (currentDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (currentDisplay != nullDisplay)
+            eglMakeCurrent (currentDisplay, nullSurface, nullSurface, nullContext);
     }
 
     void swapBuffers()
@@ -464,7 +470,7 @@ private:
     CriticalSection mutex;
     Component& component;
 
-    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
+    EGLDisplay eglDisplay = nullDisplay;
     PtrEGLContext renderContext;
     PtrEGLSurface eglSurface;
 
@@ -487,7 +493,7 @@ private:
 //==============================================================================
 bool OpenGLHelpers::isContextActive()
 {
-    return eglGetCurrentContext() != EGL_NO_CONTEXT;
+    return eglGetCurrentContext() != nullContext;
 }
 
 } // namespace juce
