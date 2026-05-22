@@ -274,14 +274,7 @@ struct TouchFunctions
     {
         static const auto result = std::invoke ([]() -> std::optional<TouchFunctions>
         {
-            const TouchFunctions touchFunctions
-            {
-                (RegisterTouchWindowFunc) getUser32Function ("RegisterTouchWindow"),
-                (UnregisterTouchWindowFunc) getUser32Function ("UnregisterTouchWindow"),
-                (GetTouchInputInfoFunc) getUser32Function ("GetTouchInputInfo"),
-                (CloseTouchInputHandleFunc) getUser32Function ("CloseTouchInputHandle"),
-                (GetGestureInfoFunc) getUser32Function ("GetGestureInfo")
-            };
+            const TouchFunctions touchFunctions;
 
             if (touchFunctions.registerTouchWindow == nullptr
                 || touchFunctions.unregisterTouchWindow == nullptr
@@ -304,11 +297,11 @@ struct TouchFunctions
     using CloseTouchInputHandleFunc  = BOOL (WINAPI*) (HTOUCHINPUT);
     using GetGestureInfoFunc         = BOOL (WINAPI*) (HGESTUREINFO, GESTUREINFO*);
 
-    RegisterTouchWindowFunc   registerTouchWindow   = nullptr;
-    UnregisterTouchWindowFunc unregisterTouchWindow = nullptr;
-    GetTouchInputInfoFunc     getTouchInputInfo     = nullptr;
-    CloseTouchInputHandleFunc closeTouchInputHandle = nullptr;
-    GetGestureInfoFunc        getGestureInfo        = nullptr;
+    RegisterTouchWindowFunc   registerTouchWindow   = (RegisterTouchWindowFunc) getUser32Function ("RegisterTouchWindow");
+    UnregisterTouchWindowFunc unregisterTouchWindow = (UnregisterTouchWindowFunc) getUser32Function ("UnregisterTouchWindow");
+    GetTouchInputInfoFunc     getTouchInputInfo     = (GetTouchInputInfoFunc) getUser32Function ("GetTouchInputInfo");
+    CloseTouchInputHandleFunc closeTouchInputHandle = (CloseTouchInputHandleFunc) getUser32Function ("CloseTouchInputHandle");
+    GetGestureInfoFunc        getGestureInfo        = (GetGestureInfoFunc) getUser32Function ("GetGestureInfo");
 
 private:
     TouchFunctions() = default;
@@ -321,12 +314,7 @@ struct PointerFunctions
     {
         static const auto result = std::invoke ([]() -> std::optional<PointerFunctions>
         {
-            const PointerFunctions pointerFunctions
-            {
-                (GetPointerTypeFunc)      getUser32Function ("GetPointerType"),
-                (GetPointerTouchInfoFunc) getUser32Function ("GetPointerTouchInfo"),
-                (GetPointerPenInfoFunc)   getUser32Function ("GetPointerPenInfo")
-            };
+            const PointerFunctions pointerFunctions;
 
             if (pointerFunctions.getPointerType == nullptr
                 || pointerFunctions.getPointerTouchInfo == nullptr
@@ -345,12 +333,12 @@ struct PointerFunctions
     using GetPointerTouchInfoFunc  =  BOOL (WINAPI*) (UINT32, POINTER_TOUCH_INFO*);
     using GetPointerPenInfoFunc    =  BOOL (WINAPI*) (UINT32, POINTER_PEN_INFO*);
 
-    GetPointerTypeFunc      getPointerType         = nullptr;
-    GetPointerTouchInfoFunc getPointerTouchInfo    = nullptr;
-    GetPointerPenInfoFunc   getPointerPenInfo      = nullptr;
+    GetPointerTypeFunc      getPointerType         = (GetPointerTypeFunc)      getUser32Function ("GetPointerType");
+    GetPointerTouchInfoFunc getPointerTouchInfo    = (GetPointerTouchInfoFunc) getUser32Function ("GetPointerTouchInfo");
+    GetPointerPenInfoFunc   getPointerPenInfo      = (GetPointerPenInfoFunc)   getUser32Function ("GetPointerPenInfo");
 
 private:
-    PointerFunctions() = delete;
+    PointerFunctions() = default;
 };
 
 //==============================================================================
