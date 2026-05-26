@@ -19,13 +19,30 @@
 namespace juce
 {
 
-Random::Random (int64 seedValue) noexcept  : seed (seedValue)
+Random::Random (int64 seedValue) noexcept
+    : seed (seedValue)
+   #if JUCE_CHECK_MEMORY_LEAKS
+    , optionalLeakDetector (std::make_optional<LeakedObjectDetector<Random>>())
+   #endif
 {
 }
 
-Random::Random()  : seed (1)
+Random::Random()
+    : Random (SystemRandomTag { false })
+{
+}
+
+Random::Random ([[maybe_unused]] SystemRandomTag x)
+    : seed (1)
+   #if JUCE_CHECK_MEMORY_LEAKS
+    , optionalLeakDetector (x.value ? std::nullopt : std::make_optional<LeakedObjectDetector<Random>>())
+   #endif
 {
     setSeedRandomly();
+
+   #if JUCE_ASSERTIONS_ENABLED_OR_LOGGED
+    isSystemRandom = x.value;
+   #endif
 }
 
 void Random::setSeed (const int64 newSeed) noexcept
@@ -65,15 +82,7 @@ void Random::setSeedRandomly()
 
 Random& Random::getSystemRandom() noexcept
 {
-    thread_local Random sysRand = std::invoke ([]
-    {
-        Random r;
-       #if JUCE_ASSERTIONS_ENABLED_OR_LOGGED
-        r.isSystemRandom = true;
-       #endif
-        return r;
-    });
-
+    thread_local Random sysRand { SystemRandomTag { true } };
     return sysRand;
 }
 

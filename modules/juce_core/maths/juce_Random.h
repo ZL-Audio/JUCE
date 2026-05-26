@@ -123,13 +123,20 @@ public:
 
 private:
     //==============================================================================
+    struct SystemRandomTag { bool value; };
+    explicit Random (SystemRandomTag x);
+
     int64 seed;
 
-    #if JUCE_ASSERTIONS_ENABLED_OR_LOGGED
-     bool isSystemRandom = false;
-    #endif
+   #if JUCE_ASSERTIONS_ENABLED_OR_LOGGED
+    bool isSystemRandom = false;
+   #endif
 
-    JUCE_LEAK_DETECTOR (Random)
+   #if JUCE_CHECK_MEMORY_LEAKS
+    friend class LeakedObjectDetector<Random>;
+    static const char* getLeakedObjectClassName() noexcept { return "Random"; }
+    std::optional<LeakedObjectDetector<Random>> optionalLeakDetector;
+   #endif
 };
 
 } // namespace juce
