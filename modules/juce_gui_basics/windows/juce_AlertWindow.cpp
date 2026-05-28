@@ -382,22 +382,40 @@ void AlertWindow::updateLayout (const bool onlyIncreaseSize)
     AttributedString attributedText;
     attributedText.append (getName(), lf.getAlertWindowTitleFont());
 
+    auto numLinesInAttributedText = 1;
+
     if (text.isNotEmpty())
+    {
         attributedText.append ("\n\n" + text, messageFont);
+        numLinesInAttributedText += 2;
+    }
 
     attributedText.setColour (findColour (textColourId));
 
     if (alertIconType == NoIcon)
     {
         attributedText.setJustification (Justification::centredTop);
-        textLayout.createLayoutWithBalancedLineLengths (attributedText, (float) w);
     }
     else
     {
         attributedText.setJustification (Justification::topLeft);
-        textLayout.createLayoutWithBalancedLineLengths (attributedText, (float) w);
         iconSpace = iconWidth;
     }
+
+    textLayout = std::invoke ([&]
+    {
+        TextLayout layout;
+
+        layout.createLayout (attributedText, (float) w);
+
+        if (layout.getNumLines() > numLinesInAttributedText)
+        {
+            layout = TextLayout{};
+            layout.createLayoutWithBalancedLineLengths (attributedText, (float) w);
+        }
+
+        return layout;
+     });
 
     w = jmax (350, (int) textLayout.getWidth() + iconSpace + edgeGap * 4);
     w = jmin (w, (int) ((float) getParentWidth() * 0.7f));
