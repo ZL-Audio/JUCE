@@ -56,6 +56,9 @@ public:
     /** Returns the ramp duration in seconds. */
     double getRampDurationSeconds() const noexcept              { return rampDurationSeconds; }
 
+    /** Returns the number of samples remaining to reach the target value */
+    int getNumSamplesToReachTarget() const noexcept       { return gain.getNumSamplesToReachTarget(); }
+
     /** Returns true if the current value is currently being interpolated. */
     bool isSmoothing() const noexcept                           { return gain.isSmoothing(); }
 
