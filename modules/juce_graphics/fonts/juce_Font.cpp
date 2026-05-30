@@ -301,6 +301,8 @@ public:
     std::optional<float> getAscentOverride() const  { return options.getAscentOverride(); }
     std::optional<float> getDescentOverride() const { return options.getDescentOverride(); }
 
+    bool getDirect2DHinting() const { return options.getDirect2DHinting(); }
+
     /*  This shared state may be shared between two or more Font instances that are being
         read/modified from multiple threads.
         Before modifying a shared instance you *must* call dupeInternalIfShared to
@@ -368,6 +370,12 @@ public:
     {
         jassert (getReferenceCount() == 1);
         options = options.withDescentOverride (x);
+    }
+
+    void setDirect2DHinting (bool x)
+    {
+        jassert (getReferenceCount() == 1);
+        options = options.withDirect2DHinting (x);
     }
 
     void setUnderline (bool x)
@@ -776,6 +784,17 @@ void Font::setDescentOverride (std::optional<float> x)
 {
     dupeInternalIfShared();
     font->setDescentOverride (x);
+}
+
+void Font::setDirect2DHinting (bool x)
+{
+    dupeInternalIfShared();
+    font->setDirect2DHinting (x);
+}
+
+bool Font::getDirect2DHinting() const noexcept
+{
+    return font->getDirect2DHinting();
 }
 
 Font Font::boldened() const                 { return withStyle (getStyleFlags() | bold); }

@@ -217,6 +217,29 @@ public:
     */
     [[nodiscard]] FontOptions withVariableRemoved (FontFeatureTag tag) const;
 
+    /** Returns a copy of these options with Direct2D hinting enabled or disabled as specified.
+
+        The default state is enabled.
+
+        This option currently only has an effect when using the Direct2D renderer on Windows.
+
+        Some fonts can look substantially different under the Direct2D renderer when compared to
+        the software or OpenGL renderers. Fonts such as MS PGothic have hinted bitmaps for specific
+        font sizes, and these bitmaps may appear much thinner than the font outlines that are also
+        provided in the font. The software renderer always rasterises the font outlines, but
+        Direct2D will default to using the built-in bitmaps if present, which will more closely
+        match the intentions of the font designer. Disabling this option will cause the Direct2D
+        to rasterise the font outlines in a similar way to the software renderer, which will
+        produce a result that's closer to that of the software renderer (and therefore the legacy
+        JUCE behaviour).
+
+        @see getDirect2DHinting()
+    */
+    [[nodiscard]] FontOptions withDirect2DHinting (bool state) const
+    {
+        return withMember (*this, &FontOptions::direct2DHinting, state);
+    }
+
     /** @see withName() */
     [[nodiscard]] auto getName()             const { return name; }
     /** @see withStyle() */
@@ -252,6 +275,9 @@ public:
     [[nodiscard]] Span<const FontVariableSetting> getVariableSettings() const& { return variables; }
     [[nodiscard]] Span<const FontVariableSetting> getVariableSettings() const&& = delete;
 
+    /** @see withDirect2DHinting() */
+    [[nodiscard]] bool getDirect2DHinting()   const { return direct2DHinting; }
+
     /** Equality operator. */
     [[nodiscard]] bool operator== (const FontOptions& other) const;
     /** Inequality operator. */
@@ -281,6 +307,7 @@ private:
     float ascentOverride = -1.0f;
     float descentOverride = -1.0f;
     bool fallbackEnabled = true;
+    bool direct2DHinting = true;
     bool underlined{};
 };
 

@@ -557,6 +557,30 @@ public:
     void setDescentOverride (std::optional<float>);
 
     //==============================================================================
+    /** Set Direct2D hinting enabled or disabled as specified.
+
+        The default state is enabled.
+
+        This option currently only has an effect when using the Direct2D renderer on Windows.
+
+        Some typefaces can look substantially different under the Direct2D renderer when compared to
+        the software or OpenGL renderers. Fonts such as MS PGothic have hinted bitmaps for specific
+        font sizes, and these bitmaps may appear much thinner than the font outlines that are also
+        provided in the font. The software renderer always rasterises the font outlines, but
+        Direct2D will default to using the built-in bitmaps if present, which will more closely
+        match the intentions of the font designer. Disabling this option will cause the Direct2D
+        to rasterise the font outlines in a similar way to the software renderer, which will
+        produce a result that's closer to that of the software renderer (and therefore the legacy
+        JUCE behaviour).
+
+        @see getDirect2DHinting()
+    */
+    void setDirect2DHinting (bool);
+
+    /** @see setDirect2DHinting() */
+    bool getDirect2DHinting() const noexcept;
+
+    //==============================================================================
     /** Changes all the font's characteristics with one call. */
     void setSizeAndStyle (float newHeight,
                           int newStyleFlags,

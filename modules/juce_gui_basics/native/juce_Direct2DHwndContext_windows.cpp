@@ -398,6 +398,20 @@ public:
         return swap.getBuffer();
     }
 
+    ComSmartPtr<IDWriteRenderingParams> getDefaultTextRenderingParams() const override
+    {
+        if (auto monitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONULL))
+        {
+            ComSmartPtr<IDWriteRenderingParams> result;
+            getDirectWriteFactory()->CreateMonitorRenderingParams (monitor, result.resetAndGetPointerAddress());
+
+            if (result != nullptr)
+                return result;
+        }
+
+        return Pimpl::getDefaultTextRenderingParams();
+    }
+
     void setSize (Rectangle<int> size)
     {
         if (size == swap.getSize() || size.isEmpty())

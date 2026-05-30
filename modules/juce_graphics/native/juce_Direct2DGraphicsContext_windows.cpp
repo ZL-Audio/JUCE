@@ -1153,13 +1153,13 @@ void Direct2DGraphicsContext::drawGlyphs (Span<const uint16_t> glyphNumbers,
         return;
 
     const auto typeface = font.getTypefacePtr();
-    const auto fontFace = [&]() -> ComSmartPtr<IDWriteFontFace>
+    const auto fontFace = std::invoke ([&]() -> ComSmartPtr<IDWriteFontFace>
     {
         if (auto* x = typeface->getNativeDetails()->getWindowsDirectWriteTypeface())
             return x->getIDWriteFontFace();
 
         return {};
-    }();
+    });
 
     if (fontFace == nullptr)
         return;
@@ -1221,12 +1221,57 @@ void Direct2DGraphicsContext::drawGlyphs (Span<const uint16_t> glyphNumbers,
     directWriteGlyphRun.isSideways = FALSE;
     directWriteGlyphRun.bidiLevel = 0;
 
+    const auto factory = getPimpl()->getDirectWriteFactory4();
+    const auto oldParams = font.getDirect2DHinting() ? nullptr : getPimpl()->getDefaultTextRenderingParams();
+    const auto newParams = std::invoke ([&]() -> ComSmartPtr<IDWriteRenderingParams>
+    {
+        if (oldParams == nullptr)
+        {
+            return {};
+        }
+
+        if (factory == nullptr)
+        {
+            return {};
+        }
+
+        ComSmartPtr<IDWriteRenderingParams> customParams;
+
+        // Use outline mode (not bitmaps) to preserve the look of older JUCE versions
+        // for fonts like MS PGothic
+        constexpr auto renderMode = DWRITE_RENDERING_MODE_OUTLINE;
+
+        if (FAILED (factory->CreateCustomRenderingParams (oldParams->GetGamma(),
+                                                          oldParams->GetEnhancedContrast(),
+                                                          oldParams->GetClearTypeLevel(),
+                                                          oldParams->GetPixelGeometry(),
+                                                          renderMode,
+                                                          customParams.resetAndGetPointerAddress()))
+            || customParams == nullptr)
+        {
+            return {};
+        }
+
+        return customParams;
+    });
+
+    if (newParams != nullptr)
+    {
+        deviceContext->SetTextRenderingParams (newParams);
+    }
+
+    const ScopeGuard applyOldParams { [&]
+    {
+        if (newParams != nullptr && oldParams != nullptr)
+        {
+            deviceContext->SetTextRenderingParams (oldParams);
+        }
+    } };
+
     const auto tryDrawColourGlyphs = [&]
     {
         // There's a helpful colour glyph rendering sample at
         // https://github.com/microsoft/Windows-universal-samples/blob/main/Samples/DWriteColorGlyph/cpp/CustomTextRenderer.cpp
-        const auto factory = getPimpl()->getDirectWriteFactory4();
-
         if (factory == nullptr)
             return false;
 

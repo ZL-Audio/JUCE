@@ -85,6 +85,13 @@ public:
 
     bool fillSpriteBatch (const RectangleList<float>& list);
 
+    virtual ComSmartPtr<IDWriteRenderingParams> getDefaultTextRenderingParams() const
+    {
+        ComSmartPtr<IDWriteRenderingParams> result;
+        getDirectWriteFactory()->CreateRenderingParams (result.resetAndGetPointerAddress());
+        return result;
+    }
+
     DirectWriteGlyphRun glyphRun;
 
 private:

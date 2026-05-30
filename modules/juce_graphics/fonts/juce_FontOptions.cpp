@@ -101,6 +101,7 @@ auto FontOptions::tie() const
                        tracking,
                        horizontalScale,
                        fallbackEnabled,
+                       direct2DHinting,
                        underlined);
 }
 
