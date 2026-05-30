@@ -231,7 +231,8 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wfloat-conversion",
                                      "-Wunused-parameter",
                                      "-Wimplicit-int-float-conversion",
                                      "-Wshadow",
-                                     "-Wunused-function")
+                                     "-Wunused-function",
+                                     "-Wignored-qualifiers")
 
 #include "drawables/lunasvg/include/lunasvg.h"
 #include "drawables/lunasvg/source/graphics.h"
