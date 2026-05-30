@@ -91,6 +91,16 @@ public:
     */
     void mixWetSamples (AudioBlock<SampleType> wetSamples);
 
+    /** Sets the time in seconds to fade between wet and dry signals.
+
+        Setting this will also reset the internal state of the processor.
+    */
+    void setRampLength (Seconds newRampLength)
+    {
+        rampLength = newRampLength;
+        reset();
+    }
+
 private:
     //==============================================================================
     void update();
@@ -105,6 +115,7 @@ private:
     MixingRule currentMixingRule = MixingRule::linear;
     double sampleRate = 44100.0;
     int maximumWetLatencyInSamples = 0;
+    Seconds rampLength { 0.05 };
 };
 
 } // namespace juce::dsp

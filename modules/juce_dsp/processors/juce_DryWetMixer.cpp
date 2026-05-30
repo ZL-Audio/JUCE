@@ -79,8 +79,8 @@ void DryWetMixer<SampleType>::prepare (const ProcessSpec& spec)
 template <typename SampleType>
 void DryWetMixer<SampleType>::reset()
 {
-    dryVolume.reset (sampleRate, 0.05);
-    wetVolume.reset (sampleRate, 0.05);
+    dryVolume.reset (sampleRate, rampLength.count());
+    wetVolume.reset (sampleRate, rampLength.count());
 
     dryDelayLine.reset();
 
