@@ -231,23 +231,11 @@ public:
         return CharacterFunctions::compare (*this, other);
     }
 
-    /** Compares this string with another one. */
-    int compare (const CharPointer_ASCII other) const noexcept
-    {
-        return strcmp (data, other.data);
-    }
-
     /** Compares this string with another one, up to a specified number of characters. */
     template <typename CharPointer>
     int compareUpTo (const CharPointer other, const int maxChars) const noexcept
     {
         return CharacterFunctions::compareUpTo (*this, other, maxChars);
-    }
-
-    /** Compares this string with another one, up to a specified number of characters. */
-    int compareUpTo (const CharPointer_ASCII other, const int maxChars) const noexcept
-    {
-        return strncmp (data, other.data, (size_t) maxChars);
     }
 
     /** Compares this string with another one. */
