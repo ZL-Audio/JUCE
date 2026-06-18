@@ -1428,7 +1428,6 @@ public:
         Array<XmlElement> xcodeExtraPListEntries;
 
         StringArray frameworkIDs, buildPhaseIDs, configIDs, sourceIDs, rezFileIDs, dependencyIDs;
-        StringArray frameworkNames;
         String mainBuildProductID;
         File infoPlistFile;
 
@@ -3276,10 +3275,7 @@ private:
             auto frameworkID = addFrameworkFn (framework);
 
             for (auto& target : targets)
-            {
                 target->frameworkIDs.add (frameworkID);
-                target->frameworkNames.add (framework);
-            }
         }
     }
 
@@ -3346,7 +3342,6 @@ private:
                             || target->xcodeFrameworks.contains (framework))
                         {
                             target->frameworkIDs.add (frameworkID);
-                            target->frameworkNames.add (framework);
                         }
                     }
                 }
