@@ -26,6 +26,14 @@ using FcCharSetPtr = std::unique_ptr<FcCharSet, FunctionPointerDestructor<FcChar
 using FcLangSetPtr = std::unique_ptr<FcLangSet, FunctionPointerDestructor<FcLangSetDestroy>>;
 #endif
 
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wredundant-decls")
+
+extern "C"
+{
+    // Available since FT 2.13.1, so not available on Ubuntu 20.04 for example
+    [[gnu::weak]] FT_Error FT_Get_Default_Named_Instance (FT_Face, FT_UInt*);
+} // extern "C"
+
 struct FTLibWrapper final : public ReferenceCountedObject
 {
     FTLibWrapper()
@@ -111,6 +119,9 @@ struct FTFaceWrapper final : public ReferenceCountedObject
 
         const auto defaultInstance = std::invoke ([&]() -> FT_UInt
         {
+            if (FT_Get_Default_Named_Instance == nullptr)
+                return 0;
+
             if (FT_UInt result{}; FT_Get_Default_Named_Instance (face, &result) == 0)
                 return result;
 
