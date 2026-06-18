@@ -85,6 +85,8 @@ public:
         addAndMakeVisible (verticalJustificationBox);
         addAndMakeVisible (resetButton);
 
+        addChildComponent (hintingToggle);
+
         kerningLabel                .attachToComponent (&kerningSlider,              true);
         heightLabel                 .attachToComponent (&heightSlider,               true);
         scaleLabel                  .attachToComponent (&scaleSlider,                true);
@@ -100,6 +102,7 @@ public:
         boldToggle     .onClick  = [this] { refreshPreviewBoxFont(); };
         italicToggle   .onClick  = [this] { refreshPreviewBoxFont(); };
         underlineToggle.onClick  = [this] { refreshPreviewBoxFont(); };
+        hintingToggle  .onClick  = [this] { refreshPreviewBoxFont(); };
         styleBox       .onChange = [this] { refreshPreviewBoxFont(); };
 
         fontListComponent.rescan();
@@ -151,6 +154,7 @@ public:
 
         resetButton.onClick = [this] { resetToDefaultParameters(); };
 
+        updateHintingToggleVisibility();
         setupJustificationOptions();
         resetToDefaultParameters();
 
@@ -190,10 +194,18 @@ public:
 
         auto row = r.removeFromBottom (30);
         row.removeFromLeft (labelWidth);
-        auto toggleWidth = row.getWidth() / 3;
-        boldToggle     .setBounds (row.removeFromLeft (toggleWidth));
-        italicToggle   .setBounds (row.removeFromLeft (toggleWidth));
-        underlineToggle.setBounds (row);
+
+        {
+            FlexBox fb;
+
+            for (auto* toggle : { &boldToggle, &italicToggle, &underlineToggle, &hintingToggle })
+            {
+                if (toggle->isVisible())
+                    fb.items.add (FlexItem { *toggle }.withFlex (1.0f));
+            }
+
+            fb.performLayout (row);
+        }
 
         r.removeFromBottom (8);
         horizontalJustificationBox.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth * 3));
@@ -211,6 +223,12 @@ public:
         heightSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
         r.removeFromBottom (8);
         demoTextBox.setBounds (r);
+    }
+
+    void parentHierarchyChanged() override
+    {
+        updateHintingToggleVisibility();
+        resized();
     }
 
 private:
@@ -236,7 +254,8 @@ private:
 
     ToggleButton boldToggle      { "Bold" },
                  italicToggle    { "Italic" },
-                 underlineToggle { "Underlined" };
+                 underlineToggle { "Underlined" },
+                 hintingToggle   { "Hinted" };
 
     TextButton resetButton { "Reset" };
 
@@ -262,6 +281,7 @@ private:
         boldToggle     .setToggleState (false, sendNotificationSync);
         italicToggle   .setToggleState (false, sendNotificationSync);
         underlineToggle.setToggleState (false, sendNotificationSync);
+        hintingToggle.setToggleState   (true,  sendNotificationSync);
 
         styleBox.setSelectedItemIndex (0);
         horizontalJustificationBox.setSelectedItemIndex (0);
@@ -314,6 +334,8 @@ private:
         if (bold)    font = font.boldened();
         if (italic)  font = font.italicised();
 
+        font.setDirect2DHinting (hintingToggle.getToggleState());
+
         updateStylesList (font);
 
         styleBox.setEnabled (useStyle);
@@ -340,6 +362,24 @@ private:
             styleBox.addItemList (newStyles, 1);
             styleBox.setSelectedItemIndex (0);
         }
+    }
+
+    void updateHintingToggleVisibility()
+    {
+        const auto visible = std::invoke ([&]
+        {
+            if ((SystemStats::getOperatingSystemType() & SystemStats::OperatingSystemType::Windows) == 0)
+                return false;
+
+            auto* peer = getPeer();
+
+            if (peer == nullptr)
+                return false;
+
+            return peer->getAvailableRenderingEngines()[peer->getCurrentRenderingEngine()].contains ("Direct2D");
+        });
+
+        hintingToggle.setVisible (visible);
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FontsDemo)
