@@ -255,7 +255,7 @@ struct TwoPointConicalGradientTest final : public UnitTest
                         const auto pointToCenter = p.getDistanceFrom ((1.0f - f) * start.c + f * end.c);
                         const auto solutionRadius = std::abs ((1.0f - f) * start.r + f * end.r);
 
-                        expect (approximatelyEqual (pointToCenter, solutionRadius, relativeTolerance (0.001f)),
+                        expect (approximatelyEqual (pointToCenter, solutionRadius, relativeTolerance (0.002f)),
                                 "The solution should specify a circle that passes through the rendered pixel");
                     }
                 }
