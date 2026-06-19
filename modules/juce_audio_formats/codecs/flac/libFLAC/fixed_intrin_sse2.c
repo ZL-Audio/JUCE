@@ -34,19 +34,19 @@
 #  include <config.h>
 #endif
 
-#include "private/cpu.h"
+#include "include/private/cpu.h"
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
-#include "private/fixed.h"
+#include "include/private/fixed.h"
 #ifdef FLAC__SSE2_SUPPORTED
 
 #include <emmintrin.h> /* SSE2 */
 #include <math.h>
-#include "private/macros.h"
-#include "share/compat.h"
-#include "FLAC/assert.h"
+#include "include/private/macros.h"
+#include "../compat.h"
+#include "../assert.h"
 
 #ifdef FLAC__CPU_IA32
 #define m128i_to_i64(dest, src) _mm_storel_epi64((__m128i*)&dest, src)

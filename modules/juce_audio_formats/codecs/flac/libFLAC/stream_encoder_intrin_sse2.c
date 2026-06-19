@@ -34,18 +34,18 @@
 #  include <config.h>
 #endif
 
-#include "private/cpu.h"
+#include "include/private/cpu.h"
 
 #ifndef FLAC__NO_ASM
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
-#include "private/stream_encoder.h"
-#include "private/bitmath.h"
+#include "include/private/stream_encoder.h"
+#include "include/private/bitmath.h"
 #ifdef FLAC__SSE2_SUPPORTED
 
 #include <stdlib.h>    /* for abs() */
 #include <emmintrin.h> /* SSE2 */
-#include "FLAC/assert.h"
-#include "share/compat.h"
+#include "../assert.h"
+#include "../compat.h"
 
 FLAC__SSE_TARGET("sse2")
 static inline __m128i local_abs_epi32(__m128i val)

@@ -35,7 +35,7 @@
 
 #include <io.h>
 #include <windows.h>
-#include "share/win_utf8_io.h"
+#include "../win_utf8_io.h"
 
 #define UTF8_BUFFER_SIZE 32768
 

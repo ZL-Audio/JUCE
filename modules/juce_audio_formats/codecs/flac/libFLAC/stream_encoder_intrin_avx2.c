@@ -34,17 +34,17 @@
 #  include <config.h>
 #endif
 
-#include "private/cpu.h"
+#include "include/private/cpu.h"
 
 #ifndef FLAC__NO_ASM
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
-#include "private/stream_encoder.h"
-#include "private/bitmath.h"
+#include "include/private/stream_encoder.h"
+#include "include/private/bitmath.h"
 #ifdef FLAC__AVX2_SUPPORTED
 
 #include <stdlib.h>    /* for abs() */
 #include <immintrin.h> /* AVX2 */
-#include "FLAC/assert.h"
+#include "../assert.h"
 
 FLAC__SSE_TARGET("avx2")
 void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],

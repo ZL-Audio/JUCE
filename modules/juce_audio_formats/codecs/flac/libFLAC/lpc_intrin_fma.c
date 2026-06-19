@@ -33,15 +33,15 @@
 #  include <config.h>
 #endif
 
-#include "private/cpu.h"
+#include "include/private/cpu.h"
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
 #if defined FLAC__CPU_X86_64 && FLAC__HAS_X86INTRIN
-#include "private/lpc.h"
+#include "include/private/lpc.h"
 #ifdef FLAC__FMA_SUPPORTED
 
-#include "FLAC/assert.h"
+#include "../assert.h"
 
 FLAC__SSE_TARGET("fma")
 void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
