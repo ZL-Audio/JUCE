@@ -63,7 +63,7 @@
 #endif
 
 #ifndef JUCE_USE_ARM_NEON
- #if (__ARM_NEON || __ARM_NEON__) && ! JUCE_USE_VDSP_FRAMEWORK
+ #if (__ARM_NEON || __ARM_NEON__ || _M_ARM64 || _M_ARM64EC) && ! JUCE_USE_VDSP_FRAMEWORK
   #define JUCE_USE_ARM_NEON 1
  #endif
 #endif
