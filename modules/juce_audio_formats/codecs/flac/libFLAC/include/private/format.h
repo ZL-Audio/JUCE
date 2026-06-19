@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 #ifndef FLAC__PRIVATE__FORMAT_H
 #define FLAC__PRIVATE__FORMAT_H
 
-#include "../../../format.h"
+#include "FLAC/format.h"
 
 #if 0 /* UNUSED */
 uint32_t FLAC__format_get_max_rice_partition_order(uint32_t blocksize, uint32_t predictor_order);

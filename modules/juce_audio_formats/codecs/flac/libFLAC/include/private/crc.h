@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 #ifndef FLAC__PRIVATE__CRC_H
 #define FLAC__PRIVATE__CRC_H
 
-#include "../../../ordinals.h"
+#include "FLAC/ordinals.h"
 
 /* 8 bit CRC generator, MSB shifted first
 ** polynomial = x^8 + x^2 + x^1 + x^0

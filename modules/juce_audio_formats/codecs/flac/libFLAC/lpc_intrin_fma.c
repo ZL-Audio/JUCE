@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2025  Xiph.Org Foundation
+ * Copyright (C) 2022-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,26 +29,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
-
-/* This of course assumes C99 headers */
-
-#include <stdint.h>
-#include <stdbool.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
 #endif
+
+#include "private/cpu.h"
+
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+#ifndef FLAC__NO_ASM
+#if defined FLAC__CPU_X86_64 && FLAC__HAS_X86INTRIN
+#include "private/lpc.h"
+#ifdef FLAC__FMA_SUPPORTED
+
+#include "FLAC/assert.h"
+
+FLAC__SSE_TARGET("fma")
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+#undef MAX_LAG
+#define MAX_LAG 8
+#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+}
+
+FLAC__SSE_TARGET("fma")
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+#undef MAX_LAG
+#define MAX_LAG 12
+#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+}
+FLAC__SSE_TARGET("fma")
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+#undef MAX_LAG
+#define MAX_LAG 16
+#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+
+}
+
+#endif /* FLAC__FMA_SUPPORTED */
+#endif /* FLAC__CPU_X86_64 && FLAC__HAS_X86INTRIN */
+#endif /* FLAC__NO_ASM */
+#endif /* FLAC__INTEGER_ONLY_LIBRARY */

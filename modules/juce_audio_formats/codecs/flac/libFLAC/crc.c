@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 #  include <config.h>
 #endif
 
-#include "include/private/crc.h"
+#include "private/crc.h"
 
 /* CRC-8, poly = x^8 + x^2 + x^1 + x^0, init = 0 */
 

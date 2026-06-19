@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,8 +39,8 @@
 
 #include <stdlib.h> /* for size_t */
 
-#include "float.h"
-#include "../../../ordinals.h" /* for FLAC__bool */
+#include "private/float.h"
+#include "FLAC/ordinals.h" /* for FLAC__bool */
 
 /* Returns the unaligned address returned by malloc.
  * Use free() on this address to deallocate.

@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,9 +33,9 @@
 #ifndef FLAC__PROTECTED__STREAM_DECODER_H
 #define FLAC__PROTECTED__STREAM_DECODER_H
 
-#include "../../../stream_decoder.h"
+#include "FLAC/stream_decoder.h"
 #if FLAC__HAS_OGG
-#include "../private/ogg_decoder_aspect.h"
+#include "private/ogg_decoder_aspect.h"
 #endif
 
 typedef struct FLAC__StreamDecoderProtected {

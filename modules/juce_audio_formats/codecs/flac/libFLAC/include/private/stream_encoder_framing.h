@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 #ifndef FLAC__PRIVATE__STREAM_ENCODER_FRAMING_H
 #define FLAC__PRIVATE__STREAM_ENCODER_FRAMING_H
 
-#include "../../../format.h"
+#include "FLAC/format.h"
 #include "bitwriter.h"
 
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw, FLAC__bool update_vendor_string);

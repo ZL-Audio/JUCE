@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,10 +36,10 @@
 
 #include <stdio.h>
 #include <string.h> /* for strlen() */
-#include "include/private/stream_encoder_framing.h"
-#include "include/private/crc.h"
-#include "../assert.h"
-#include "../compat.h"
+#include "private/stream_encoder_framing.h"
+#include "private/crc.h"
+#include "FLAC/assert.h"
+#include "share/compat.h"
 
 static FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method);
 static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__bool is_extended);

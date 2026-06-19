@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2025  Xiph.Org Foundation
+ * Copyright (C) 2013-2025  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,26 +29,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifdef _WIN32
 
-/* This of course assumes C99 headers */
+#ifndef flac__win_utf8_io_h
+#define flac__win_utf8_io_h
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <sys/utime.h>
+#include "FLAC/ordinals.h"
 
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
+size_t strlen_utf8(const char *str);
+int win_get_console_width(void);
 
-typedef int FLAC__bool;
+int get_utf8_argv(int *argc, char ***argv);
 
-typedef FLAC__uint8 FLAC__byte;
+int printf_utf8(const char *format, ...);
+int fprintf_utf8(FILE *stream, const char *format, ...);
+int vfprintf_utf8(FILE *stream, const char *format, va_list argptr);
 
+FILE* fopen_utf8(const char *filename, const char *mode);
+int stat64_utf8(const char *path, struct __stat64 *buffer);
+int chmod_utf8(const char *filename, int pmode);
+int utime_utf8(const char *filename, struct utimbuf *times);
+int unlink_utf8(const char *filename);
+int rename_utf8(const char *oldname, const char *newname);
+
+#include <windows.h>
+HANDLE WINAPI CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif
 #endif
