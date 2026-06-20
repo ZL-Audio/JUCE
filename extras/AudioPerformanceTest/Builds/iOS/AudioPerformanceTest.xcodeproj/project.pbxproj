@@ -38,11 +38,13 @@
 		B4455D3F0ECC06FF93134C0A /* include_juce_audio_processors_headless.mm */ = {isa = PBXBuildFile; fileRef = F174958684C8069CF4AE0920; };
 		BC0D4FA565254E70334D6B5F /* include_juce_audio_processors_headless_lv2_libs.cpp */ = {isa = PBXBuildFile; fileRef = BE9CEE16DC505C59A91EAA37; };
 		BF3ECEF0623C9B67C4CEAAF2 /* CoreGraphics.framework */ = {isa = PBXBuildFile; fileRef = 6B887CEE009353C410AB4F63; };
+		C21271A5E7293FAAB664ABCC /* include_juce_audio_formats_flac_1.c */ = {isa = PBXBuildFile; fileRef = 91CFF2EB1319BEF5F68D1D25; };
 		C7B090C29D8DE4D2503204B1 /* include_juce_audio_utils.mm */ = {isa = PBXBuildFile; fileRef = BAFDA8DE51E7A69E477439EB; };
 		CC782AABFA20787BABBCED90 /* Foundation.framework */ = {isa = PBXBuildFile; fileRef = E1BB9D521BF6C055F5B88628; };
 		D145903EE5DBFD1BD98423F3 /* include_juce_audio_processors.mm */ = {isa = PBXBuildFile; fileRef = 18E39207A0F5F9B8BC7EE94F; };
 		D2CECF93178A1738DA02CA4A /* include_juce_data_structures.mm */ = {isa = PBXBuildFile; fileRef = EDD11E2CC0B18196ADA0C87B; };
 		D2F91EEA2DFC81EBCF3C956F /* include_juce_gui_basics_2.cpp */ = {isa = PBXBuildFile; fileRef = 98E42D6174FFFF8EC6E26583; };
+		D544BD5240F49D6152B2813B /* include_juce_audio_formats_flac_2.c */ = {isa = PBXBuildFile; fileRef = AF628DB5C4D83A7363AAA78A; };
 		E1282ABB96DD2E7FA7F63559 /* App */ = {isa = PBXBuildFile; fileRef = 614F2084407B35D62101F69F; };
 		E4CFFE22717FF2B0A12BAB32 /* UserNotifications.framework */ = {isa = PBXBuildFile; fileRef = F454EA288AEBA354CF288214; settings = { ATTRIBUTES = (Weak, ); }; };
 		E74C8479F0E10EC28E1E2DE1 /* AVFoundation.framework */ = {isa = PBXBuildFile; fileRef = C6030BFC7A19A5075AB0EC28; };
@@ -85,6 +87,7 @@
 		85C937295BA0C82289FB267E /* include_juce_graphics_lunasvg.c */ /* include_juce_graphics_lunasvg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_graphics_lunasvg.c; path = ../../JuceLibraryCode/include_juce_graphics_lunasvg.c; sourceTree = SOURCE_ROOT; };
 		8693552B5FA53C2003A66302 /* Images.xcassets */ /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AudioPerformanceTest/Images.xcassets; sourceTree = SOURCE_ROOT; };
 		89B3243200BAA6BD72905DBB /* include_juce_audio_basics.mm */ /* include_juce_audio_basics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_basics.mm; path = ../../JuceLibraryCode/include_juce_audio_basics.mm; sourceTree = SOURCE_ROOT; };
+		91CFF2EB1319BEF5F68D1D25 /* include_juce_audio_formats_flac_1.c */ /* include_juce_audio_formats_flac_1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_audio_formats_flac_1.c; path = ../../JuceLibraryCode/include_juce_audio_formats_flac_1.c; sourceTree = SOURCE_ROOT; };
 		920FF34D4A00A5AD433EE5F4 /* juce_audio_basics */ /* juce_audio_basics */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_basics; path = ../../../../modules/juce_audio_basics; sourceTree = SOURCE_ROOT; };
 		9516A19EE58DED8326DD0306 /* Info-App.plist */ /* Info-App.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info-App.plist"; path = "Info-App.plist"; sourceTree = SOURCE_ROOT; };
 		98E42D6174FFFF8EC6E26583 /* include_juce_gui_basics_2.cpp */ /* include_juce_gui_basics_2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_gui_basics_2.cpp; path = ../../JuceLibraryCode/include_juce_gui_basics_2.cpp; sourceTree = SOURCE_ROOT; };
@@ -94,6 +97,7 @@
 		A3B86BB7483BC5697B58E417 /* juce_audio_devices */ /* juce_audio_devices */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_devices; path = ../../../../modules/juce_audio_devices; sourceTree = SOURCE_ROOT; };
 		A6DEFD86172F7F8BA64A77CC /* include_juce_graphics_Sheenbidi.c */ /* include_juce_graphics_Sheenbidi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_graphics_Sheenbidi.c; path = ../../JuceLibraryCode/include_juce_graphics_Sheenbidi.c; sourceTree = SOURCE_ROOT; };
 		AD134CACB71BED6A22743C18 /* juce_gui_extra */ /* juce_gui_extra */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_gui_extra; path = ../../../../modules/juce_gui_extra; sourceTree = SOURCE_ROOT; };
+		AF628DB5C4D83A7363AAA78A /* include_juce_audio_formats_flac_2.c */ /* include_juce_audio_formats_flac_2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_audio_formats_flac_2.c; path = ../../JuceLibraryCode/include_juce_audio_formats_flac_2.c; sourceTree = SOURCE_ROOT; };
 		B06AE97C86D27E7FEBCB4631 /* include_juce_gui_extra.mm */ /* include_juce_gui_extra.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_extra.mm; path = ../../JuceLibraryCode/include_juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
 		BAFDA8DE51E7A69E477439EB /* include_juce_audio_utils.mm */ /* include_juce_audio_utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_utils.mm; path = ../../JuceLibraryCode/include_juce_audio_utils.mm; sourceTree = SOURCE_ROOT; };
 		BE9CEE16DC505C59A91EAA37 /* include_juce_audio_processors_headless_lv2_libs.cpp */ /* include_juce_audio_processors_headless_lv2_libs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_audio_processors_headless_lv2_libs.cpp; path = ../../JuceLibraryCode/include_juce_audio_processors_headless_lv2_libs.cpp; sourceTree = SOURCE_ROOT; };
@@ -175,6 +179,8 @@
 				89B3243200BAA6BD72905DBB,
 				322D3066DCD98A8D0542236A,
 				9E05B63699A307598B66F829,
+				91CFF2EB1319BEF5F68D1D25,
+				AF628DB5C4D83A7363AAA78A,
 				18E39207A0F5F9B8BC7EE94F,
 				F174958684C8069CF4AE0920,
 				DA16F42CFD9C5D0AED0E6C1B,
@@ -357,6 +363,8 @@
 				2BAED5B831BB736E77A718AE,
 				01C9BC9A0A0F54B693CDA31A,
 				48ADBEF873A610909D727C97,
+				C21271A5E7293FAAB664ABCC,
+				D544BD5240F49D6152B2813B,
 				D145903EE5DBFD1BD98423F3,
 				B4455D3F0ECC06FF93134C0A,
 				F17EDC468A88EBC52DA1743A,

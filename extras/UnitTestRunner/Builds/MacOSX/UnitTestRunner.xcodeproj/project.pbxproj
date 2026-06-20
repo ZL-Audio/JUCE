@@ -33,6 +33,7 @@
 		74EC8AEC296DB2721EB438BF /* include_juce_audio_processors.mm */ = {isa = PBXBuildFile; fileRef = 3A26A3568F2C301EEED25288; };
 		79EDD381C6D4B7052D968DF1 /* include_juce_audio_processors_headless_ara.cpp */ = {isa = PBXBuildFile; fileRef = 0DA54FBE4D1471B30F01FEEF; };
 		8931A330E8D2263E787BDBA6 /* include_juce_javascript.cpp */ = {isa = PBXBuildFile; fileRef = 46D161431FC09F290F176D30; };
+		896229E3703F5DB91B30E27C /* include_juce_audio_formats_flac_2.c */ = {isa = PBXBuildFile; fileRef = 97F0C4296F452E5BC230F68E; };
 		8D51903C59161885903F60CC /* CoreMIDI.framework */ = {isa = PBXBuildFile; fileRef = 04C1B8BF62AA09E62B362913; };
 		926FDA5030919D7686BA2085 /* include_juce_audio_processors_headless_lv2_libs.cpp */ = {isa = PBXBuildFile; fileRef = C0B9E583D70C02A95C4E980B; };
 		96EFF7BA261F57DD829324D8 /* AudioToolbox.framework */ = {isa = PBXBuildFile; fileRef = 7898C73DCA6FA9D9CF669D32; };
@@ -43,6 +44,7 @@
 		A4C15593F5B4E1BE338F4F63 /* include_juce_events.mm */ = {isa = PBXBuildFile; fileRef = 3D169C5EFBF6304F5CE4C35E; };
 		A70F7F4891DB1CF67653BE74 /* Accelerate.framework */ = {isa = PBXBuildFile; fileRef = B38A1AC42B002115350C0268; };
 		AA207299991F85938465BF65 /* Cocoa.framework */ = {isa = PBXBuildFile; fileRef = 2030A589A9355FE6A0F72428; };
+		AB1DFB799116DC0F03E630EA /* include_juce_audio_formats_flac_1.c */ = {isa = PBXBuildFile; fileRef = 9CDDBA1593EF9E4F0F780478; };
 		AF1FE82A4A20DCB8944B35C7 /* include_juce_gui_extra.mm */ = {isa = PBXBuildFile; fileRef = 4195CB317C364D778AE2ADB1; };
 		B407D123F08A9A8C12624ABA /* include_juce_midi_ci.cpp */ = {isa = PBXBuildFile; fileRef = 0EFA505235D959565503D537; };
 		BFC9CC03802EDD5E99908949 /* include_juce_gui_basics_5.cpp */ = {isa = PBXBuildFile; fileRef = 837D3D5F07E61CCB64727374; };
@@ -105,6 +107,8 @@
 		8C449538B266A891147103D6 /* IOKit.framework */ /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		8EBA9CF0874619A8FA0B4E74 /* juce_osc */ /* juce_osc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_osc; path = ../../../../modules/juce_osc; sourceTree = SOURCE_ROOT; };
 		8EC828FBFEC92A64A135467C /* juce_midi_ci */ /* juce_midi_ci */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_midi_ci; path = ../../../../modules/juce_midi_ci; sourceTree = SOURCE_ROOT; };
+		97F0C4296F452E5BC230F68E /* include_juce_audio_formats_flac_2.c */ /* include_juce_audio_formats_flac_2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_audio_formats_flac_2.c; path = ../../JuceLibraryCode/include_juce_audio_formats_flac_2.c; sourceTree = SOURCE_ROOT; };
+		9CDDBA1593EF9E4F0F780478 /* include_juce_audio_formats_flac_1.c */ /* include_juce_audio_formats_flac_1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = include_juce_audio_formats_flac_1.c; path = ../../JuceLibraryCode/include_juce_audio_formats_flac_1.c; sourceTree = SOURCE_ROOT; };
 		A40A2A0B2841A622C53047CD /* juce_audio_processors */ /* juce_audio_processors */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_processors; path = ../../../../modules/juce_audio_processors; sourceTree = SOURCE_ROOT; };
 		A59D9064C3A2D7EC3DC45420 /* include_juce_osc.cpp */ /* include_juce_osc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_osc.cpp; path = ../../JuceLibraryCode/include_juce_osc.cpp; sourceTree = SOURCE_ROOT; };
 		A76DD7182C290A9020C96CA7 /* include_juce_audio_formats.mm */ /* include_juce_audio_formats.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_formats.mm; path = ../../JuceLibraryCode/include_juce_audio_formats.mm; sourceTree = SOURCE_ROOT; };
@@ -184,6 +188,8 @@
 				4BD792956FE7C22CB8FB691D,
 				00CDB93410EA5AECBA5ADA95,
 				A76DD7182C290A9020C96CA7,
+				9CDDBA1593EF9E4F0F780478,
+				97F0C4296F452E5BC230F68E,
 				3A26A3568F2C301EEED25288,
 				8BB820415B16C032419DAB36,
 				0DA54FBE4D1471B30F01FEEF,
@@ -357,6 +363,8 @@
 				BFED026CA071070CEB87CFB5,
 				33D24B475EA928745A87EDDB,
 				FDDF955477BE7FEBC364E19B,
+				AB1DFB799116DC0F03E630EA,
+				896229E3703F5DB91B30E27C,
 				74EC8AEC296DB2721EB438BF,
 				47AF227257B0C27F028E46FD,
 				79EDD381C6D4B7052D968DF1,
