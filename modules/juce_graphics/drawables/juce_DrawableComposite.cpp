@@ -102,10 +102,12 @@ void DrawableComposite::addChild (std::unique_ptr<Drawable> newChild)
 
 bool DrawableComposite::replaceColour (Colour originalColour, Colour replacementColour)
 {
-    return std::any_of (children.begin(), children.end(), [&] (const auto& child)
-    {
-        return child->replaceColour (originalColour, replacementColour);
-    });
+    bool changed = false;
+
+    for (const auto& child : children)
+        changed |= child->replaceColour (originalColour, replacementColour);
+
+    return changed;
 }
 
 bool DrawableComposite::hitTest (Point<float> p) const
