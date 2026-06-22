@@ -23,6 +23,8 @@ class OwningDrawableComponent : private std::unique_ptr<Drawable>,
                                 public DrawableComponent
 {
 public:
+    /** Creates an OwningDrawableComponent that takes ownership of the underlying Drawable object.
+    */
     static std::unique_ptr<OwningDrawableComponent> create (std::unique_ptr<Drawable> d)
     {
         if (d == nullptr)
@@ -31,6 +33,9 @@ public:
         return rawToUniquePtr (new OwningDrawableComponent (std::move (d)));
     }
 
+    /** Creates an OwningDrawableComponent that copies a Drawable and takes ownership of the copied
+        object.
+    */
     static std::unique_ptr<OwningDrawableComponent> createFromCopy (const Drawable* const d)
     {
         if (d == nullptr)
@@ -42,6 +47,20 @@ public:
             return {};
 
         return rawToUniquePtr (new OwningDrawableComponent (std::move (copy)));
+    }
+
+    /** Attempts to parse an SVG (Scalable Vector Graphics) document from a file.
+    */
+    static std::unique_ptr<OwningDrawableComponent> createFromSVGFile (const File& svgFile)
+    {
+        return create (Drawable::createFromSVGFile (svgFile));
+    }
+
+    /** Attempts to parse an SVG (Scalable Vector Graphics) document from a string.
+    */
+    static std::unique_ptr<OwningDrawableComponent> createFromSVGString (const String& svgString)
+    {
+        return create (Drawable::createFromSVGString (svgString));
     }
 
 private:
