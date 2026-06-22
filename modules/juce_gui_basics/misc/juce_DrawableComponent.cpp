@@ -41,6 +41,13 @@ void DrawableComponent::setTransformToFit (const Rectangle<float>& areaInParent,
         setTransform (placement.getTransformToFit (drawable.getDrawableBounds(), areaInParent));
 }
 
+Path DrawableComponent::getOutlineAsPath() const
+{
+    auto p = drawable.getOutlineAsPath();
+    p.applyTransform (getTransform());
+    return p;
+}
+
 void DrawableComponent::paint (Graphics& g)
 {
     g.setOrigin (originRelativeToComponent);

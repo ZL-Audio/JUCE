@@ -34,6 +34,9 @@ public:
     */
     void setTransformToFit (const Rectangle<float>& areaInParent, RectanglePlacement placement);
 
+    /** Creates a path that describes the outline of this DrawableComponent. */
+    Path getOutlineAsPath() const;
+
     /** Returns a reference to the Drawable object displayed by this Component. */
     Drawable& getDrawable()
     {
