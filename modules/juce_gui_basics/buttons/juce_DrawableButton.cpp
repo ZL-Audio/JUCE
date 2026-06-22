@@ -40,14 +40,14 @@ void DrawableButton::setImages (const Drawable* normal,
 {
     jassert (normal != nullptr); // you really need to give it at least a normal image
 
-    normalImage     = detail::OwningDrawableComponent::createFromCopy (normal);
-    overImage       = detail::OwningDrawableComponent::createFromCopy (over);
-    downImage       = detail::OwningDrawableComponent::createFromCopy (down);
-    disabledImage   = detail::OwningDrawableComponent::createFromCopy (disabled);
-    normalImageOn   = detail::OwningDrawableComponent::createFromCopy (normalOn);
-    overImageOn     = detail::OwningDrawableComponent::createFromCopy (overOn);
-    downImageOn     = detail::OwningDrawableComponent::createFromCopy (downOn);
-    disabledImageOn = detail::OwningDrawableComponent::createFromCopy (disabledOn);
+    normalImage     = OwningDrawableComponent::createFromCopy (normal);
+    overImage       = OwningDrawableComponent::createFromCopy (over);
+    downImage       = OwningDrawableComponent::createFromCopy (down);
+    disabledImage   = OwningDrawableComponent::createFromCopy (disabled);
+    normalImageOn   = OwningDrawableComponent::createFromCopy (normalOn);
+    overImageOn     = OwningDrawableComponent::createFromCopy (overOn);
+    downImageOn     = OwningDrawableComponent::createFromCopy (downOn);
+    disabledImageOn = OwningDrawableComponent::createFromCopy (disabledOn);
 
     currentImage = nullptr;
 

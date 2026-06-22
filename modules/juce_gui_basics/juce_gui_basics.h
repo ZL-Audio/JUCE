@@ -223,7 +223,7 @@ namespace juce
 #include "buttons/juce_Button.h"
 #include "buttons/juce_ArrowButton.h"
 #include "misc/juce_DrawableComponent.h"
-#include "detail/juce_OwningDrawableComponent.h"
+#include "misc/juce_OwningDrawableComponent.h"
 #include "buttons/juce_DrawableButton.h"
 #include "buttons/juce_HyperlinkButton.h"
 #include "buttons/juce_ImageButton.h"

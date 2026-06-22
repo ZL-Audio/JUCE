@@ -23,8 +23,8 @@ ToolbarButton::ToolbarButton (const int iid, const String& buttonText,
                               std::unique_ptr<Drawable> normalIm,
                               std::unique_ptr<Drawable> toggledOnIm)
    : ToolbarItemComponent (iid, buttonText, true),
-     normalImage (detail::OwningDrawableComponent::create (std::move (normalIm))),
-     toggledOnImage (detail::OwningDrawableComponent::create (std::move (toggledOnIm)))
+     normalImage (OwningDrawableComponent::create (std::move (normalIm))),
+     toggledOnImage (OwningDrawableComponent::create (std::move (toggledOnIm)))
 {
     jassert (normalImage != nullptr);
 }

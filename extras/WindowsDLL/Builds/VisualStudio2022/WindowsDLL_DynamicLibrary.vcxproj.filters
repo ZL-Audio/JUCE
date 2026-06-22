@@ -7452,9 +7452,6 @@
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_MouseInputSourceList.h">
       <Filter>JUCE Modules\juce_gui_basics\detail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_OwningDrawableComponent.h">
-      <Filter>JUCE Modules\juce_gui_basics\detail</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\detail\juce_PointerState.h">
       <Filter>JUCE Modules\juce_gui_basics\detail</Filter>
     </ClInclude>
@@ -7663,6 +7660,9 @@
       <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_FocusOutline.h">
+      <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\modules\juce_gui_basics\misc\juce_OwningDrawableComponent.h">
       <Filter>JUCE Modules\juce_gui_basics\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\modules\juce_gui_basics\mouse\juce_ComponentDragger.h">

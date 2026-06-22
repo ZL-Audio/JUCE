@@ -16,11 +16,26 @@
   ==============================================================================
 */
 
-namespace juce::detail
+namespace juce
 {
 
-class OwningDrawableComponent : private std::unique_ptr<Drawable>,
-                                public DrawableComponent
+/**
+    Helper class that owns a Drawable object and exposes it as a DrawableComponent. This class is
+    meant to ease the transition from JUCE 8 to JUCE 9, where Drawable no longer inherits from
+    Component and DrawableComponent takes no ownership of the Drawable object.
+
+    New projects should avoid using this class if possible.
+
+    The new suggested way to work with Drawable objects is to use them directly and draw them using
+    the Drawable::draw() method. This way a heavy dependency on the Component class, and potentially
+    the juce_gui_basics module can be avoided.
+
+    @see Drawable
+
+    @tags{GUI}
+*/
+class JUCE_API  OwningDrawableComponent : private std::unique_ptr<Drawable>,
+                                          public DrawableComponent
 {
 public:
     /** Creates an OwningDrawableComponent that takes ownership of the underlying Drawable object.
@@ -71,4 +86,4 @@ private:
     }
 };
 
-} // namespace juce::detail
+} // namespace juce
