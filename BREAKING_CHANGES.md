@@ -1,6 +1,6 @@
 # JUCE breaking changes
 
-# JUCE 9
+# Version 9.0.0
 
 ## Change
 
@@ -52,7 +52,7 @@ compatible with the juce::XmlElement type.
 The return types of `DrawableShape::getStrokeType()` and
 `DrawableShape::getDashLengths()` changed from `const PathStrokeType&` to
 `PathStrokeType`, and from `const Array<float>&` to `Span<const float>`
-respectively. The parameter type to 
+respectively. The parameter type to
 `DrawableShape::setDashLengths (const Array<float>&)` was changed to
 `Span<const float>`.
 
