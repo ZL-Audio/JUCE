@@ -208,6 +208,11 @@ public:
     */
     void setDrawableTransform (const AffineTransform& transform);
 
+    /** Calls setDrawableTransform() with a transform that will position this Drawable within the
+        specified area in the untransformed coordinate system of the Drawable.
+    */
+    void setDrawableTransformToFit (const Rectangle<float>& area, RectanglePlacement placement);
+
     /** Returns the transform that is currently being applied to this drawable.
 
         @see setTransform

@@ -90,6 +90,12 @@ void Drawable::setDrawableTransform (const AffineTransform& newTransform)
     transform = newTransform;
 }
 
+void Drawable::setDrawableTransformToFit (const Rectangle<float>& area, RectanglePlacement placement)
+{
+    if (! area.isEmpty())
+        setDrawableTransform (placement.getTransformToFit (getDrawableBoundsUntransformed(), area));
+}
+
 AffineTransform Drawable::getDrawableTransform() const
 {
     return transform;
