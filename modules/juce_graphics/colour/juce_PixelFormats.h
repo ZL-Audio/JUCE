@@ -193,9 +193,6 @@ public:
         {
             case BlendMode::sourceOver:
             {
-                if (srcAlpha == 0)
-                    return;
-
                 const uint32 invAlpha = 255u - srcAlpha;
                 const auto destRB = getEvenBytes() * invAlpha;
                 const auto destAG = getOddBytes()  * invAlpha;
@@ -218,12 +215,6 @@ public:
 
             case BlendMode::destinationIn:
             {
-                if (srcAlpha == 0)
-                {
-                    internal = 0;
-                    return;
-                }
-
                 const auto destRB = getEvenBytes() * srcAlpha;
                 const auto destAG = getOddBytes()  * srcAlpha;
                 const auto corrRB = (destRB >> 8) & 0x00ff00ffu;

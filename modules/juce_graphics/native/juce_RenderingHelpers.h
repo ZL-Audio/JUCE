@@ -1199,6 +1199,15 @@ namespace EdgeTableFillers
                 : addBytesToPointer (linePixels, x * destData.pixelStride);
         }
 
+        static forcedinline void storeNativeARGB (void* dest, const uint32 (&c)[4], int shiftAmount) noexcept
+        {
+            auto* d = static_cast<uint8*> (dest);
+            d[0] = (uint8) (c[0] >> shiftAmount);
+            d[1] = (uint8) (c[1] >> shiftAmount);
+            d[2] = (uint8) (c[2] >> shiftAmount);
+            d[3] = (uint8) (c[3] >> shiftAmount);
+        }
+
         //==============================================================================
         template <class PixelType>
         void generate (PixelType* dest, int x, int numPixels) noexcept
@@ -1309,10 +1318,7 @@ namespace EdgeTableFillers
             c[2] += weight * src[2];
             c[3] += weight * src[3];
 
-            dest->setARGB ((uint8) (c[PixelARGB::indexA] >> 16),
-                           (uint8) (c[PixelARGB::indexR] >> 16),
-                           (uint8) (c[PixelARGB::indexG] >> 16),
-                           (uint8) (c[PixelARGB::indexB] >> 16));
+            storeNativeARGB (dest, c, 16);
         }
 
         void render2PixelAverageX (PixelARGB* dest, const uint8* src, uint32 subPixelX) noexcept
@@ -1333,10 +1339,7 @@ namespace EdgeTableFillers
             c[2] += weight * src[2];
             c[3] += weight * src[3];
 
-            dest->setARGB ((uint8) (c[PixelARGB::indexA] >> 8),
-                           (uint8) (c[PixelARGB::indexR] >> 8),
-                           (uint8) (c[PixelARGB::indexG] >> 8),
-                           (uint8) (c[PixelARGB::indexB] >> 8));
+            storeNativeARGB (dest, c, 8);
         }
 
         void render2PixelAverageY (PixelARGB* dest, const uint8* src, uint32 subPixelY) noexcept
@@ -1357,10 +1360,7 @@ namespace EdgeTableFillers
             c[2] += weight * src[2];
             c[3] += weight * src[3];
 
-            dest->setARGB ((uint8) (c[PixelARGB::indexA] >> 8),
-                           (uint8) (c[PixelARGB::indexR] >> 8),
-                           (uint8) (c[PixelARGB::indexG] >> 8),
-                           (uint8) (c[PixelARGB::indexB] >> 8));
+            storeNativeARGB (dest, c, 8);
         }
 
         //==============================================================================
