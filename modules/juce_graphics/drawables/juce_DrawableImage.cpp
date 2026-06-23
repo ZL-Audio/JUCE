@@ -126,9 +126,9 @@ void DrawableImage::paint (Graphics& g) const
     }
 }
 
-Rectangle<float> DrawableImage::getDrawableBounds() const
+Rectangle<float> DrawableImage::getDrawableBoundsUntransformed() const
 {
-    return image.getBounds().toFloat().transformedBy (getDrawableTransform());
+    return image.getBounds().toFloat();
 }
 
 bool DrawableImage::hitTest (Point<float> p) const

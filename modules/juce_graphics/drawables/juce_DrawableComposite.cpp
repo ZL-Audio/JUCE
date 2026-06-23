@@ -37,14 +37,14 @@ std::unique_ptr<Drawable> DrawableComposite::createCopy() const
 }
 
 //==============================================================================
-Rectangle<float> DrawableComposite::getDrawableBounds() const
+Rectangle<float> DrawableComposite::getDrawableBoundsUntransformed() const
 {
     Rectangle<float> r;
 
     for (const auto& child : children)
         r = r.getUnion (child->getDrawableBounds());
 
-    return r.transformedBy (getDrawableTransform());
+    return r;
 }
 
 void DrawableComposite::setContentArea (Rectangle<float> newArea)

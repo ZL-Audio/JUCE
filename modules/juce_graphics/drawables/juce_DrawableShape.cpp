@@ -110,12 +110,12 @@ void DrawableShape::strokeChanged()
     callListeners();
 }
 
-Rectangle<float> DrawableShape::getDrawableBounds() const
+Rectangle<float> DrawableShape::getDrawableBoundsUntransformed() const
 {
     if (isStrokeVisible())
-        return strokePath.getBounds().transformedBy (getDrawableTransform());
+        return strokePath.getBounds();
 
-    return path.getBounds().transformedBy (getDrawableTransform());
+    return path.getBounds();
 }
 
 bool DrawableShape::hitTest (Point<float> p) const

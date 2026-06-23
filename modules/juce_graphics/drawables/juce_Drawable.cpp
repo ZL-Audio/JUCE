@@ -132,4 +132,9 @@ std::unique_ptr<Drawable> Drawable::createFromImageFile (const File& file)
     return {};
 }
 
+Rectangle<float> Drawable::getDrawableBounds() const
+{
+    return getDrawableBoundsUntransformed().transformedBy (getDrawableTransform());
+}
+
 } // namespace juce

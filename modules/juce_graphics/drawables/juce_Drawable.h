@@ -157,9 +157,18 @@ public:
     static Path parseSVGPath (const String& svgPath);
 
     //==============================================================================
-    /** Returns the area that this drawable covers.
+    /** Returns the area that this drawable covers. These bounds are affected by the transform
+        passed to setDrawableTransform(). To get the original, untransformed bounds use
+        getDrawableBoundsUntransformed().
     */
-    virtual Rectangle<float> getDrawableBounds() const = 0;
+    Rectangle<float> getDrawableBounds() const;
+
+    /** Returns the area that this drawable covers in its original coordinate system.
+        These bounds are not affected by setDrawableTransform().
+
+        @see getDrawableBounds
+    */
+    virtual Rectangle<float> getDrawableBoundsUntransformed() const = 0;
 
     /** Returns the width of the drawable bounds rounded up to the nearest integer.
 

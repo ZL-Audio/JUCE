@@ -187,9 +187,9 @@ AffineTransform DrawableText::getTransform() const
     return getTextTransform().followedBy (getDrawableTransform());
 }
 
-Rectangle<float> DrawableText::getDrawableBounds() const
+Rectangle<float> DrawableText::getDrawableBoundsUntransformed() const
 {
-    return bounds.getBoundingBox().transformedBy (getDrawableTransform());
+    return bounds.getBoundingBox();
 }
 
 Path DrawableText::getOutlineAsPath() const

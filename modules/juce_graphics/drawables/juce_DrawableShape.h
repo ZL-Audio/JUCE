@@ -87,7 +87,7 @@ public:
 
     //==============================================================================
     /** @internal */
-    Rectangle<float> getDrawableBounds() const override;
+    Rectangle<float> getDrawableBoundsUntransformed() const override;
     /** @internal */
     bool hitTest (Point<float>) const override;
     /** @internal */
