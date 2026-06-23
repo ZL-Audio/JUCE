@@ -33,7 +33,7 @@
   website:            http://www.juce.com/juce
   license:            AGPLv3/Commercial
 
-  dependencies:       juce_gui_basics
+  dependencies:       juce_graphics
 
  END_JUCE_MODULE_DECLARATION
 
@@ -46,7 +46,7 @@
 #pragma once
 #define JUCE_BUILD_TOOLS_H_INCLUDED
 
-#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_graphics/juce_graphics.h>
 
 #include "utils/juce_ProjectType.h"
 #include "utils/juce_BuildHelperFunctions.h"
