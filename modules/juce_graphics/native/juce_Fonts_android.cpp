@@ -192,18 +192,27 @@ public:
         return from (FontOptions{}.withName ("Roboto"));
     }
 
-    static JUCE_INTRODUCED_IN_29 std::unique_ptr<AFont, FunctionPointerDestructor<AFont_close>> findAFontWithMatcher (const Font& font)
+    static JUCE_INTRODUCED_IN_29 auto findAFontWithMatcher (const Font& font)
     {
-        using AFontPtr = std::unique_ptr<AFont, FunctionPointerDestructor<AFont_close>>;
-        using AFontMatcherPtr = std::unique_ptr<AFontMatcher, FunctionPointerDestructor<AFontMatcher_destroy>>;
+        struct Destructor
+        {
+            void operator() (AFont* x) const
+            {
+                if (x != nullptr)
+                    AFont_close (x);
+            }
+        };
+
+        using AFontPtr = std::unique_ptr<AFont, Destructor>;
 
         constexpr uint16_t testString[] { 't', 'e', 's', 't' };
 
-        const AFontMatcherPtr matcher { AFontMatcher_create() };
+        auto* matcher = AFontMatcher_create();
+        const ScopeGuard freeMatcher { [&] { AFontMatcher_destroy (matcher); } };
         const auto weight = font.isBold() ? AFONT_WEIGHT_BOLD : AFONT_WEIGHT_NORMAL;
         const auto italic = font.isItalic();
-        AFontMatcher_setStyle (matcher.get(), weight, italic);
-        return AFontPtr { AFontMatcher_match (matcher.get(),
+        AFontMatcher_setStyle (matcher, weight, italic);
+        return AFontPtr { AFontMatcher_match (matcher,
                                               font.getTypefaceName().toRawUTF8(),
                                               testString,
                                               std::size (testString),
@@ -283,26 +292,25 @@ private:
 
     JUCE_INTRODUCED_IN_29 Ptr matchWithAFontMatcher (const String& text, const String& language) const
     {
-        using AFontMatcherPtr = std::unique_ptr<AFontMatcher, FunctionPointerDestructor<AFontMatcher_destroy>>;
-        using AFontPtr = std::unique_ptr<AFont, FunctionPointerDestructor<AFont_close>>;
-
-        const AFontMatcherPtr matcher { AFontMatcher_create() };
+        auto* matcher = AFontMatcher_create();
+        const ScopeGuard freeMatcher { [&] { AFontMatcher_destroy (matcher); } };
 
         const auto weight = hb_style_get_value (native->getFont(), HB_STYLE_TAG_WEIGHT);
         const auto italic = hb_style_get_value (native->getFont(), HB_STYLE_TAG_ITALIC) != 0.0f;
-        AFontMatcher_setStyle (matcher.get(), (uint16_t) weight, italic);
+        AFontMatcher_setStyle (matcher, (uint16_t) weight, italic);
 
-        AFontMatcher_setLocales (matcher.get(), language.toRawUTF8());
+        AFontMatcher_setLocales (matcher, language.toRawUTF8());
 
         const auto utf16 = text.toUTF16();
 
-        const AFontPtr matched { AFontMatcher_match (matcher.get(),
-                                                     getName().toRawUTF8(),
-                                                     unalignedPointerCast<const uint16_t*> (utf16.getAddress()),
-                                                     (uint32_t) (utf16.findTerminatingNull().getAddress() - utf16.getAddress()),
-                                                     nullptr) };
+        auto* matched = AFontMatcher_match (matcher,
+                                            getName().toRawUTF8(),
+                                            unalignedPointerCast<const uint16_t*> (utf16.getAddress()),
+                                            (uint32_t) (utf16.findTerminatingNull().getAddress() - utf16.getAddress()),
+                                            nullptr);
+        const ScopeGuard freeMatched { [&] { AFont_close (matched); } };
 
-        return fromMatchedFont (matched.get(), (uint16_t) weight, italic);
+        return fromMatchedFont (matched, (uint16_t) weight, italic);
     }
 
     static bool shouldStoreAndroidFont (hb_face_t* face)
@@ -402,18 +410,17 @@ private:
 
                 if (__builtin_available (android 29, *))
                 {
-                    using AndroidFontIterator = std::unique_ptr<ASystemFontIterator, FunctionPointerDestructor<ASystemFontIterator_close>>;
-
-                    if (const AndroidFontIterator iterator { ASystemFontIterator_open() })
+                    if (auto* iterator = ASystemFontIterator_open())
                     {
+                        const ScopeGuard closeIterator { [&] { ASystemFontIterator_close (iterator); } };
+
                         SystemFontMap sfm;
 
-                        using AndroidFont = std::unique_ptr<AFont, FunctionPointerDestructor<AFont_close>>;
-
-                        while (const AndroidFont font { ASystemFontIterator_next (iterator.get()) })
+                        while (auto* font = ASystemFontIterator_next (iterator))
                         {
-                            const File path { AFont_getFontFilePath (font.get()) };
-                            const auto index = AFont_getCollectionIndex (font.get());
+                            const ScopeGuard closeFont { [&] { AFont_close (font); } };
+                            const File path { AFont_getFontFilePath (font) };
+                            const auto index = AFont_getCollectionIndex (font);
                             addFontInfo (sfm, { path, (int) index });
                         }
 
