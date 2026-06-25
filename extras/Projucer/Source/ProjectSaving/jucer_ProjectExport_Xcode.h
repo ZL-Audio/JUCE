@@ -2636,7 +2636,7 @@ private:
     {
         const auto runPreBuildScript = [&]
         {
-            target.addShellScriptBuildPhase ("Pre-build script", getPreBuildScript());
+            target.addShellScriptBuildPhase ("Run Pre-Build Script", getPreBuildScript());
         };
 
         const auto copyBundleResources = [&]
@@ -2698,7 +2698,7 @@ private:
 
         const auto runPostBuildScript = [&]
         {
-            target.addShellScriptBuildPhase ("Run Post-build Script", getPostBuildScript());
+            target.addShellScriptBuildPhase ("Run Post-Build Script", getPostBuildScript());
         };
 
         const auto embedAUv3AppExtension = [&]
