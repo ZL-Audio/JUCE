@@ -146,6 +146,7 @@ namespace Ids
     DECLARE_ID (iconComposerIcon);
     DECLARE_ID (prebuildCommand);
     DECLARE_ID (postbuildCommand);
+    DECLARE_ID (postSignCommand);
     DECLARE_ID (useRuntimeLibDLL);
     DECLARE_ID (multiProcessorCompilation);
     DECLARE_ID (enableIncrementalLinking);
