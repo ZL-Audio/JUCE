@@ -277,6 +277,7 @@ juce::build_tools::PlistOptions parsePlistOptions (const juce::File& file,
     updateField ("PLUGIN_DESCRIPTION",                   result.pluginDescription);
     updateField ("PLUGIN_AU_EXPORT_PREFIX",              result.pluginAUExportPrefix);
     updateField ("PLUGIN_AU_MAIN_TYPE",                  result.auMainType);
+    updateField ("PLUGIN_AU_FRAMEWORK_BUNDLE_ID",        result.auv3FrameworkBundle);
     updateField ("IS_AU_SANDBOX_SAFE",                   result.isAuSandboxSafe);
     updateField ("IS_PLUGIN_SYNTH",                      result.isPluginSynth);
     updateField ("IS_PLUGIN_ARA_EFFECT",                 result.isPluginARAEffect);

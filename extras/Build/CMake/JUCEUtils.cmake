@@ -387,6 +387,7 @@ function(_juce_write_configure_time_info target)
     _juce_append_target_property(file_content PLUGIN_DESCRIPTION                   ${target} JUCE_DESCRIPTION)
     _juce_append_target_property(file_content PLUGIN_AU_EXPORT_PREFIX              ${target} JUCE_AU_EXPORT_PREFIX)
     _juce_append_target_property(file_content PLUGIN_AU_MAIN_TYPE                  ${target} JUCE_AU_MAIN_TYPE_CODE)
+    _juce_append_target_property(file_content PLUGIN_AU_FRAMEWORK_BUNDLE_ID        ${target} JUCE_AU_FRAMEWORK_BUNDLE_ID)
     _juce_append_target_property(file_content IS_AU_SANDBOX_SAFE                   ${target} JUCE_AU_SANDBOX_SAFE)
     _juce_append_target_property(file_content IS_PLUGIN_SYNTH                      ${target} JUCE_IS_SYNTH)
     _juce_append_target_property(file_content IS_PLUGIN_ARA_EFFECT                 ${target} JUCE_IS_ARA_EFFECT)
@@ -1437,8 +1438,22 @@ function(_juce_link_plugin_wrapper shared_code_target kind)
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         add_library(${target_name} SHARED)
-    elseif((kind STREQUAL "Standalone") OR (kind STREQUAL "AUv3"))
+    elseif(kind STREQUAL "Standalone")
         add_executable(${target_name} WIN32 MACOSX_BUNDLE)
+    elseif(kind STREQUAL "AUv3")
+        if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+            add_library(${target_name}_Framework SHARED)
+            get_target_property(framework_bundle_id ${shared_code_target} JUCE_AU_FRAMEWORK_BUNDLE_ID)
+            set_target_properties(${target_name}_Framework PROPERTIES
+                FRAMEWORK TRUE
+                MACOSX_FRAMEWORK_IDENTIFIER ${framework_bundle_id})
+            add_executable(${target_name} MACOSX_BUNDLE)
+            target_link_libraries(${target_name} PRIVATE ${target_name}_Framework)
+            target_sources(${target_name} PRIVATE ${JUCE_CMAKE_UTILS_DIR}/bundleplaceholder.mm)
+            _juce_link_frameworks(${target_name} PUBLIC Foundation)
+        else()
+            add_executable(${target_name} MACOSX_BUNDLE)
+        endif()
     else()
         add_library(${target_name} MODULE)
     endif()
@@ -1453,9 +1468,18 @@ function(_juce_link_plugin_wrapper shared_code_target kind)
     target_include_directories(${target_name} PRIVATE
         $<TARGET_PROPERTY:${shared_code_target},INCLUDE_DIRECTORIES>)
 
-    target_link_libraries(${target_name} PRIVATE
-        ${shared_code_target}
-        juce::juce_audio_plugin_client_${kind})
+    if("${kind};${CMAKE_SYSTEM_NAME}" STREQUAL "AUv3;Darwin")
+        target_include_directories(${target_name}_Framework PRIVATE
+            $<TARGET_PROPERTY:${shared_code_target},INCLUDE_DIRECTORIES>)
+
+        target_link_libraries(${target_name}_Framework PRIVATE
+            ${shared_code_target}
+            juce::juce_audio_plugin_client_${kind})
+    else()
+        target_link_libraries(${target_name} PRIVATE
+            ${shared_code_target}
+            juce::juce_audio_plugin_client_${kind})
+    endif()
 
     _juce_set_output_name(${target_name} $<TARGET_PROPERTY:${shared_code_target},JUCE_PRODUCT_NAME>)
 
@@ -1646,6 +1670,11 @@ function(_juce_configure_plugin_targets target)
         add_dependencies(${target}_Standalone ${target}_AUv3)
         set_target_properties(${target}_Standalone PROPERTIES
             XCODE_EMBED_APP_EXTENSIONS ${target}_AUv3)
+
+        if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+            set_target_properties(${target}_Standalone PROPERTIES
+                XCODE_EMBED_FRAMEWORKS ${target}_AUv3_Framework)
+        endif()
     endif()
 
     get_target_property(wants_copy "${target}" JUCE_COPY_PLUGIN_AFTER_BUILD)
@@ -1802,6 +1831,7 @@ function(_juce_set_fallback_properties target)
 
     get_target_property(bundle_id ${target} JUCE_BUNDLE_ID)
     _juce_set_property_if_not_set(${target} AAX_IDENTIFIER ${bundle_id})
+    _juce_set_property_if_not_set(${target} AU_FRAMEWORK_BUNDLE_ID ${bundle_id}.internal)
 
     _juce_set_property_if_not_set(${target} VST_NUM_MIDI_INS 16)
     _juce_set_property_if_not_set(${target} VST_NUM_MIDI_OUTS 16)

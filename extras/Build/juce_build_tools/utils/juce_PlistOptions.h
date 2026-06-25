@@ -86,6 +86,7 @@ namespace juce::build_tools
         String pluginDescription;
         String pluginAUExportPrefix;
         String auMainType;
+        String auv3FrameworkBundle;
         bool isAuSandboxSafe                    = false;
         bool isPluginSynth                      = false;
         bool suppressResourceUsage              = false;
