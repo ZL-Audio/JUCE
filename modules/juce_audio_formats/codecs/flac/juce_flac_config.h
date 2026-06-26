@@ -61,7 +61,8 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wempty-translation-unit")
                                       "-Wconditional-uninitialized",
                                       "-Wunused-parameter",
                                       "-Wunused-variable",
-                                      "-Wcast-align")
+                                      "-Wcast-align",
+                                      "-Wpedantic")
 
  #if JUCE_INTEL
   #if JUCE_32BIT
