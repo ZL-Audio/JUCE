@@ -207,3 +207,27 @@
 #else
   #error unknown compiler
 #endif
+
+//==============================================================================
+// Instruction set capabilities
+
+#ifndef JUCE_USE_SSE_INTRINSICS
+ #define JUCE_USE_SSE_INTRINSICS 1
+#endif
+
+#if ! JUCE_INTEL
+ #undef JUCE_USE_SSE_INTRINSICS
+#endif
+
+#ifndef JUCE_USE_ARM_NEON
+ #if (__ARM_NEON || __ARM_NEON__ || _M_ARM64 || _M_ARM64EC) && ! JUCE_USE_VDSP_FRAMEWORK
+  #define JUCE_USE_ARM_NEON 1
+ #endif
+#endif
+
+#if TARGET_IPHONE_SIMULATOR && ! (TARGET_CPU_ARM || TARGET_CPU_ARM64)
+ #ifdef JUCE_USE_ARM_NEON
+  #undef JUCE_USE_ARM_NEON
+ #endif
+ #define JUCE_USE_ARM_NEON 0
+#endif
