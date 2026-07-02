@@ -556,8 +556,8 @@ namespace AAXClasses
         {
             if (component != nullptr)
             {
-                *viewSize = convertToHostBounds ({ (float) component->getHeight(),
-                                                   (float) component->getWidth() });
+                *viewSize = component->convertToHostBounds ({ (float) component->getHeight(),
+                                                              (float) component->getWidth() });
 
                 return AAX_SUCCESS;
             }
@@ -612,18 +612,6 @@ namespace AAXClasses
         //==============================================================================
         int getParamIndexFromID (AAX_CParamID paramID) const noexcept;
         AAX_CParamID getAAXParamIDFromJuceIndex (int index) const noexcept;
-
-        //==============================================================================
-        static AAX_Point convertToHostBounds (AAX_Point pluginSize)
-        {
-            auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-
-            if (approximatelyEqual (desktopScale, 1.0f))
-                return pluginSize;
-
-            return { pluginSize.vert * desktopScale,
-                     pluginSize.horz * desktopScale };
-        }
 
         //==============================================================================
         struct ContentWrapperComponent final : public Component
@@ -701,6 +689,23 @@ namespace AAXClasses
                     pluginEditor->setBoundsConstrained (pluginEditor->getBounds().withSize (lastValidSize.getWidth(),
                                                                                             lastValidSize.getHeight()));
                 }
+            }
+
+            AAX_Point convertToHostBounds (AAX_Point p)
+            {
+                const auto scale = std::invoke ([&]
+                {
+                    if (auto* peer = getPeer())
+                        return (float) (peer->getPlatformScaleFactor() * peer->getComponent().getDesktopScaleFactor());
+
+                    return 1.0f;
+                });
+
+                if (approximatelyEqual (scale, 1.0f))
+                    return p;
+
+                return { scale * p.vert,
+                         scale * p.horz };
             }
 
             bool resizeHostWindow()
