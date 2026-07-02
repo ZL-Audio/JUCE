@@ -76,7 +76,18 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[]
                         summ_0 = vmlaq_laneq_s32(summ_0,tmp_vec[tmp_vec_ind] ,qlp_coeff_vec, lane); \
                         summ_1 = vmlaq_laneq_s32(summ_1,tmp_vec[tmp_vec_ind+4] ,qlp_coeff_vec, lane); \
                         summ_2 = vmlaq_laneq_s32(summ_2,tmp_vec[tmp_vec_ind+8] ,qlp_coeff_vec, lane);
-                        
+
+// JUCE MODIFICATION BEGIN
+// All calls to this function are also JUCE modifications
+static inline int32x4_t FLAC__build_int32x4_t (FLAC__int32 a, FLAC__int32 b, FLAC__int32 c, FLAC__int32 d)
+{
+    FLAC__int32 array[] = { a, b, c, d };
+    int32x4_t result;
+    memcpy (&result, array, sizeof (array));
+    return result;
+}
+// JUCE MODIFICATION END
+
 void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
 {
     int i;
@@ -91,9 +102,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
         if(order > 8) {
             if(order > 10) {
                 if (order == 12) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], qlp_coeff[10], qlp_coeff[11]};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8], qlp_coeff[9], qlp_coeff[10], qlp_coeff[11]);
 
                     tmp_vec[0] = vld1q_s32(data - 12);
                     tmp_vec[1] = vld1q_s32(data - 11);
@@ -150,9 +161,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                 }
 
                 else { /* order == 11 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], qlp_coeff[10], 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8], qlp_coeff[9], qlp_coeff[10], 0);
 
                     tmp_vec[0] = vld1q_s32(data - 11);
                     tmp_vec[1] = vld1q_s32(data - 10);
@@ -208,9 +219,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
             }
             else {
                 if(order == 10) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8], qlp_coeff[9], 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 10);
                     tmp_vec[1] = vld1q_s32(data - 9);
@@ -261,9 +272,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 9 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8], 0, 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8], 0, 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 9);
                     tmp_vec[1] = vld1q_s32(data - 8);
@@ -313,8 +324,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
         else if(order > 4) {
             if(order > 6) {
                 if(order == 8) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
 
                     tmp_vec[0] = vld1q_s32(data - 8);
                     tmp_vec[1] = vld1q_s32(data - 7);
@@ -357,8 +368,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 7 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], 0);
 
                     tmp_vec[0] = vld1q_s32(data - 7);
                     tmp_vec[1] = vld1q_s32(data - 6);
@@ -400,8 +411,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
             }
             else {
                 if(order == 6) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 6);
                     tmp_vec[1] = vld1q_s32(data - 5);
@@ -438,8 +449,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 5 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], 0, 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], 0, 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 5);
                     
@@ -478,7 +489,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
         else {
             if(order > 2) {
                 if(order == 4) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
                     
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
@@ -507,7 +518,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 3 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0);
 
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
@@ -534,7 +545,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
             }
             else {
                 if(order == 2) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], 0, 0);
 
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
@@ -679,9 +690,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
 		if(order > 8) {
 			if(order > 10) {
 				if(order == 12) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4],qlp_coeff[5],qlp_coeff[6],qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8],qlp_coeff[9],qlp_coeff[10],qlp_coeff[11]};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4],qlp_coeff[5],qlp_coeff[6],qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8],qlp_coeff[9],qlp_coeff[10],qlp_coeff[11]);
 
                     tmp_vec[0] = vld1q_s32(data - 12);
                     tmp_vec[1] = vld1q_s32(data - 11);
@@ -735,9 +746,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                     }
                 }
 				else { /* order == 11 */			
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4],qlp_coeff[5],qlp_coeff[6],qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8],qlp_coeff[9],qlp_coeff[10],0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4],qlp_coeff[5],qlp_coeff[6],qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8],qlp_coeff[9],qlp_coeff[10],0);
 
                     tmp_vec[0] = vld1q_s32(data - 11);
                     tmp_vec[1] = vld1q_s32(data - 10);
@@ -791,9 +802,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             else
             {
                 if (order == 10) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8], qlp_coeff[9], 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 10);
                     tmp_vec[1] = vld1q_s32(data - 9);
@@ -843,9 +854,9 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                 }
 
                 else /* order == 9 */ {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                    int32x4_t qlp_coeff_2 = {qlp_coeff[8], 0, 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
+                    int32x4_t qlp_coeff_2 = FLAC__build_int32x4_t(qlp_coeff[8], 0, 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 9);
                     tmp_vec[1] = vld1q_s32(data - 8);
@@ -897,8 +908,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             {
                 if (order == 8)
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]);
                  
                     tmp_vec[0] = vld1q_s32(data - 8);
                     tmp_vec[1] = vld1q_s32(data - 7);
@@ -942,8 +953,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                 }
                 else /* order == 7 */
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], 0);
 
                     tmp_vec[0] = vld1q_s32(data - 7);
                     tmp_vec[1] = vld1q_s32(data - 6);
@@ -986,8 +997,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             else
             {
                 if (order == 6) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], qlp_coeff[5], 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 6);
                     tmp_vec[1] = vld1q_s32(data - 5);
@@ -1026,8 +1037,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
 
                 else
                 { /* order == 5 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    int32x4_t qlp_coeff_1 = {qlp_coeff[4], 0, 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
+                    int32x4_t qlp_coeff_1 = FLAC__build_int32x4_t(qlp_coeff[4], 0, 0, 0);
 
                     tmp_vec[0] = vld1q_s32(data - 5);
                     
@@ -1066,7 +1077,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             {
                 if (order == 4)
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]);
                     
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
@@ -1095,7 +1106,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                 else
                 { /* order == 3 */
 
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0);
                     
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
@@ -1122,7 +1133,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             {
                 if (order == 2)
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], 0, 0};
+                    int32x4_t qlp_coeff_0 = FLAC__build_int32x4_t(qlp_coeff[0], qlp_coeff[1], 0, 0);
 
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {

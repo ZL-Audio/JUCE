@@ -21,6 +21,9 @@ The steps carried out when including the 1.5.0 version
   This delete step is propagated back to older commits, so that unneeded files are never added to
   the GIT repo.
 
+In order to get the lpc_intrin_neon.c file to build with MSVC, a new function
+'FLAC__build_int32x4_t' was added, and all braced initialisations of int32x4_t types were switched
+to use the new function instead.
 
 [1]: Code excerpt used for retargeting includes in the copied files
 ```
