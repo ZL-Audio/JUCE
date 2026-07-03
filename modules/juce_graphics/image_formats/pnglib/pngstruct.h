@@ -24,7 +24,13 @@
    /* We must ensure that zlib uses 'const' in declarations. */
 #  define ZLIB_CONST
 #endif
+
+#if ! defined (JUCE_INCLUDE_ZLIB_CODE) || JUCE_INCLUDE_ZLIB_CODE
+#include "juce_core/zip/zlib/zlib.h"
+#else
 #include "zlib.h"
+#endif
+
 #ifdef const
    /* zlib.h sometimes #defines const to nothing, undo this. */
 #  undef const

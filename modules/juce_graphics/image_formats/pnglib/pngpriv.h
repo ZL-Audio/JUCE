@@ -19,20 +19,10 @@
  * they should be well aware of the issues that may arise from doing so.
  */
 
-
-/* pngpriv.h must be included first in each translation unit inside libpng.
- * On the other hand, it must not be included at all, directly or indirectly,
- * by any application code that uses the libpng API.
- */
+// JUCE CHANGE BEGIN
 #ifndef PNGPRIV_H
-#  define PNGPRIV_H
-#else
-#  error Duplicate inclusion of pngpriv.h; please check the libpng source files
-#endif
-
-#if defined(PNG_H) || defined(PNGCONF_H) || defined(PNGLCONF_H)
-#  error This file must not be included by applications; please include <png.h>
-#endif
+#define PNGPRIV_H
+// JUCE CHANGE END
 
 /* Feature Test Macros.  The following are defined here to ensure that correctly
  * implemented libraries reveal the APIs libpng needs to build and hide those
@@ -2426,3 +2416,7 @@ PNG_INTERNAL_FUNCTION(int,
 #endif
 
 #endif /* PNG_VERSION_INFO_ONLY */
+
+// JUCE CHANGE BEGIN
+#endif
+// JUCE CHANGE END
