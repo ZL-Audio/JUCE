@@ -39,7 +39,6 @@ The JUCE modules contain the following dependencies:
 - [AudioUnitSDK](modules/juce_audio_plugin_client/AU/AudioUnitSDK/) ([Apache 2.0](modules/juce_audio_plugin_client/AU/AudioUnitSDK/LICENSE.txt))
 - [Oboe](modules/juce_audio_devices/native/oboe/) ([Apache 2.0](modules/juce_audio_devices/native/oboe/LICENSE))
 - [FLAC](modules/juce_audio_formats/codecs/flac/) ([BSD](modules/juce_audio_formats/codecs/flac/Flac%20Licence.txt))
-- [GLEW](modules/juce_opengl/opengl/juce_gl.h) ([BSD](modules/juce_opengl/opengl/juce_gl.h)), including [Mesa](modules/juce_opengl/opengl/juce_gl.h) ([MIT](modules/juce_opengl/opengl/juce_gl.h)) and [Khronos](modules/juce_opengl/opengl/juce_gl.h) ([MIT](modules/juce_opengl/opengl/juce_gl.h))
 - [Ogg Vorbis](modules/juce_audio_formats/codecs/oggvorbis/) ([BSD](modules/juce_audio_formats/codecs/oggvorbis/Ogg%20Vorbis%20Licence.txt))
 - [jpeglib](modules/juce_graphics/image_formats/jpglib/) ([Independent JPEG Group License](modules/juce_graphics/image_formats/jpglib/README))
 - [CHOC](modules/juce_javascript/choc/) ([ISC](modules/juce_javascript/choc/LICENSE.md)), including [QuickJS](modules/juce_javascript/choc/javascript/choc_javascript_QuickJS.h) ([MIT](modules/juce_javascript/choc/javascript/choc_javascript_QuickJS.h))
@@ -55,6 +54,7 @@ The JUCE modules contain the following dependencies:
 - [ASIO](modules/juce_audio_devices/native/asio/) ([Proprietary Steinberg ASIO License/GPLv3](modules/juce_audio_devices/native/asio/LICENSE.txt))
 - [LunaSVG](modules/juce_graphics/drawables/lunasvg) ([MIT](modules/juce_graphics/drawables/lunasvg/LICENSE))
 - [PlutoVG](modules/juce_graphics/drawables/lunasvg/plutovg) ([MIT](modules/juce_graphics/drawables/lunasvg/plutovg/LICENSE))
+- The [juce_gl.h](modules/juce_opengl/opengl/juce_gl.h) header contains code covered by the [GLEW Licence](modules/juce_opengl/opengl/juce_gl.h) ([BSD](modules/juce_opengl/opengl/juce_gl.h)), [Mesa Licence](modules/juce_opengl/opengl/juce_gl.h) ([MIT](modules/juce_opengl/opengl/juce_gl.h)), and [Khronos Licence](modules/juce_opengl/opengl/juce_gl.h) ([MIT](modules/juce_opengl/opengl/juce_gl.h))
 
 The JUCE examples are licensed under the terms of the
 [ISC license](http://www.isc.org/downloads/software-support-policy/isc-license/).
