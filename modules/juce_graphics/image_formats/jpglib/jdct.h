@@ -9,7 +9,7 @@
  * This include file contains common declarations for the forward and
  * inverse DCT modules.  These declarations are private to the DCT managers
  * (jcdctmgr.c, jddctmgr.c) and the individual DCT algorithms.
- * The individual DCT algorithms are kept in separate files to ease 
+ * The individual DCT algorithms are kept in separate files to ease
  * machine-dependent tuning (e.g., assembly coding).
  */
 
@@ -44,6 +44,9 @@
  *     [BITS_IN_JSAMPLE - 1 + RANGE_BITS + PASS2BITS <= 14]
  * Combined for all:
  */
+
+#ifndef _JDCT_H_ // JUCE CHANGE
+#define _JDCT_H_ // JUCE CHANGE
 
 #if BITS_IN_JSAMPLE <= 10 && JPEG_DATA_PRECISION <= 10 && RANGE_BITS <= 2
 typedef int DCTELEM;		/* 16 or 32 bits is fine */
@@ -421,3 +424,6 @@ EXTERN(void) jpeg_idct_1x2
 #define ISHIFT_TEMPS
 #define IRIGHT_SHIFT(x,shft)	((x) >> (shft))
 #endif
+
+#endif // JUCE CHANGE
+

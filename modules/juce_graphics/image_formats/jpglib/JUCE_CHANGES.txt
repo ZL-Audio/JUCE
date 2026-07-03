@@ -8,6 +8,7 @@ http://www.ijg.org/
 
 Some source code changes were required to make this JUCE compatible, they are as follows:
     * jmemsys.h: C-style include guard added
+    * jdct.h: C-style include guard added
 
     * jconfig.h: Comment out _WIN32 ifdef to force boolean to be unsigned char on all
                  platforms.
