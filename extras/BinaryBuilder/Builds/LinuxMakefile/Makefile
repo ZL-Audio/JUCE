@@ -75,6 +75,7 @@ OBJECTS_CONSOLEAPP := \
   $(JUCE_OBJDIR)/Main_90ebc5c2.o \
   $(JUCE_OBJDIR)/include_juce_core_f26d17db.o \
   $(JUCE_OBJDIR)/include_juce_core_CompilationTime_9257742c.o \
+  $(JUCE_OBJDIR)/include_juce_core_zlib_ac61cd39.o \
 
 .PHONY: clean all strip
 
@@ -103,6 +104,11 @@ $(JUCE_OBJDIR)/include_juce_core_CompilationTime_9257742c.o: ../../JuceLibraryCo
 	-$(V_AT)mkdir -p $(@D)
 	@echo "Compiling include_juce_core_CompilationTime.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/include_juce_core_zlib_ac61cd39.o: ../../JuceLibraryCode/include_juce_core_zlib.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_core_zlib.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/execinfo.cmd:
 	-$(V_AT)mkdir -p $(@D)

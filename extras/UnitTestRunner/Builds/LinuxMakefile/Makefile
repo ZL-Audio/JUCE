@@ -86,12 +86,17 @@ OBJECTS_CONSOLEAPP := \
   $(JUCE_OBJDIR)/include_juce_audio_utils_9f9fb2d6.o \
   $(JUCE_OBJDIR)/include_juce_core_f26d17db.o \
   $(JUCE_OBJDIR)/include_juce_core_CompilationTime_9257742c.o \
+  $(JUCE_OBJDIR)/include_juce_core_zlib_ac61cd39.o \
   $(JUCE_OBJDIR)/include_juce_cryptography_8cb807a8.o \
   $(JUCE_OBJDIR)/include_juce_data_structures_7471b1e3.o \
   $(JUCE_OBJDIR)/include_juce_dsp_aeb2060f.o \
   $(JUCE_OBJDIR)/include_juce_events_fd7d695.o \
   $(JUCE_OBJDIR)/include_juce_graphics_f817e147.o \
   $(JUCE_OBJDIR)/include_juce_graphics_Harfbuzz_60c52ba2.o \
+  $(JUCE_OBJDIR)/include_juce_graphics_libjpg_1_ce62d530.o \
+  $(JUCE_OBJDIR)/include_juce_graphics_libjpg_2_ce62d8f1.o \
+  $(JUCE_OBJDIR)/include_juce_graphics_libjpg_3_ce62dcb2.o \
+  $(JUCE_OBJDIR)/include_juce_graphics_libpng_6e070086.o \
   $(JUCE_OBJDIR)/include_juce_graphics_lunasvg_92e75770.o \
   $(JUCE_OBJDIR)/include_juce_graphics_Sheenbidi_c310974d.o \
   $(JUCE_OBJDIR)/include_juce_gui_basics_e3f79785.o \
@@ -189,6 +194,11 @@ $(JUCE_OBJDIR)/include_juce_core_CompilationTime_9257742c.o: ../../JuceLibraryCo
 	@echo "Compiling include_juce_core_CompilationTime.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
 
+$(JUCE_OBJDIR)/include_juce_core_zlib_ac61cd39.o: ../../JuceLibraryCode/include_juce_core_zlib.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_core_zlib.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
+
 $(JUCE_OBJDIR)/include_juce_cryptography_8cb807a8.o: ../../JuceLibraryCode/include_juce_cryptography.cpp
 	-$(V_AT)mkdir -p $(@D)
 	@echo "Compiling include_juce_cryptography.cpp"
@@ -218,6 +228,26 @@ $(JUCE_OBJDIR)/include_juce_graphics_Harfbuzz_60c52ba2.o: ../../JuceLibraryCode/
 	-$(V_AT)mkdir -p $(@D)
 	@echo "Compiling include_juce_graphics_Harfbuzz.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/include_juce_graphics_libjpg_1_ce62d530.o: ../../JuceLibraryCode/include_juce_graphics_libjpg_1.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_graphics_libjpg_1.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/include_juce_graphics_libjpg_2_ce62d8f1.o: ../../JuceLibraryCode/include_juce_graphics_libjpg_2.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_graphics_libjpg_2.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/include_juce_graphics_libjpg_3_ce62dcb2.o: ../../JuceLibraryCode/include_juce_graphics_libjpg_3.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_graphics_libjpg_3.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/include_juce_graphics_libpng_6e070086.o: ../../JuceLibraryCode/include_juce_graphics_libpng.c
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling include_juce_graphics_libpng.c"
+	$(V_AT)$(CC) $(JUCE_CFLAGS) $(JUCE_CPPFLAGS_CONSOLEAPP) $(JUCE_CFLAGS_CONSOLEAPP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/include_juce_graphics_lunasvg_92e75770.o: ../../JuceLibraryCode/include_juce_graphics_lunasvg.c
 	-$(V_AT)mkdir -p $(@D)
