@@ -8,6 +8,9 @@
    subject to change. Applications should only use zlib.h.
  */
 
+#ifndef _INFTREES_H_     // JUCE CHANGE
+#define _INFTREES_H_     // JUCE CHANGE
+
 /* Structure for decoding tables.  Each entry provides either the
    information needed to do the operation requested by the code that
    indexed that table entry, or it provides a pointer to another
@@ -62,3 +65,5 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
                                 unsigned FAR *bits, unsigned short FAR *work);
 struct inflate_state;
 void ZLIB_INTERNAL inflate_fixed(struct inflate_state FAR *state);
+
+#endif // JUCE CHANGE
