@@ -8,9 +8,6 @@
    subject to change. Applications should only use zlib.h.
  */
 
-#ifndef _INFLATE_H_     // JUCE CHANGE
-#define _INFLATE_H_     // JUCE CHANGE
-
 /* define NO_GZIP when compiling if you want to disable gzip header and
    trailer decoding by inflate().  NO_GZIP would be used to avoid linking in
    the crc code when it is not needed.  For shared libraries, gzip decoding
@@ -103,7 +100,7 @@ struct inflate_state {
     unsigned char FAR *window;  /* allocated sliding window, if needed */
         /* bit accumulator */
     unsigned long hold;         /* input bit accumulator */
-    unsigned bits;              /* number of bits in "in" */
+    unsigned bits;              /* number of bits in hold */
         /* for string and stored block copying */
     unsigned length;            /* literal or length of data to copy */
     unsigned offset;            /* distance back to copy string from */
@@ -127,5 +124,3 @@ struct inflate_state {
     int back;                   /* bits back of last unprocessed length/lit */
     unsigned was;               /* initial length of match */
 };
-
-#endif // JUCE CHANGE
