@@ -90,6 +90,8 @@ void DrawableImage::paint (Graphics& g) const
     if (! image.isValid())
         return;
 
+    g.setImageResamplingQuality (resamplingQuality);
+
     const auto dst = destinationBounds.isEmpty() ? image.getBounds() : destinationBounds;
     const auto src = sourceBounds.isEmpty() ? image.getBounds() : sourceBounds;
 
@@ -145,6 +147,11 @@ Path DrawableImage::getOutlineAsPath() const
 bool DrawableImage::isImage() const
 {
     return true;
+}
+
+void DrawableImage::setImageResamplingQuality (Graphics::ResamplingQuality newQuality)
+{
+    resamplingQuality = newQuality;
 }
 
 //==============================================================================

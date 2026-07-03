@@ -83,6 +83,15 @@ public:
     */
     Parallelogram<float> getBoundingBox() const noexcept        { return bounds; }
 
+    /** Sets the resampling quality to use when drawing the image.
+
+        This will have the most noticeable effect when the DrawableImage size does not match the
+        image size.
+
+        Defaults to highResamplingQuality.
+    */
+    void setImageResamplingQuality (Graphics::ResamplingQuality newQuality);
+
     //==============================================================================
     /** @internal */
     bool hitTest (Point<float>) const override;
@@ -94,10 +103,10 @@ public:
     Path getOutlineAsPath() const override;
     /** @internal */
     bool isImage() const override;
-
-private:
+    /** @internal */
     void paint (Graphics& g) const override;
 
+private:
     //==============================================================================
     bool setImageInternal (const Image&);
 
@@ -108,6 +117,7 @@ private:
     float opacity = 1.0f;
     Colour overlayColour { 0 };
     Parallelogram<float> bounds { { 0.0f, 0.0f, 1.0f, 1.0f } };
+    Graphics::ResamplingQuality resamplingQuality = Graphics::ResamplingQuality::highResamplingQuality;
 
     JUCE_LEAK_DETECTOR (DrawableImage)
 };
