@@ -484,6 +484,8 @@ struct MenuWindow final : public Component
         lf.preparePopupMenuWindow (*this);
 
         getMouseState (Desktop::getInstance().getMainMouseSource()); // forces creation of a mouse source watcher for the main mouse
+
+        setTitle ("Pop-up");
     }
 
     ~MenuWindow() override
