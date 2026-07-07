@@ -227,6 +227,24 @@ private:
     //==============================================================================
     class Resources
     {
+        static auto getResourceStorageMode()
+        {
+           #if JUCE_MAC && JUCE_INTEL
+            return MTLResourceStorageModeManaged;
+           #else
+            return MTLResourceStorageModeShared;
+           #endif
+        }
+
+        static auto getStorageMode()
+        {
+           #if JUCE_MAC && JUCE_INTEL
+            return MTLStorageModeManaged;
+           #else
+            return MTLStorageModeShared;
+           #endif
+        }
+
     public:
         Resources (id<MTLDevice> metalDevice, CAMetalLayer* layer)
         {
@@ -236,24 +254,14 @@ private:
 
             buffer.reset ([metalDevice newBufferWithBytesNoCopy: cpuRenderMemory.get()
                                                          length: allocationSize
-                                                        options:
-                                                                #if JUCE_MAC
-                                                                 MTLResourceStorageModeManaged
-                                                                #else
-                                                                 MTLResourceStorageModeShared
-                                                                #endif
+                                                        options: getResourceStorageMode()
                                                     deallocator: nullptr]);
 
             auto* textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: layer.pixelFormat
                                                                                    width: (NSUInteger) layer.drawableSize.width
                                                                                   height: (NSUInteger) layer.drawableSize.height
                                                                                mipmapped: NO];
-            textureDesc.storageMode =
-                                     #if JUCE_MAC
-                                      MTLStorageModeManaged;
-                                     #else
-                                      MTLStorageModeShared;
-                                     #endif
+            textureDesc.storageMode = getStorageMode();
             textureDesc.usage = MTLTextureUsageShaderRead;
 
             sharedTexture.reset ([buffer.get() newTextureWithDescriptor: textureDesc
@@ -281,7 +289,7 @@ private:
 
         void signalBufferModifiedByCpu()
         {
-           #if JUCE_MAC
+           #if JUCE_MAC && JUCE_INTEL
             [buffer.get() didModifyRange: { 0, buffer.get().length }];
            #endif
         }
