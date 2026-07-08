@@ -16,9 +16,6 @@
   ==============================================================================
 */
 
-namespace juce
-{
-
 #if ! defined (JUCE_INCLUDE_PNGLIB_CODE) || JUCE_INCLUDE_PNGLIB_CODE
 #include "juce_graphics/image_formats/pnglib/png.h"
 #else
@@ -28,6 +25,9 @@ extern "C"
 #include <pngconf.h>
 }
 #endif
+
+namespace juce
+{
 
 //==============================================================================
 namespace PNGHelpers
