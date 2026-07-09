@@ -138,7 +138,7 @@ private:
     std::vector<std::unique_ptr<Drawable>> children;
     Rectangle<float> contentArea { 0.0f, 0.0f, 100.0f, 100.0f };
     Parallelogram<float> bounds { contentArea };
-    BlendMode blendMode;
+    BlendMode blendMode = BlendMode::sourceOver;
     bool luminanceMask = false;
     float opacity = 1.0f;
 
