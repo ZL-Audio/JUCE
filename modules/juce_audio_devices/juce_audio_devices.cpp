@@ -246,6 +246,8 @@ namespace juce
  #include "native/juce_CoreMidi_mac.mm"
 #elif JUCE_WINDOWS
  #if JUCE_USE_WINDOWS_MIDI_SERVICES
+  static_assert (JUCE_CXX20_IS_AVAILABLE, "Make sure C++20 is enabled to use Windows MIDI Services");
+
   JUCE_BEGIN_IGNORE_WARNINGS_MSVC (4265)
   #include <winrt/Windows.Foundation.h>
   #include <winrt/Windows.Foundation.Collections.h>
