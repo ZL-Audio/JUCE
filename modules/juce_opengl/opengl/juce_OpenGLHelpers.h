@@ -28,6 +28,8 @@ namespace juce
 class JUCE_API  OpenGLHelpers
 {
 public:
+    static bool isOpenGLES();
+
     /** Clears the GL error state. */
     static void resetErrorState();
 

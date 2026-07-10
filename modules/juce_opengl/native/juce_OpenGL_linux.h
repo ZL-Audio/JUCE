@@ -36,6 +36,11 @@ std::unique_ptr<Data, XFreeDeleter> makeXFreePtr (Data* raw) { return std::uniqu
 void juce_LinuxAddRepaintListener (ComponentPeer*, Component* dummy);
 void juce_LinuxRemoveRepaintListener (ComponentPeer*, Component* dummy);
 
+bool OpenGLHelpers::isOpenGLES()
+{
+    return eglQueryAPI() == EGL_OPENGL_ES_API;
+}
+
 class PeerListener : private ComponentMovementWatcher
 {
 public:
@@ -91,100 +96,42 @@ private:
         NativeContext& native;
     };
 
-    template <typename Traits>
-    class ScopedEGLObject
-    {
-    public:
-        using Type = typename Traits::Type;
-
-        ScopedEGLObject() = default;
-
-        ScopedEGLObject (Type obj, EGLDisplay d)
-            : object (obj), display (d) {}
-
-        ScopedEGLObject (ScopedEGLObject&& other) noexcept
-            : object  (std::exchange (other.object, Type{})),
-              display (std::exchange (other.display, nullDisplay)) {}
-
-        ScopedEGLObject& operator= (ScopedEGLObject&& other) noexcept
-        {
-            ScopedEGLObject { std::move (other) }.swap (*this);
-            return *this;
-        }
-
-        ~ScopedEGLObject() noexcept
-        {
-            if (object != Type{})
-                Traits::destroy (display, object);
-        }
-
-        Type get() const { return object; }
-
-        void reset() noexcept
-        {
-            *this = ScopedEGLObject();
-        }
-
-        void swap (ScopedEGLObject& other) noexcept
-        {
-            std::swap (other.object,  object);
-            std::swap (other.display, display);
-        }
-
-        bool operator== (const ScopedEGLObject& other) const
-        {
-            const auto tie = [] (const auto& x) { return std::tie (x.object, x.display); };
-            return tie (*this) == tie (other);
-        }
-
-        bool operator!= (const ScopedEGLObject& other) const
-        {
-            return ! operator== (other);
-        }
-
-    private:
-        Type object{};
-        EGLDisplay display = nullDisplay;
-    };
-
-    struct TraitsEGLContext
-    {
-        using Type = EGLContext;
-
-        static void destroy (EGLDisplay display, Type t)
-        {
-            eglDestroyContext (display, t);
-        }
-    };
-
-    struct TraitsEGLSurface
-    {
-        using Type = EGLSurface;
-
-        static void destroy (EGLDisplay display, Type t)
-        {
-            eglDestroySurface (display, t);
-        }
-    };
-
-    using PtrEGLContext = ScopedEGLObject<TraitsEGLContext>;
-    using PtrEGLSurface = ScopedEGLObject<TraitsEGLSurface>;
+    using PtrEGLContext = EGLHelpers::PtrEGLContext;
+    using PtrEGLSurface = EGLHelpers::PtrEGLSurface;
 
 public:
     NativeContext (Component& comp,
                    const OpenGLPixelFormat& cPixelFormat,
                    void* shareContext,
                    bool useMultisamplingIn,
-                   OpenGLVersion)
-        : component (comp), contextToShareWith (shareContext), dummy (*this)
+                   API apiIn,
+                   Version versionIn,
+                   Profile profileIn)
+        : component (comp),
+          contextToShareWith (shareContext),
+          dummy (*this),
+          api (apiIn),
+          version (versionIn),
+          profile (profileIn)
     {
+        const auto* ext = eglQueryString (EGL_NO_DISPLAY, EGL_EXTENSIONS);
+
+        if (ext == nullptr || strstr (ext, "EGL_KHR_platform_x11") == nullptr)
+        {
+            // At the moment we can only create a GL context under X11.
+            // If this EGL implementation doesn't support X11, things would break
+            // when we tried to pass an X11 display/window/etc. into EGL functions.
+            jassertfalse;
+            return;
+        }
+
         display = XWindowSystem::getInstance()->getDisplay();
 
         XWindowSystemUtilities::ScopedXLock xLock;
 
         X11Symbols::getInstance()->xSync (display, False);
 
-        eglDisplay = eglGetDisplay (display);
+        eglDisplay = eglGetPlatformDisplay (EGL_PLATFORM_X11_KHR, display, nullptr);
 
         if (eglDisplay == nullDisplay)
             return;
@@ -261,6 +208,8 @@ public:
         X11Symbols::getInstance()->xSync (display, False);
 
         juce_LinuxAddRepaintListener (peer, &dummy);
+
+        constructorDidComplete = true;
     }
 
     ~NativeContext()
@@ -296,57 +245,18 @@ public:
 
     InitResult initialiseOnRenderThread (OpenGLContext& c)
     {
-        eglBindAPI (EGL_OPENGL_API);
+        renderContext = EGLHelpers::initEGLContext (api, version, profile, eglDisplay, eglConfig, contextToShareWith);
 
-        const auto components = [&]() -> Optional<Version>
-        {
-            switch (c.versionRequired)
-            {
-                case openGL3_2: return Version { 3, 2 };
-                case openGL4_1: return Version { 4, 1 };
-                case openGL4_3: return Version { 4, 3 };
-
-                case defaultGLVersion: break;
-            }
-
-            return {};
-        }();
-
-        if (components.hasValue())
-        {
-           #if JUCE_DEBUG
-            constexpr EGLint contextFlags = EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR;
-           #else
-            constexpr EGLint contextFlags = 0;
-           #endif
-
-            const EGLint attribs[]
-            {
-                EGL_CONTEXT_MAJOR_VERSION_KHR,        components->major,
-                EGL_CONTEXT_MINOR_VERSION_KHR,        components->minor,
-                EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR,  EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
-                EGL_CONTEXT_FLAGS_KHR,                contextFlags,
-                EGL_NONE
-            };
-
-            renderContext = PtrEGLContext { eglCreateContext (eglDisplay, eglConfig, (EGLContext) contextToShareWith, attribs),
-                                            eglDisplay };
-        }
-
-        if (renderContext == PtrEGLContext{})
-        {
-            const EGLint attribs[] { EGL_NONE };
-            renderContext = PtrEGLContext { eglCreateContext (eglDisplay, eglConfig, (EGLContext) contextToShareWith, attribs),
-                                            eglDisplay };
-        }
-
-        if (renderContext == PtrEGLContext{})
+        if (renderContext == nullptr)
             return InitResult::fatal;
 
-        eglSurface = PtrEGLSurface { eglCreateWindowSurface (eglDisplay, eglConfig, (EGLNativeWindowType) embeddedWindow, nullptr),
+        eglSurface = PtrEGLSurface { eglCreatePlatformWindowSurface (eglDisplay,
+                                                                     eglConfig,
+                                                                     &embeddedWindow,
+                                                                     nullptr),
                                      eglDisplay };
 
-        if (eglSurface == PtrEGLSurface{})
+        if (eglSurface == nullptr)
             return InitResult::fatal;
 
         c.makeActive();
@@ -364,14 +274,14 @@ public:
 
     bool makeActive() const noexcept
     {
-        return renderContext != PtrEGLContext{}
-                 && eglSurface != PtrEGLSurface{}
+        return renderContext != nullptr
+                 && eglSurface != nullptr
                  && eglMakeCurrent (eglDisplay, eglSurface.get(), eglSurface.get(), renderContext.get());
     }
 
     bool isActive() const noexcept
     {
-        return eglGetCurrentContext() == renderContext.get() && renderContext != PtrEGLContext{};
+        return eglGetCurrentContext() == renderContext.get() && renderContext != nullptr;
     }
 
     static void deactivateCurrentContext()
@@ -423,7 +333,7 @@ public:
     }
 
     int getSwapInterval() const                 { return swapFrames; }
-    bool createdOk() const noexcept             { return true; }
+    bool createdOk() const noexcept             { return constructorDidComplete; }
     void* getRawContext() const noexcept        { return renderContext.get(); }
     GLuint getFrameBufferID() const noexcept    { return 0; }
 
@@ -448,7 +358,7 @@ private:
         std::vector<EGLint> allAttribs
         {
             EGL_SURFACE_TYPE,    EGL_WINDOW_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+            EGL_RENDERABLE_TYPE, api == OpenGLAPI::openGLES ? EGL_OPENGL_ES2_BIT : EGL_OPENGL_BIT,
             EGL_RED_SIZE,        format.redBits,
             EGL_GREEN_SIZE,      format.greenBits,
             EGL_BLUE_SIZE,       format.blueBits,
@@ -486,6 +396,12 @@ private:
     DummyComponent dummy;
 
     ::Display* display = nullptr;
+
+    API api{};
+    Version version{};
+    Profile profile{};
+
+    bool constructorDidComplete = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NativeContext)
 };

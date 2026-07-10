@@ -55,9 +55,12 @@
 
 #if JUCE_IOS || JUCE_ANDROID
  #define JUCE_OPENGL_ES 1
- #include "opengl/juce_gles2.h"
+#endif
+
+#if JUCE_OPENGL_ES
+#include "opengl/juce_gles2.h"
 #else
- #include "opengl/juce_gl.h"
+#include "opengl/juce_gl.h"
 #endif
 
 #include <juce_gui_extra/juce_gui_extra.h>

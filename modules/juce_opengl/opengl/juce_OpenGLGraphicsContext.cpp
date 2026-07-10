@@ -370,8 +370,8 @@ struct ShaderPrograms final : public ReferenceCountedObject
                 vertexShader = "attribute vec2 position;"
                                "attribute vec4 colour;"
                                "uniform vec4 screenBounds;"
-                               "varying " JUCE_MEDIUMP " vec4 frontColour;"
-                               "varying " JUCE_HIGHP " vec2 pixelPos;"
+                               "varying #mediump# vec4 frontColour;"
+                               "varying #highp# vec2 pixelPos;"
                                "void main()"
                                "{"
                                  "frontColour = colour;"
@@ -381,8 +381,8 @@ struct ShaderPrograms final : public ReferenceCountedObject
                                  "gl_Position = vec4 (scaledPos.x - 1.0, 1.0 - scaledPos.y, 0, 1.0);"
                                "}";
 
-            if (program.addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
-                 && program.addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
+            if (program.addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (preprocessShaderPrecisionStatements (vertexShader)))
+                 && program.addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (preprocessShaderPrecisionStatements (fragmentShader)))
                  && program.link())
             {
                 JUCE_CHECK_OPENGL_ERROR
@@ -487,8 +487,8 @@ struct ShaderPrograms final : public ReferenceCountedObject
     };
 
     //==============================================================================
-    #define JUCE_DECLARE_VARYING_COLOUR   "varying " JUCE_MEDIUMP " vec4 frontColour;"
-    #define JUCE_DECLARE_VARYING_PIXELPOS "varying " JUCE_HIGHP " vec2 pixelPos;"
+    #define JUCE_DECLARE_VARYING_COLOUR   "varying #mediump# vec4 frontColour;"
+    #define JUCE_DECLARE_VARYING_PIXELPOS "varying #highp# vec2 pixelPos;"
 
     struct SolidColourProgram final : public ShaderBase
     {
@@ -538,7 +538,7 @@ struct ShaderPrograms final : public ReferenceCountedObject
         OpenGLShaderProgram::Uniform gradientTexture, matrix;
     };
 
-    #define JUCE_DECLARE_MATRIX_UNIFORM   "uniform " JUCE_HIGHP " float matrix[6];"
+    #define JUCE_DECLARE_MATRIX_UNIFORM   "uniform #highp# float matrix[6];"
     #define JUCE_DECLARE_RADIAL_UNIFORMS  "uniform sampler2D gradientTexture;" JUCE_DECLARE_MATRIX_UNIFORM
     #define JUCE_MATRIX_TIMES_FRAGCOORD   "(mat2 (matrix[0], matrix[3], matrix[1], matrix[4]) * pixelPos" \
                                           " + vec2 (matrix[2], matrix[5]))"
@@ -551,7 +551,7 @@ struct ShaderPrograms final : public ReferenceCountedObject
                           JUCE_DECLARE_RADIAL_UNIFORMS JUCE_DECLARE_VARYING_COLOUR
                           "void main()"
                           "{"
-                            JUCE_MEDIUMP " float gradientPos = length (" JUCE_MATRIX_TIMES_FRAGCOORD ");"
+                            "#mediump# float gradientPos = length (" JUCE_MATRIX_TIMES_FRAGCOORD ");"
                             "gl_FragColor = " JUCE_GET_TEXTURE_COLOUR ";"
                           "}"),
               gradientParams (program)
@@ -568,7 +568,7 @@ struct ShaderPrograms final : public ReferenceCountedObject
                           JUCE_DECLARE_MASK_UNIFORMS
                           "void main()"
                           "{"
-                            JUCE_MEDIUMP " float gradientPos = length (" JUCE_MATRIX_TIMES_FRAGCOORD ");"
+                            "#mediump# float gradientPos = length (" JUCE_MATRIX_TIMES_FRAGCOORD ");"
                             "gl_FragColor = " JUCE_GET_TEXTURE_COLOUR " * " JUCE_GET_MASK_ALPHA ";"
                           "}"),
               gradientParams (program),
@@ -591,10 +591,10 @@ struct ShaderPrograms final : public ReferenceCountedObject
     };
 
     #define JUCE_DECLARE_LINEAR_UNIFORMS  "uniform sampler2D gradientTexture;" \
-                                          "uniform " JUCE_MEDIUMP " vec4 gradientInfo;" \
+                                          "uniform #mediump# vec4 gradientInfo;" \
                                           JUCE_DECLARE_VARYING_COLOUR JUCE_DECLARE_VARYING_PIXELPOS
-    #define JUCE_CALC_LINEAR_GRAD_POS1    JUCE_MEDIUMP " float gradientPos = (pixelPos.y - (gradientInfo.y + (gradientInfo.z * (pixelPos.x - gradientInfo.x)))) / gradientInfo.w;"
-    #define JUCE_CALC_LINEAR_GRAD_POS2    JUCE_MEDIUMP " float gradientPos = (pixelPos.x - (gradientInfo.x + (gradientInfo.z * (pixelPos.y - gradientInfo.y)))) / gradientInfo.w;"
+    #define JUCE_CALC_LINEAR_GRAD_POS1    "#mediump# float gradientPos = (pixelPos.y - (gradientInfo.y + (gradientInfo.z * (pixelPos.x - gradientInfo.x)))) / gradientInfo.w;"
+    #define JUCE_CALC_LINEAR_GRAD_POS2    "#mediump# float gradientPos = (pixelPos.x - (gradientInfo.x + (gradientInfo.z * (pixelPos.y - gradientInfo.y)))) / gradientInfo.w;"
 
     struct LinearGradient1Program final : public ShaderBase
     {
@@ -699,29 +699,29 @@ struct ShaderPrograms final : public ReferenceCountedObject
     };
 
     #define JUCE_DECLARE_IMAGE_UNIFORMS "uniform sampler2D imageTexture;" \
-                                        "uniform " JUCE_MEDIUMP " vec2 imageLimits;" \
+                                        "uniform #mediump# vec2 imageLimits;" \
                                         JUCE_DECLARE_MATRIX_UNIFORM JUCE_DECLARE_VARYING_COLOUR JUCE_DECLARE_VARYING_PIXELPOS
     #define JUCE_GET_IMAGE_PIXEL        "texture2D (imageTexture, vec2 (texturePos.x, 1.0 - texturePos.y))"
-    #define JUCE_CLAMP_TEXTURE_COORD    JUCE_HIGHP " vec2 texturePos = clamp (" JUCE_MATRIX_TIMES_FRAGCOORD ", vec2 (0, 0), imageLimits);"
-    #define JUCE_MOD_TEXTURE_COORD      JUCE_HIGHP " vec2 texturePos = mod (" JUCE_MATRIX_TIMES_FRAGCOORD ", imageLimits);"
+    #define JUCE_CLAMP_TEXTURE_COORD    "#highp# vec2 texturePos = clamp (" JUCE_MATRIX_TIMES_FRAGCOORD ", vec2 (0, 0), imageLimits);"
+    #define JUCE_MOD_TEXTURE_COORD      "#highp# vec2 texturePos = mod (" JUCE_MATRIX_TIMES_FRAGCOORD ", imageLimits);"
 
     struct ImageProgram final : public ShaderBase
     {
         ImageProgram (OpenGLContext& context)
             : ShaderBase (context, JUCE_DECLARE_VARYING_COLOUR
                           "uniform sampler2D imageTexture;"
-                          "varying " JUCE_HIGHP " vec2 texturePos;"
+                          "varying #highp# vec2 texturePos;"
                           "void main()"
                           "{"
                             "gl_FragColor = frontColour.a * " JUCE_GET_IMAGE_PIXEL ";"
                           "}",
-                          "uniform " JUCE_MEDIUMP " vec2 imageLimits;"
+                          "uniform #mediump# vec2 imageLimits;"
                           JUCE_DECLARE_MATRIX_UNIFORM
                           "attribute vec2 position;"
                           "attribute vec4 colour;"
                           "uniform vec4 screenBounds;"
-                          "varying " JUCE_MEDIUMP " vec4 frontColour;"
-                          "varying " JUCE_HIGHP " vec2 texturePos;"
+                          "varying #mediump# vec4 frontColour;"
+                          "varying #highp# vec2 texturePos;"
                           "void main()"
                           "{"
                             "frontColour = colour;"
@@ -807,8 +807,8 @@ struct ShaderPrograms final : public ReferenceCountedObject
             : ShaderBase (context, JUCE_DECLARE_IMAGE_UNIFORMS
                           "void main()"
                           "{"
-                            JUCE_HIGHP " vec2 texturePos = " JUCE_MATRIX_TIMES_FRAGCOORD ";"
-                            JUCE_HIGHP " float roundingError = 0.00001;"
+                            "#highp# vec2 texturePos = " JUCE_MATRIX_TIMES_FRAGCOORD ";"
+                            "#highp# float roundingError = 0.00001;"
                             "if (texturePos.x >= -roundingError"
                                  "&& texturePos.y >= -roundingError"
                                  "&& texturePos.x <= imageLimits.x + roundingError"
@@ -842,24 +842,6 @@ struct ShaderPrograms final : public ReferenceCountedObject
 //==============================================================================
 struct TraitsVAO
 {
-    static bool isCoreProfile()
-    {
-       #if JUCE_OPENGL_ES
-        return true;
-       #else
-        clearGLError();
-        GLint mask = 0;
-        glGetIntegerv (GL_CONTEXT_PROFILE_MASK, &mask);
-
-        // The context isn't aware of the profile mask, so it pre-dates the core profile
-        if (glGetError() == GL_INVALID_ENUM)
-            return false;
-
-        // Also assumes a compatibility profile if the mask is completely empty for some reason
-        return (mask & (GLint) GL_CONTEXT_CORE_PROFILE_BIT) != 0;
-       #endif
-    }
-
     /*  Returns true if the context requires a non-zero vertex array object (VAO) to be bound.
 
         If the context is a compatibility context, we can just pretend that VAOs don't exist,
@@ -869,11 +851,7 @@ struct TraitsVAO
     */
     static bool shouldUseCustomVAO()
     {
-       #if JUCE_OPENGL_ES
-        return false;
-       #else
-        return isCoreProfile();
-       #endif
+        return ! OpenGLHelpers::isOpenGLES() && getOpenGLProfile() == OpenGLProfile::core;
     }
 
     static constexpr auto value = GL_VERTEX_ARRAY_BINDING;
@@ -1134,7 +1112,7 @@ struct StateHelpers
     struct ActiveTextures
     {
         explicit ActiveTextures (const OpenGLContext& c) noexcept
-            : needsToEnableTexture (! c.isCoreProfile())
+            : needsToEnableTexture (c.getProfile() == OpenGLProfile::compatibility)
         {
         }
 
@@ -2020,7 +1998,7 @@ struct NonShaderContext final : public LowLevelGraphicsSoftwareRenderer
        #if ! JUCE_ANDROID
         target.context.extensions.glActiveTexture (GL_TEXTURE0);
 
-        if (! target.context.isCoreProfile())
+        if (target.context.getProfile() == OpenGLProfile::compatibility)
             glEnable (GL_TEXTURE_2D);
 
         clearGLError();

@@ -34,6 +34,11 @@ extern "C" GLvoid glResolveMultisampleFramebufferAPPLE();
 namespace juce
 {
 
+bool OpenGLHelpers::isOpenGLES()
+{
+    return true;
+}
+
 class OpenGLContext::NativeContext
 {
 public:
@@ -41,11 +46,18 @@ public:
                    const OpenGLPixelFormat& pixFormat,
                    void* contextToShare,
                    bool multisampling,
-                   OpenGLVersion version)
-        : component (c), openGLversion (version),
+                   [[maybe_unused]] API apiIn,
+                   Version versionIn,
+                   [[maybe_unused]] Profile profileIn)
+        : component (c),
           useDepthBuffer (pixFormat.depthBufferBits > 0),
           useMSAA (multisampling)
     {
+        // Only OpenGL ES is supported on iOS
+        jassert (apiIn == OpenGLAPI::openGLES);
+        // Only core profile is supported on iOS
+        jassert (profileIn == OpenGLProfile::core);
+
         JUCE_AUTORELEASEPOOL
         {
             if (auto* peer = component.getPeer())
@@ -65,7 +77,7 @@ public:
 
                 [((UIView*) peer->getNativeHandle()) addSubview: view];
 
-                const auto shouldUseES3 = version != defaultGLVersion
+                const auto shouldUseES3 = versionIn >= Version { 3, 0 }
                                        && [[UIDevice currentDevice].systemVersion floatValue] >= 7.0;
 
                 [[maybe_unused]] const auto gotContext = (shouldUseES3 && createContext (kEAGLRenderingAPIOpenGLES3, contextToShare))
@@ -79,6 +91,7 @@ public:
                     // so causes mysterious timing-related failures.
                     [EAGLContext setCurrentContext: context.get()];
                     gl::loadFunctions();
+                    openGLVersion = getOpenGLVersion();
                     createGLBuffers();
                     deactivateCurrentContext();
                 }
@@ -141,7 +154,7 @@ public:
             glBindFramebuffer (GL_DRAW_FRAMEBUFFER, frameBufferHandle);
             glBindFramebuffer (GL_READ_FRAMEBUFFER, msaaBufferHandle);
 
-            if (openGLversion >= openGL3_2)
+            if (openGLVersion >= Version { 3, 0 })
             {
                 const auto w = lastBounds.getWidth();
                 const auto h = lastBounds.getHeight();
@@ -207,7 +220,7 @@ private:
     JuceGLView* view = nil;
     CAEAGLLayer* glLayer = nil;
     NSUniquePtr<EAGLContext> context;
-    const OpenGLVersion openGLversion;
+    Version openGLVersion{};
     const bool useDepthBuffer, useMSAA;
 
     GLuint frameBufferHandle = 0, colorBufferHandle = 0, depthBufferHandle = 0,

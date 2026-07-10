@@ -21,6 +21,11 @@ namespace juce
 
 extern ComponentPeer* createNonRepaintingEmbeddedWindowsPeer (Component&, Component* parent);
 
+bool OpenGLHelpers::isOpenGLES()
+{
+    return false;
+}
+
 //==============================================================================
 class OpenGLContext::NativeContext  : private AsyncUpdater
 {
@@ -29,10 +34,15 @@ public:
                    const OpenGLPixelFormat& pixelFormat,
                    void* contextToShareWithIn,
                    bool /*useMultisampling*/,
-                   OpenGLVersion version)
+                   [[maybe_unused]] API apiIn,
+                   Version versionIn,
+                   Profile profileIn)
         : safeComponent (&component),
           sharedContext (contextToShareWithIn)
     {
+        // OpenGL ES is not supported on Windows
+        jassert (apiIn == API::openGL);
+
         placeholderComponent.reset (new PlaceholderComponent (*this));
         createNativeWindow (component);
 
@@ -45,7 +55,7 @@ public:
             SetPixelFormat (dc.get(), pixFormat, &pfd);
 
         initialiseWGLExtensions (dc.get());
-        renderContext.reset (createRenderContext (version, dc.get()));
+        renderContext.reset (createRenderContext (versionIn, profileIn, dc.get()));
 
         if (renderContext != nullptr)
         {
@@ -65,7 +75,7 @@ public:
                 if (SetPixelFormat (dc.get(), wglFormat, &pfd))
                 {
                     renderContext.reset();
-                    renderContext.reset (createRenderContext (version, dc.get()));
+                    renderContext.reset (createRenderContext (versionIn, profileIn, dc.get()));
                 }
             }
 
@@ -254,23 +264,9 @@ private:
         pfd.cAccumAlphaBits = (BYTE) pixelFormat.accumulationBufferAlphaBits;
     }
 
-    static HGLRC createRenderContext (OpenGLVersion version, HDC dcIn)
+    static HGLRC createRenderContext (Version version, Profile profile, HDC dcIn)
     {
-        const auto components = std::invoke ([&]() -> Optional<Version>
-        {
-            switch (version)
-            {
-                case openGL3_2: return Version { 3, 2 };
-                case openGL4_1: return Version { 4, 1 };
-                case openGL4_3: return Version { 4, 3 };
-
-                case defaultGLVersion: break;
-            }
-
-            return {};
-        });
-
-        if (components.hasValue() && wglCreateContextAttribsARB != nullptr)
+        if (version != Version{} && wglCreateContextAttribsARB != nullptr)
         {
            #if JUCE_DEBUG
             constexpr auto contextFlags = WGL_CONTEXT_DEBUG_BIT_ARB;
@@ -280,11 +276,11 @@ private:
             constexpr auto noErrorChecking = GL_TRUE;
            #endif
 
-            const int attribs[] =
+            const int attribs[]
             {
-                WGL_CONTEXT_MAJOR_VERSION_ARB,   components->major,
-                WGL_CONTEXT_MINOR_VERSION_ARB,   components->minor,
-                WGL_CONTEXT_PROFILE_MASK_ARB,    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                WGL_CONTEXT_MAJOR_VERSION_ARB,   version.major,
+                WGL_CONTEXT_MINOR_VERSION_ARB,   version.minor,
+                WGL_CONTEXT_PROFILE_MASK_ARB,    (int) (profile == OpenGLProfile::core ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB),
                 WGL_CONTEXT_FLAGS_ARB,           contextFlags,
                 WGL_CONTEXT_OPENGL_NO_ERROR_ARB, noErrorChecking,
                 0

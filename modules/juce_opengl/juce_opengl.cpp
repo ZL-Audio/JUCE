@@ -51,7 +51,7 @@
 #endif
 
 #define JUCE_STATIC_LINK_GL_ES_VERSION_2_0 1
-#if !JUCE_ANDROID || JUCE_ANDROID_GL_ES_VERSION_3_0
+#if ! JUCE_ANDROID || JUCE_ANDROID_GL_ES_VERSION_3_0
 #define JUCE_STATIC_LINK_GL_ES_VERSION_3_0 1
 #endif
 
@@ -239,8 +239,8 @@ private:
 
 //==============================================================================
 #include "opengl/juce_OpenGLFrameBuffer.cpp"
-#include "opengl/juce_OpenGLGraphicsContext.cpp"
 #include "opengl/juce_OpenGLHelpers.cpp"
+#include "opengl/juce_OpenGLGraphicsContext.cpp"
 #include "opengl/juce_OpenGLImage.cpp"
 #include "opengl/juce_OpenGLPixelFormat.cpp"
 #include "opengl/juce_OpenGLShaderProgram.cpp"

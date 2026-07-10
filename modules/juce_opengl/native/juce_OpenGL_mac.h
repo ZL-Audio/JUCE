@@ -21,6 +21,11 @@ namespace juce
 
 JUCE_BEGIN_IGNORE_DEPRECATION_WARNINGS
 
+bool OpenGLHelpers::isOpenGLES()
+{
+    return false;
+}
+
 class OpenGLContext::NativeContext
 {
 public:
@@ -28,10 +33,18 @@ public:
                    const OpenGLPixelFormat& pixFormat,
                    void* contextToShare,
                    bool shouldUseMultisampling,
-                   OpenGLVersion version)
+                   [[maybe_unused]] API apiIn,
+                   Version versionIn,
+                   Profile profileIn)
         : owner (component)
     {
-        const auto attribs = createAttribs (version, pixFormat, shouldUseMultisampling);
+        // OpenGL ES is not supported on macOS
+        jassert (apiIn == API::openGL);
+
+        const auto attribs = createAttribs (versionIn,
+                                            profileIn,
+                                            pixFormat,
+                                            shouldUseMultisampling);
 
         NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes: attribs.data()];
 
@@ -67,22 +80,34 @@ public:
         [view release];
     }
 
-    static std::vector<NSOpenGLPixelFormatAttribute> createAttribs (OpenGLVersion version,
+    static std::vector<NSOpenGLPixelFormatAttribute> createAttribs (Version version,
+                                                                    Profile profile,
                                                                     const OpenGLPixelFormat& pixFormat,
                                                                     bool shouldUseMultisampling)
     {
+        const auto versionEnum = std::invoke ([&]
+        {
+            if (version == Version { 3, 2 })
+            {
+                // Only the core profile is supported for OpenGL 3.2
+                jassert (profile == Profile::core);
+                return NSOpenGLProfileVersion3_2Core;
+            }
+
+            if (version != Version{} && profile != Profile::compatibility)
+            {
+                return NSOpenGLProfileVersion4_1Core;
+            }
+
+            // Using the default legacy compatibility context, even though the core profile
+            // was requested.
+            jassert (profile == Profile::compatibility);
+            return NSOpenGLProfileVersionLegacy;
+        });
+
         std::vector<NSOpenGLPixelFormatAttribute> attribs
         {
-            NSOpenGLPFAOpenGLProfile, [version]
-            {
-                if (version == openGL3_2)
-                    return NSOpenGLProfileVersion3_2Core;
-
-                if (version != defaultGLVersion)
-                    return NSOpenGLProfileVersion4_1Core;
-
-                return NSOpenGLProfileVersionLegacy;
-            }(),
+            NSOpenGLPFAOpenGLProfile, versionEnum,
             NSOpenGLPFADoubleBuffer,
             NSOpenGLPFAClosestPolicy,
             NSOpenGLPFANoRecovery,
