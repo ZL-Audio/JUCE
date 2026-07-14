@@ -53,8 +53,9 @@ void* getUser32Function (const char*);
 
 #if JUCE_DEBUG
  int numActiveScopedDpiAwarenessDisablers = 0;
- extern HWND juce_messageWindowHandle;
 #endif
+
+extern HWND juce_messageWindowHandle;
 
 struct ScopedDeviceContext
 {
@@ -5607,26 +5608,9 @@ bool detail::MouseInputSourceList::canUseTouch() const
     return true;
 }
 
-struct [[nodiscard]] ScopedThreadDpiAwarenessEnablement
-{
-    ~ScopedThreadDpiAwarenessEnablement()
-    {
-        if (prev.has_value())
-            SetThreadDpiAwarenessContext (*prev);
-    }
-
-    std::optional<DPI_AWARENESS_CONTEXT> prev = std::invoke ([]() -> std::optional<DPI_AWARENESS_CONTEXT>
-    {
-        if (GetThreadDpiAwarenessContext() == DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-            return {};
-
-        return SetThreadDpiAwarenessContext (DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    });
-};
-
 Point<float> MouseInputSource::getCurrentRawMousePosition()
 {
-    const ScopedThreadDpiAwarenessEnablement scope;
+    const ScopedThreadDPIAwarenessSetter::NativeImpl scope { juce_messageWindowHandle };
 
     POINT mousePos;
     GetCursorPos (&mousePos);
@@ -5637,7 +5621,7 @@ Point<float> MouseInputSource::getCurrentRawMousePosition()
 
 void MouseInputSource::setRawMousePosition (Point<float> newPosition)
 {
-    const ScopedThreadDpiAwarenessEnablement scope;
+    const ScopedThreadDPIAwarenessSetter::NativeImpl scope { juce_messageWindowHandle };
 
     const auto scaled = detail::ScalingHelpers::convertLogicalScreenPointToPhysical (newPosition);
     const auto point = D2DUtilities::toPOINT (scaled.roundToInt());
