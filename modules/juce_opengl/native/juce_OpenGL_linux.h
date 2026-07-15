@@ -114,7 +114,7 @@ public:
           version (versionIn),
           profile (profileIn)
     {
-        const auto* ext = eglQueryString (EGL_NO_DISPLAY, EGL_EXTENSIONS);
+        const auto* ext = eglQueryString (nullDisplay, EGL_EXTENSIONS);
 
         if (ext == nullptr || strstr (ext, "EGL_KHR_platform_x11") == nullptr)
         {
