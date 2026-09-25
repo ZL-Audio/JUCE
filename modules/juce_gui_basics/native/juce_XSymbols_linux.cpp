@@ -173,6 +173,7 @@ bool X11Symbols::loadAllSymbols()
                        makeSymbolBinding (xQueryExtension,             "XQueryExtension"),
                        makeSymbolBinding (xQueryPointer,               "XQueryPointer"),
                        makeSymbolBinding (xQueryTree,                  "XQueryTree"),
+                       makeSymbolBinding (xRaiseWindow,                "XRaiseWindow"),
                        makeSymbolBinding (xRefreshKeyboardMapping,     "XRefreshKeyboardMapping"),
                        makeSymbolBinding (xReparentWindow,             "XReparentWindow"),
                        makeSymbolBinding (xResizeWindow,               "XResizeWindow"),

@@ -368,9 +368,15 @@ void ComponentPeer::handleFocusGain()
           && lastFocusedComponent->isShowing()
           && lastFocusedComponent->getWantsKeyboardFocus())
     {
+       #if JUCE_LINUX || JUCE_BSD
+        // Use the ordinary focus-transfer path, including an outgoing
+        // focusLost notification and its existing weak-reference checks.
+        lastFocusedComponent->grabKeyboardFocus();
+       #else
         Component::currentlyFocusedComponent = lastFocusedComponent;
         Desktop::getInstance().triggerFocusCallback();
         lastFocusedComponent->internalKeyboardFocusGain (Component::focusChangedDirectly);
+       #endif
     }
     else
     {
