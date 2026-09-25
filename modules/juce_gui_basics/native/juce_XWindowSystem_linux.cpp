@@ -1549,6 +1549,9 @@ ComponentPeer* getPeerFor (::Window windowH)
 //==============================================================================
 static std::unordered_map<LinuxComponentPeer*, X11DragState> dragAndDropStateMap;
 
+#include "juce_EmbeddedKeyboardRouting_linux.h"
+
+
 XWindowSystem::XWindowSystem()
 {
     xIsAvailable = X11Symbols::getInstance()->loadAllSymbols();
@@ -1729,6 +1732,7 @@ void XWindowSystem::destroyWindow (::Window windowH)
 
     deleteIconPixmaps (windowH);
     dragAndDropStateMap.erase (peer);
+    EmbeddedKeyboardRouting::forgetPeer (peer);
 
     XWindowSystemUtilities::ScopedXLock xLock;
 
@@ -2225,11 +2229,20 @@ void XWindowSystem::setMaximised (::Window windowH, bool shouldBeMaximised) cons
     X11Symbols::getInstance()->xSendEvent (display, root, false, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
 }
 
-void XWindowSystem::toFront (::Window windowH, bool) const
+void XWindowSystem::toFront (::Window windowH, bool makeActive) const
 {
     jassert (windowH != 0);
 
     XWindowSystemUtilities::ScopedXLock xLock;
+    const auto* peer = getPeerFor (windowH);
+    if (! makeActive || (peer != nullptr
+        && (peer->getStyleFlags() & ComponentPeer::windowIsTemporary) != 0))
+    {
+        X11Symbols::getInstance()->xRaiseWindow (display, windowH);
+        X11Symbols::getInstance()->xFlush (display);
+        return;
+    }
+
     XEvent ev;
     ev.xclient.type = ClientMessage;
     ev.xclient.serial = 0;
@@ -3682,8 +3695,14 @@ void XWindowSystem::handleWindowMessage (LinuxComponentPeer* peer, XEvent& event
         case MotionNotify:          handleMotionNotifyEvent    (peer, event.xmotion);                  break;
         case EnterNotify:           handleEnterNotifyEvent     (peer, event.xcrossing);                break;
         case LeaveNotify:           handleLeaveNotifyEvent     (peer, event.xcrossing);                break;
-        case FocusIn:               handleFocusInEvent         (peer);                                 break;
-        case FocusOut:              handleFocusOutEvent        (peer);                                 break;
+        case FocusIn:
+            if (EmbeddedKeyboardRouting::isRealFocusChange (event.xfocus))
+                handleFocusInEvent (peer);
+            break;
+        case FocusOut:
+            if (EmbeddedKeyboardRouting::isRealFocusChange (event.xfocus))
+                handleFocusOutEvent (peer);
+            break;
         case Expose:                handleExposeEvent          (peer, event.xexpose);                  break;
         case MappingNotify:         handleMappingNotify        (event.xmapping);                       break;
         case ClientMessage:         handleClientMessageEvent   (peer, event.xclient, event);           break;
@@ -3721,6 +3740,7 @@ void XWindowSystem::handleWindowMessage (LinuxComponentPeer* peer, XEvent& event
 
 void XWindowSystem::handleKeyPressEvent (LinuxComponentPeer* peer, XKeyEvent& keyEvent) const
 {
+    const auto dispatchToJuce = EmbeddedKeyboardRouting::dispatchLocally (peer, keyEvent);
     auto oldMods = ModifierKeys::getCurrentModifiers();
     Keys::refreshStaleModifierKeys();
 
@@ -3833,10 +3853,10 @@ void XWindowSystem::handleKeyPressEvent (LinuxComponentPeer* peer, XKeyEvent& ke
     if (oldMods != ModifierKeys::getCurrentModifiers())
         peer->handleModifierKeysChange();
 
-    if (keyDownChange)
+    if (dispatchToJuce && keyDownChange)
         peer->handleKeyUpOrDown (true);
 
-    if (keyPressed)
+    if (dispatchToJuce && keyPressed)
         peer->handleKeyPress (keyCode, unicodeChar);
 }
 
@@ -3858,6 +3878,9 @@ void XWindowSystem::handleKeyReleaseEvent (LinuxComponentPeer* peer, const XKeyE
         return false;
     }();
 
+    const auto dispatchToJuce = EmbeddedKeyboardRouting::dispatchLocally (
+        peer, keyEvent, isKeyReleasePartOfAutoRepeat);
+
     if (! isKeyReleasePartOfAutoRepeat)
     {
         updateKeyStates ((int) keyEvent.keycode, false);
@@ -3874,7 +3897,7 @@ void XWindowSystem::handleKeyReleaseEvent (LinuxComponentPeer* peer, const XKeyE
         if (oldMods != ModifierKeys::getCurrentModifiers())
             peer->handleModifierKeysChange();
 
-        if (keyDownChange)
+        if (dispatchToJuce && keyDownChange)
             peer->handleKeyUpOrDown (false);
     }
 }
@@ -4022,9 +4045,12 @@ void XWindowSystem::handleLeaveNotifyEvent (LinuxComponentPeer* peer, const XLea
 
 void XWindowSystem::handleFocusInEvent (LinuxComponentPeer* peer) const
 {
+    if (! isFocused ((::Window) peer->getNativeHandle()))
+        return;
+
     peer->isActiveApplication = true;
 
-    if (isFocused ((::Window) peer->getNativeHandle()) && ! peer->focused)
+    if (! peer->focused)
     {
         peer->focused = true;
         peer->handleFocusGain();
@@ -4036,7 +4062,16 @@ void XWindowSystem::handleFocusOutEvent (LinuxComponentPeer* peer) const
     if (! isFocused ((::Window) peer->getNativeHandle()) && peer->focused)
     {
         peer->focused = false;
-        peer->isActiveApplication = false;
+        EmbeddedKeyboardRouting::forgetPeer (peer);
+        peer->isActiveApplication = [this]
+        {
+            for (int i = ComponentPeer::getNumPeers(); --i >= 0;)
+                if (auto* other = dynamic_cast<LinuxComponentPeer*> (ComponentPeer::getPeer (i)))
+                    if (const auto window = other->getWindowHandle(); window != 0 && isFocused (window))
+                        return true;
+
+            return false;
+        }();
 
         peer->handleFocusLoss();
     }
