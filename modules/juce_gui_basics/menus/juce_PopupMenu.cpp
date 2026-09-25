@@ -1569,7 +1569,18 @@ private:
 
         const auto reallyContained = window.reallyContains (localMousePos, true);
 
-        if (! window.doesAnyJuceCompHaveFocus() && ! reallyContained)
+        const auto dismissOnAppChange = [&]
+        {
+           #if JUCE_LINUX || JUCE_BSD
+            if (window.options.getParentComponent() != nullptr)
+                if (auto* peer = window.getPeer())
+                    if ((peer->getStyleFlags() & ComponentPeer::windowIgnoresKeyPresses) != 0)
+                        return false;
+           #endif
+            return true;
+        }();
+
+        if (dismissOnAppChange && ! window.doesAnyJuceCompHaveFocus() && ! reallyContained)
         {
             if (timeNow > window.lastFocusedTime + 10)
             {

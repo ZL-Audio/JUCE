@@ -417,6 +417,10 @@ public:
                                          (::Display*, ::Window, ::Window*, ::Window*, ::Window**, unsigned int*),
                                          Status)
 
+    JUCE_GENERATE_FUNCTION_WITH_DEFAULT (XRaiseWindow, xRaiseWindow,
+                                         (::Display*, ::Window),
+                                         int)
+
     JUCE_GENERATE_FUNCTION_WITH_DEFAULT (XRefreshKeyboardMapping, xRefreshKeyboardMapping,
                                          (XMappingEvent*),
                                          void)

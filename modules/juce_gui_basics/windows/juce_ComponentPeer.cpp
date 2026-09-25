@@ -361,13 +361,28 @@ void ComponentPeer::handleMovedOrResized()
 
 void ComponentPeer::handleFocusGain()
 {
+   #if JUCE_LINUX || JUCE_BSD
+    // A synchronous component focus request may already have completed
+    // before the queued native FocusIn is delivered. Do not overwrite it.
+    if (auto* current = Component::getCurrentlyFocusedComponent())
+        if ((current == &component || component.isParentOf (current))
+            && current->isShowing() && current->getWantsKeyboardFocus())
+            return;
+   #endif
+
     if (component.isParentOf (lastFocusedComponent)
           && lastFocusedComponent->isShowing()
           && lastFocusedComponent->getWantsKeyboardFocus())
     {
+       #if JUCE_LINUX || JUCE_BSD
+        // Use the ordinary focus-transfer path, including an outgoing
+        // focusLost notification and its existing weak-reference checks.
+        lastFocusedComponent->grabKeyboardFocus();
+       #else
         Component::currentlyFocusedComponent = lastFocusedComponent;
         Desktop::getInstance().triggerFocusCallback();
         lastFocusedComponent->internalKeyboardFocusGain (Component::focusChangedDirectly);
+       #endif
     }
     else
     {
