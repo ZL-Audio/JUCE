@@ -1786,56 +1786,104 @@ private:
     // avoid unnecessarily duplicating display-link threads.
     SharedResourcePointer<PerScreenDisplayLinks> sharedDisplayLinks;
 
-    class AsyncRepainter final : private AsyncUpdater
+    /*  Forwards display-link callbacks to the main thread.
+
+        A run-loop block is used rather than an AsyncUpdater message: blocks run on every pass of the
+        main run loop, whereas a signalled run-loop source may be skipped when a host pumps the run loop
+        one pass at a time from its own nested event loop. In that case vblank callbacks (and therefore
+        repaints) could be delayed by hundreds of milliseconds.
+    */
+    class AsyncRepainter final
     {
     public:
-        explicit AsyncRepainter (NSViewComponentPeer& o) : owner (o) {}
-        ~AsyncRepainter() override { cancelPendingUpdate(); }
+        explicit AsyncRepainter (NSViewComponentPeer& o) : state (std::make_shared<State> (o)) {}
+
+        ~AsyncRepainter()
+        {
+            const std::scoped_lock lock { state->mutex };
+            state->owner = nullptr;
+        }
 
         void markUpdated (const CGDirectDisplayID x, double timestampSec)
         {
             {
-                const std::scoped_lock lock { mutex };
+                const std::scoped_lock lock { state->mutex };
 
-                if (const auto it = std::find_if (backgroundVBlankEvents.cbegin(),
-                                                  backgroundVBlankEvents.cend(),
+                if (state->owner == nullptr)
+                    return;
+
+                if (const auto it = std::find_if (state->backgroundVBlankEvents.cbegin(),
+                                                  state->backgroundVBlankEvents.cend(),
                                                   [&x] (const auto& event) { return event.display == x; });
-                    it == backgroundVBlankEvents.cend())
+                    it == state->backgroundVBlankEvents.cend())
                 {
-                    backgroundVBlankEvents.push_back ({ x, timestampSec });
+                    state->backgroundVBlankEvents.push_back ({ x, timestampSec });
                 }
+
+                if (std::exchange (state->blockPending, true))
+                    return;
             }
 
-            triggerAsyncUpdate();
+            auto s = state;
+            CFRunLoopPerformBlock (CFRunLoopGetMain(), kCFRunLoopCommonModes, ^
+            {
+                // match the autorelease pool and exception handling of JUCE message delivery
+                JUCE_AUTORELEASEPOOL
+                {
+                    JUCE_TRY
+                    {
+                        handleVBlankEvents (*s);
+                    }
+                    JUCE_CATCH_EXCEPTION
+                }
+            });
+            CFRunLoopWakeUp (CFRunLoopGetMain());
         }
 
     private:
-        void handleAsyncUpdate() override
-        {
-            {
-                const std::scoped_lock lock { mutex };
-                mainThreadVBlankEvents = backgroundVBlankEvents;
-                backgroundVBlankEvents.clear();
-            }
-
-            for (const auto& event : mainThreadVBlankEvents)
-            {
-                if (auto* peerView = owner.view)
-                    if (auto* peerWindow = [peerView window])
-                        if (event.display == ScopedDisplayLink::getDisplayIdForScreen ([peerWindow screen]))
-                            owner.onVBlank (event.timeSec);
-            }
-        }
-
         struct VBlankEvent
         {
             CGDirectDisplayID display{};
             double timeSec{};
         };
 
-        NSViewComponentPeer& owner;
-        std::mutex mutex;
-        std::vector<VBlankEvent> backgroundVBlankEvents, mainThreadVBlankEvents;
+        struct State
+        {
+            explicit State (NSViewComponentPeer& o) : owner (&o) {}
+
+            std::mutex mutex;
+            NSViewComponentPeer* owner = nullptr;
+            std::vector<VBlankEvent> backgroundVBlankEvents;
+            bool blockPending = false;
+        };
+
+        static void handleVBlankEvents (State& s)
+        {
+            std::vector<VBlankEvent> events;
+
+            {
+                const std::scoped_lock lock { s.mutex };
+                events.swap (s.backgroundVBlankEvents);
+                s.blockPending = false;
+            }
+
+            for (const auto& event : events)
+            {
+                // owner is only cleared on the main thread, so it can't change while this is running,
+                // but a vblank listener may delete the peer
+                auto* owner = s.owner;
+
+                if (owner == nullptr)
+                    return;
+
+                if (auto* peerView = owner->view)
+                    if (auto* peerWindow = [peerView window])
+                        if (event.display == ScopedDisplayLink::getDisplayIdForScreen ([peerWindow screen]))
+                            owner->onVBlank (event.timeSec);
+            }
+        }
+
+        std::shared_ptr<State> state;
     };
 
     AsyncRepainter asyncRepainter { *this };
