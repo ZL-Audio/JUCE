@@ -623,12 +623,12 @@ public:
             return fromPattern (pattern.get());
         });
 
-        if (text.isEmpty() || fallbackWithFamily->getNominalGlyphForCodepoint (*text.getCharPointer()).has_value())
+        if (text.isEmpty()
+            || (fallbackWithFamily != nullptr
+                && fallbackWithFamily->getNominalGlyphForCodepoint (*text.getCharPointer()).has_value()))
             return fallbackWithFamily;
 
-        const auto fallbackWithoutFamily = fromPattern (makeBasicPattern().get());
-        jassert (fallbackWithoutFamily->getNominalGlyphForCodepoint (*text.getCharPointer()).has_value());
-        return fallbackWithoutFamily;
+        return fromPattern (makeBasicPattern().get());
        #else
         // Font substitution will not work unless fontconfig is enabled.
         jassertfalse;
